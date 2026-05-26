@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Listig">
+  <meta name="theme-color" content="#1C1814">
+  <link rel="manifest" href="manifest.json">
+  <title>Listig</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #E4DDD2;
+      --surf:     #EFE9DF;
+      --surf2:    #F8F5F0;
+      --tx:       #1C1814;
+      --tx2:      #6A6258;
+      --tx3:      #A09888;
+      --bdr:      #CCC6B8;
+      --gold:     #B8986A;
+      --gold-lt:  #D4B98A;
+      --r:        8px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+      --lc:       #3A2818;
+    }
+
+    html { height: 100%; -webkit-text-size-adjust: 100%; }
+    body {
+      height: 100%; overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: var(--bg); color: var(--tx);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none; -webkit-user-select: none;
+    }
+
+    /* ── VIEWS ── */
+    #app { height: 100%; position: relative; overflow: hidden; }
+
+    .view {
+      position: absolute; inset: 0;
+      overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+    }
+    .view[data-pos="center"] { transform: translateX(0); }
+    .view[data-pos="left"]   { transform: translateX(-28%); pointer-events: none; }
+    .view[data-pos="right"]  { transform: translateX(100%); pointer-events: none; }
+
+    /* ── HOME ── */
+    .home-hd {
+      padding: calc(var(--safe-top) + 32px) 22px 12px;
+    }
+    .app-name {
+      font-size: 38px; font-weight: 200; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--tx);
+    }
+    .home-date {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--tx3); margin-top: 6px;
+    }
+
+    .cards-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; padding: 10px 16px calc(var(--safe-bot) + 36px);
+    }
+
+    .list-card {
+      border-radius: var(--r); min-height: 164px;
+      display: flex; flex-direction: column;
+      justify-content: space-between;
+      padding: 18px 16px 0; overflow: hidden;
+      cursor: pointer; position: relative;
+      transition: transform 0.14s ease;
+    }
+    .list-card:active { transform: scale(0.94); }
+
+    .card-icon { font-size: 26px; line-height: 1; }
+
+    .card-info { padding-bottom: 14px; }
+    .card-count {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(28,24,20,0.42);
+      margin-bottom: 4px;
+    }
+    .card-name {
+      font-size: 14px; font-weight: 200; color: rgba(28,24,20,0.82);
+      letter-spacing: 0.16em; line-height: 1.3; text-transform: uppercase;
+    }
+    .card-bar {
+      height: 2px; background: rgba(28,24,20,0.1);
+      position: absolute; bottom: 0; left: 0; right: 0;
+    }
+    .card-bar-fill {
+      height: 100%; background: rgba(28,24,20,0.3);
+      transition: width 0.5s ease;
+    }
+
+    .card-new {
+      background: var(--surf) !important;
+      border: 1.5px dashed var(--bdr);
+      align-items: center; justify-content: center; gap: 8px;
+      box-shadow: none !important;
+    }
+    .card-new .plus-ring {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1.5px solid var(--bdr);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: var(--tx3);
+    }
+    .card-new-label { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tx3); }
+
+    /* ── GROUP VIEW ── */
+    .group-hd {
+      position: sticky; top: 0; z-index: 10;
+      padding: calc(var(--safe-top) + 14px) 16px 24px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+
+    .ghost-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(28,24,20,0.1); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(28,24,20,0.7); flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .ghost-btn:active { background: rgba(28,24,20,0.18); }
+    .ghost-btn svg { display: block; }
+
+    .g-hd-center { flex: 1; text-align: center; padding: 0 8px; }
+    .g-icon { font-size: 30px; display: block; margin-bottom: 4px; }
+    .g-name {
+      display: block; font-size: 12px; font-weight: 200;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(28,24,20,0.75);
+    }
+
+    .sublists-wrap { padding: 0 16px calc(var(--safe-bot) + 36px); }
+
+    .sublist-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 16px;
+      background: rgba(28,24,20,0.06);
+      border-radius: var(--r); margin-bottom: 8px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .sublist-row:active { background: rgba(28,24,20,0.12); }
+    .sl-name { flex: 1; font-size: 15px; font-weight: 200; letter-spacing: 0.08em; color: rgba(28,24,20,0.82); }
+    .sl-count { font-size: 11px; color: rgba(28,24,20,0.4); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sl-arrow { color: rgba(28,24,20,0.3); }
+
+    .sl-add-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px;
+      border: 1.5px dashed rgba(28,24,20,0.18);
+      border-radius: var(--r); margin-bottom: 8px;
+      cursor: pointer; transition: background 0.15s;
+      color: rgba(28,24,20,0.38);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .sl-add-row:active { background: rgba(28,24,20,0.06); }
+
+    .group-empty {
+      text-align: center; padding: 60px 24px;
+      color: rgba(28,24,20,0.38);
+    }
+    .group-empty .e-icon { font-size: 44px; margin-bottom: 14px; }
+    .group-empty p { font-size: 14px; font-weight: 500; letter-spacing: 0.04em; }
+
+    /* ── LIST VIEW ── */
+    .list-hd {
+      position: sticky; top: 0; z-index: 10;
+      padding: calc(var(--safe-top) + 14px) 16px 22px;
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+
+    .l-hd-center { flex: 1; text-align: center; padding: 0 4px; }
+    .l-crumb {
+      display: block; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(28,24,20,0.42); margin-bottom: 3px;
+    }
+    .l-name {
+      display: block; font-size: 12px; font-weight: 200;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(28,24,20,0.78);
+    }
+
+    /* ── ITEMS ── */
+    .items-wrap {
+      padding: 8px 22px calc(var(--safe-bot) + 110px);
+      background: var(--surf2);
+      min-height: calc(100vh - 130px);
+    }
+
+    .item-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--bdr);
+      flex-wrap: wrap;
+      transition: opacity 0.3s ease;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row.done { opacity: 0.38; }
+    .item-row.done .item-text { text-decoration: line-through; }
+
+    /* Luxury checkbox — thin circle, draws checkmark */
+    .cb {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid var(--lc);
+      background: transparent; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 2px;
+      transition: background 0.22s ease, border-color 0.22s ease;
+      position: relative;
+    }
+    .cb:active { opacity: 0.6; }
+    .cb svg { position: absolute; }
+    .cb svg path {
+      stroke-dasharray: 14; stroke-dashoffset: 14;
+      transition: stroke-dashoffset 0.26s cubic-bezier(0.6,0,0.4,1) 0.04s;
+    }
+    .cb.checked { background: var(--lc); border-color: var(--lc); }
+    .cb.checked svg path { stroke-dashoffset: 0; }
+
+    .item-body { flex: 1; min-width: 0; }
+    .item-text { font-size: 16px; line-height: 1.5; color: var(--tx); word-break: break-word; }
+    .sub-prog  { font-size: 12px; color: var(--tx3); margin-top: 3px; font-weight: 500; letter-spacing: 0.04em; }
+    .qty-tag {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--tx3); background: var(--surf); padding: 3px 8px; border-radius: 3px;
+      flex-shrink: 0; margin-top: 3px; align-self: flex-start;
+    }
+    .menu-btn {
+      width: 28px; height: 28px; border: none; background: none; cursor: pointer;
+      color: var(--tx3); border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: -1px;
+    }
+
+    /* Sub-goals */
+    .subgoals {
+      flex-basis: 100%; margin-left: 36px; margin-top: 12px;
+      display: none; flex-direction: column; gap: 0;
+      border-top: 1px solid var(--bdr); padding-top: 10px;
+    }
+    .subgoals.open { display: flex; }
+    .sg-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 0; border-bottom: 1px solid var(--bdr);
+    }
+    .sg-row:last-child { border-bottom: none; }
+    .sg-text { font-size: 14px; color: var(--tx); flex: 1; }
+    .sg-row.done .sg-text { text-decoration: line-through; opacity: 0.45; }
+    .sg-add {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--tx3); cursor: pointer; padding: 10px 0 2px;
+    }
+
+    .section-lbl {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--tx3); padding: 20px 0 10px;
+    }
+
+    .empty-state { text-align: center; padding: 80px 24px; }
+    .empty-state .e-icon { font-size: 44px; margin-bottom: 14px; }
+    .empty-state .e-title { font-size: 16px; font-weight: 600; color: var(--tx); margin-bottom: 6px; }
+    .empty-state .e-sub   { font-size: 13px; color: var(--tx3); }
+
+    /* FAB */
+    .fab {
+      position: fixed; bottom: calc(var(--safe-bot) + 24px); right: 20px;
+      width: 54px; height: 54px; border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.28); z-index: 50;
+      transition: transform 0.18s ease;
+    }
+    .fab:active { transform: scale(0.88); }
+
+    /* ── OVERLAY & SHEETS ── */
+    #overlay {
+      position: fixed; inset: 0; background: rgba(28,24,20,0.45);
+      z-index: 200; opacity: 0; transition: opacity 0.28s ease;
+      pointer-events: none;
+    }
+    #overlay.on { opacity: 1; pointer-events: all; }
+
+    .sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
+      background: var(--surf2); border-radius: 20px 20px 0 0;
+      padding: 10px 22px calc(var(--safe-bot) + 30px);
+      transform: translateY(105%);
+      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
+      max-height: 88vh; overflow-y: auto;
+    }
+    .sheet.on { transform: translateY(0); }
+
+    .handle { width: 36px; height: 3px; border-radius: 2px; background: var(--bdr); margin: 0 auto 22px; }
+    .sh-title {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--tx3); margin-bottom: 18px;
+    }
+
+    /* Underline input (luxury feel) */
+    .inp {
+      width: 100%; border: none; border-bottom: 1.5px solid var(--bdr); border-radius: 0;
+      padding: 13px 0; font-size: 16px; font-family: inherit;
+      background: transparent; color: var(--tx); outline: none;
+      -webkit-appearance: none; transition: border-color 0.2s;
+    }
+    .inp:focus { border-bottom-color: var(--gold); }
+    .inp + .inp { margin-top: 2px; }
+
+    /* Primary button */
+    .btn {
+      width: 100%; padding: 16px; border: none; border-radius: 4px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #fff; cursor: pointer; margin-top: 22px;
+      transition: opacity 0.15s;
+    }
+    .btn:active { opacity: 0.78; }
+    .btn-ghost {
+      background: none; border: 1.5px solid var(--bdr); color: var(--tx2);
+      margin-top: 10px;
+    }
+
+    /* Action rows in sheets */
+    .act-list { display: flex; flex-direction: column; gap: 0; }
+    .act-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 15px 8px; border-bottom: 1px solid var(--bdr);
+      cursor: pointer; font-size: 15px; color: var(--tx);
+      transition: background 0.14s;
+    }
+    .act-row:last-child { border-bottom: none; }
+    .act-row:active { background: var(--surf); }
+    .act-row.danger { color: #C0392B; }
+    .act-icon { font-size: 18px; width: 24px; text-align: center; }
+
+    /* Move picker */
+    .picker { max-height: 55vh; overflow-y: auto; }
+    .pick-section {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--tx3); padding: 14px 8px 8px;
+    }
+    .pick-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 8px; border-bottom: 1px solid var(--bdr);
+      cursor: pointer; transition: background 0.14s;
+    }
+    .pick-row:last-child { border-bottom: none; }
+    .pick-row:active { background: var(--surf); }
+    .pick-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .pick-name { font-size: 15px; color: var(--tx); flex: 1; }
+    .pick-sub  { font-size: 12px; color: var(--tx3); }
+
+    /* Emoji/color pickers for new list */
+    .grid-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tx3); margin: 18px 0 10px; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 6px; }
+    .eg {
+      aspect-ratio: 1; border-radius: 6px; border: 1.5px solid transparent;
+      background: var(--surf); display: flex; align-items: center; justify-content: center;
+      font-size: 20px; cursor: pointer; transition: border-color 0.15s;
+    }
+    .eg.sel { border-color: var(--gold); }
+    .color-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 8px; }
+    .cg {
+      aspect-ratio: 1; border-radius: 50%; cursor: pointer;
+      border: 2.5px solid transparent; transition: border-color 0.15s, transform 0.15s;
+    }
+    .cg.sel { border-color: var(--tx); transform: scale(0.8); }
+
+    /* Confetti canvas */
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 999; display: none; }
+
+    /* Time-list quick-move highlight */
+    .pick-time {
+      background: var(--surf); border-left: 3px solid var(--gold);
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ HOME ═══ -->
+  <div id="v-home" class="view" data-pos="center">
+    <div class="home-hd">
+      <h1 class="app-name">Listig</h1>
+      <p class="home-date" id="home-date"></p>
+    </div>
+    <div class="cards-grid" id="cards-grid"></div>
+  </div>
+
+  <!-- ═══ GROUP ═══ -->
+  <div id="v-group" class="view" data-pos="right">
+    <div class="group-hd" id="group-hd">
+      <button class="ghost-btn" id="g-back">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+          <path d="M8 2L2 8L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="g-hd-center">
+        <span id="g-icon" class="g-icon"></span>
+        <span id="g-name" class="g-name"></span>
+      </div>
+      <button class="ghost-btn" id="g-add-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div id="sublists-wrap" class="sublists-wrap"></div>
+  </div>
+
+  <!-- ═══ LIST ═══ -->
+  <div id="v-list" class="view" data-pos="right">
+    <div class="list-hd" id="list-hd">
+      <button class="ghost-btn" id="l-back">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+          <path d="M8 2L2 8L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="l-hd-center">
+        <span id="l-crumb" class="l-crumb"></span>
+        <span id="l-name" class="l-name"></span>
+      </div>
+      <button class="ghost-btn" id="l-opts-btn">
+        <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
+          <circle cx="2" cy="2" r="2"/><circle cx="2" cy="8" r="2"/><circle cx="2" cy="14" r="2"/>
+        </svg>
+      </button>
+    </div>
+    <div id="items-wrap" class="items-wrap"></div>
+    <button id="fab" class="fab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div id="overlay"></div>
+
+<!-- ── ADD ITEM ── -->
+<div id="sh-add" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="add-title">Lägg till</div>
+  <input class="inp" id="add-inp" autocomplete="off" autocorrect="on" autocapitalize="sentences">
+  <div id="add-extra"></div>
+  <button class="btn" id="add-btn">Lägg till</button>
+</div>
+
+<!-- ── ADD SUBLIST ── -->
+<div id="sh-add-sublist" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="add-sl-title">Ny lista</div>
+  <input class="inp" id="add-sl-inp" autocomplete="off" autocapitalize="words">
+  <button class="btn" id="add-sl-btn">Skapa</button>
+</div>
+
+<!-- ── EDIT ITEM ── -->
+<div id="sh-edit" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Ändra</div>
+  <input class="inp" id="edit-inp" autocomplete="off" autocorrect="on" autocapitalize="sentences">
+  <button class="btn" id="edit-btn">Spara</button>
+</div>
+
+<!-- ── ITEM ACTIONS ── -->
+<div id="sh-item-actions" class="sheet">
+  <div class="handle"></div>
+  <div class="act-list">
+    <div class="act-row" id="act-move"><span class="act-icon">↗</span><span>Flytta till…</span></div>
+    <div class="act-row" id="act-edit"><span class="act-icon">✏</span><span>Ändra text</span></div>
+    <div class="act-row danger" id="act-del"><span class="act-icon">✕</span><span>Ta bort</span></div>
+  </div>
+</div>
+
+<!-- ── MOVE ITEM ── -->
+<div id="sh-move" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Flytta till</div>
+  <div class="picker" id="move-picker"></div>
+</div>
+
+<!-- ── LIST OPTIONS ── -->
+<div id="sh-list-opts" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="list-opts-title"></div>
+  <div class="act-list">
+    <div class="act-row" id="lopt-done"><span class="act-icon">◎</span><span>Rensa avklarade</span></div>
+    <div class="act-row danger" id="lopt-del"><span class="act-icon">✕</span><span>Ta bort listan</span></div>
+  </div>
+</div>
+
+<!-- ── CREATE LIST ── -->
+<div id="sh-create" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Ny lista</div>
+  <input class="inp" id="create-inp" placeholder="Namn" autocomplete="off" autocapitalize="words">
+  <div class="grid-lbl">Emoji</div>
+  <div class="emoji-grid" id="emoji-grid"></div>
+  <div class="grid-lbl">Färg</div>
+  <div class="color-grid" id="color-grid"></div>
+  <button class="btn" id="create-btn">Skapa lista</button>
+</div>
+
+<!-- ── CONFIRM ── -->
+<div id="sh-confirm" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="confirm-title"></div>
+  <p id="confirm-body" style="font-size:14px;color:var(--tx2);line-height:1.5;margin-bottom:4px"></p>
+  <button class="btn" id="confirm-ok" style="background:#C0392B">Ta bort</button>
+  <button class="btn btn-ghost" id="confirm-cancel">Avbryt</button>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════
+const DEFAULT_LISTS = [
+  { id:'todo-day',  name:'Idag',         icon:'☀️', color:'#F2BFBA', type:'todo',  items:[] },
+  { id:'todo-week', name:'Denna vecka',  icon:'📅', color:'#B4D9B8', type:'todo',  items:[] },
+  { id:'todo-month',name:'Denna månad',  icon:'🗓️', color:'#AECAE8', type:'todo',  items:[] },
+  { id:'goals',     name:'Mål',          icon:'🎯', color:'#EEE0A4', type:'goals', items:[] },
+  { id:'shopping',  name:'Inköpslistor', icon:'🛒', color:'#F4CEBC', type:'group',
+    sublists:[{ id:'sl-gen', name:'Allmänt', items:[] }] },
+  { id:'gifts',     name:'Presenter',    icon:'🎁', color:'#D8BAD8', type:'group', sublists:[] },
+  { id:'favorites', name:'Favoriter',    icon:'⭐', color:'#A8CED8', type:'group', sublists:[] },
+];
+
+const TIME_IDS = ['todo-day','todo-week','todo-month'];
+
+const EMOJIS = ['📝','🎯','🛒','🎁','⭐','💪','📚','🏃','🧘','🍎','💡','🎶','🌿','✈️','🏠','💰','❤️','🐶','🌸','🎨','🧁','🔑','🌙','☕'];
+const COLORS = ['#F2BFBA','#B4D9B8','#AECAE8','#EEE0A4','#F4CEBC','#D8BAD8','#A8CED8','#F2D4A8','#C4E4D4','#E8C4D4','#C8D8F0','#D4EAB8'];
+const CONF_COLORS = ['#C4A97A','#E8D5A8','#F5F0E8','#B8986A','#D4B98A','#ffffff','#E8C87A','#F0DCA8'];
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let S = {
+  view: 'home',    // 'home' | 'group' | 'list'
+  groupId: null,
+  listId: null,
+  itemId: null,
+  openSheet: null,
+  newList: { icon: EMOJIS[0], color: COLORS[0] },
+  confirmCb: null,
+  lists: [],
+};
+
+// ════════════════════════════════════════
+// STORAGE
+// ════════════════════════════════════════
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('listig_v4'));
+    S.lists = d?.lists ?? DEFAULT_LISTS.map(l => deepCopy(l));
+  } catch {
+    S.lists = DEFAULT_LISTS.map(l => deepCopy(l));
+  }
+}
+function save() { localStorage.setItem('listig_v4', JSON.stringify({ lists: S.lists })); }
+function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const esc = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function getList(id) { return S.lists.find(l => l.id === id); }
+
+function getSource() {
+  if (S.groupId && S.listId) {
+    const g = getList(S.groupId);
+    return g ? g.sublists.find(sl => sl.id === S.listId) : null;
+  }
+  return S.listId ? getList(S.listId) : null;
+}
+
+function getActiveColor() {
+  return S.groupId ? (getList(S.groupId)?.color ?? '#3A2818') : (getList(S.listId)?.color ?? '#3A2818');
+}
+
+function findItem(items, id) {
+  for (const it of items) {
+    if (it.id === id) return it;
+    if (it.subItems) { const s = findItem(it.subItems, id); if (s) return s; }
+  }
+  return null;
+}
+function activeItem() { const src = getSource(); return src ? findItem(src.items, S.itemId) : null; }
+
+function dateStr() {
+  const d = new Date();
+  const days = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const months = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function setViewColor(el, color) {
+  el.style.background = color;
+  document.documentElement.style.setProperty('--lc', color);
+}
+
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function pos(id, p) { document.getElementById(id).dataset.pos = p; }
+
+function goHome() {
+  closeSheet();
+  const from = S.view === 'group' ? 'v-group' : 'v-list';
+  if (S.view !== 'home') {
+    pos(from, 'right');
+    pos('v-home', 'center');
+    if (from === 'v-list') pos('v-group', 'right');
+    else pos('v-list', 'right');
+  }
+  S.view = 'home'; S.groupId = null; S.listId = null;
+  renderHome();
+}
+
+function openGroup(id) {
+  closeSheet();
+  S.groupId = id; S.listId = null; S.view = 'group';
+  pos('v-home', 'left'); pos('v-group', 'center'); pos('v-list', 'right');
+  renderGroup();
+}
+
+function openList(id) {
+  closeSheet();
+  S.groupId = null; S.listId = id; S.view = 'list';
+  pos('v-home', 'left'); pos('v-list', 'center'); pos('v-group', 'right');
+  renderList();
+}
+
+function openSublist(groupId, sublistId) {
+  closeSheet();
+  S.groupId = groupId; S.listId = sublistId; S.view = 'list';
+  pos('v-group', 'left'); pos('v-list', 'center');
+  renderList();
+}
+
+function goBack() {
+  closeSheet();
+  if (S.view === 'list' && S.groupId) {
+    pos('v-list', 'right'); pos('v-group', 'center');
+    S.listId = null; S.view = 'group';
+    renderGroup();
+  } else if (S.view === 'list' || S.view === 'group') {
+    const from = S.view === 'group' ? 'v-group' : 'v-list';
+    pos(from, 'right'); pos('v-home', 'center');
+    S.view = 'home'; S.groupId = null; S.listId = null;
+    renderHome();
+  }
+}
+
+// ════════════════════════════════════════
+// RENDER HOME
+// ════════════════════════════════════════
+function renderHome() {
+  document.getElementById('home-date').textContent = dateStr();
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+
+  S.lists.forEach(list => {
+    const isGroup = list.type === 'group';
+
+    let total = 0, done = 0;
+    if (isGroup) {
+      list.sublists.forEach(sl => {
+        total += sl.items.length;
+        done  += sl.items.filter(i => i.done).length;
+      });
+    } else {
+      total = list.items.length;
+      done  = list.items.filter(i => i.done).length;
+    }
+    const rem = total - done;
+    const pct = total > 0 ? (done / total * 100).toFixed(1) : 0;
+
+    let countText;
+    if (isGroup) {
+      const n = list.sublists.length;
+      countText = n === 0 ? 'Inga listor' : n === 1 ? '1 lista' : `${n} listor`;
+    } else {
+      countText = rem > 0 ? `${rem} kvar` : total > 0 ? 'Klart' : 'Tom lista';
+    }
+
+    const card = document.createElement('div');
+    card.className = 'list-card';
+    card.style.cssText = `background:${list.color};`;
+    card.innerHTML = `
+      <div class="card-icon">${list.icon}</div>
+      <div class="card-info">
+        <div class="card-count">${countText}</div>
+        <div class="card-name">${esc(list.name)}</div>
+      </div>
+      <div class="card-bar"><div class="card-bar-fill" style="width:${pct}%"></div></div>`;
+    card.addEventListener('click', () => {
+      if (list.type === 'group') openGroup(list.id);
+      else openList(list.id);
+    });
+    grid.appendChild(card);
+  });
+
+  // New list card
+  const nc = document.createElement('div');
+  nc.className = 'list-card card-new';
+  nc.innerHTML = `<div class="plus-ring">+</div><div class="card-new-label">Ny lista</div>`;
+  nc.addEventListener('click', showCreateList);
+  grid.appendChild(nc);
+}
+
+// ════════════════════════════════════════
+// RENDER GROUP
+// ════════════════════════════════════════
+function renderGroup() {
+  const group = getList(S.groupId); if (!group) return;
+  const hd = document.getElementById('group-hd');
+  setViewColor(hd, group.color);
+  document.getElementById('v-group').style.background = group.color;
+  document.getElementById('g-icon').textContent = group.icon;
+  document.getElementById('g-name').textContent  = group.name;
+
+  const wrap = document.getElementById('sublists-wrap');
+  wrap.innerHTML = '';
+
+  if (!group.sublists.length) {
+    const e = document.createElement('div');
+    e.className = 'group-empty';
+    e.innerHTML = `<div class="e-icon">${group.icon}</div><p>Inga listor ännu.<br>Tryck + för att skapa en.</p>`;
+    wrap.appendChild(e);
+  }
+
+  group.sublists.forEach(sl => {
+    const rem = sl.items.filter(i => !i.done).length;
+    const row = document.createElement('div');
+    row.className = 'sublist-row';
+    row.innerHTML = `
+      <span class="sl-name">${esc(sl.name)}</span>
+      <span class="sl-count">${rem > 0 ? rem + ' kvar' : sl.items.length > 0 ? 'Klart' : 'Tom'}</span>
+      <span class="sl-arrow">
+        <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
+          <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>`;
+    row.addEventListener('click', () => openSublist(group.id, sl.id));
+    wrap.appendChild(row);
+  });
+
+  // Add new sublist button
+  const addRow = document.createElement('div');
+  addRow.className = 'sl-add-row';
+  addRow.innerHTML = `<span style="font-size:18px;opacity:0.5">+</span> Ny lista`;
+  addRow.addEventListener('click', showAddSublist);
+  wrap.appendChild(addRow);
+}
+
+// ════════════════════════════════════════
+// RENDER LIST
+// ════════════════════════════════════════
+function renderList() {
+  const src    = getSource();       if (!src) return;
+  const group  = S.groupId ? getList(S.groupId) : null;
+  const color  = getActiveColor();
+  const isGoals = !group && getList(S.listId)?.type === 'goals';
+  const isShop  = !group && getList(S.listId)?.type === 'shopping';
+
+  // Header
+  const hd = document.getElementById('list-hd');
+  setViewColor(hd, color);
+  document.getElementById('l-crumb').textContent = group ? group.name : '';
+  document.getElementById('l-crumb').style.display = group ? 'block' : 'none';
+  document.getElementById('l-name').textContent  = src.name;
+  document.getElementById('fab').style.background = color;
+  document.getElementById('fab').style.boxShadow  = `0 2px 20px ${color}90`;
+
+  const wrap = document.getElementById('items-wrap');
+  wrap.innerHTML = '';
+
+  const active = src.items.filter(i => !i.done);
+  const done   = src.items.filter(i => i.done);
+
+  if (!src.items.length) {
+    wrap.innerHTML = `<div class="empty-state">
+      <div class="e-icon">${group ? group.icon : getList(S.listId)?.icon ?? '📝'}</div>
+      <div class="e-title">Listan är tom</div>
+      <div class="e-sub">Tryck + för att lägga till</div>
+    </div>`;
+    return;
+  }
+
+  active.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
+
+  if (done.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.textContent = `Avklarat · ${done.length}`;
+    wrap.appendChild(lbl);
+    done.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
+  }
+}
+
+function makeRow(item, color, isGoals, isShop) {
+  const row = document.createElement('div');
+  row.className = `item-row${item.done ? ' done' : ''}`;
+  row.dataset.id = item.id;
+
+  const subCount = isGoals && item.subItems ? item.subItems.length : 0;
+  const subDone  = isGoals && item.subItems ? item.subItems.filter(s=>s.done).length : 0;
+  const subProg  = subCount > 0 ? `<div class="sub-prog">${subDone} av ${subCount} delmål</div>` : '';
+  const qtyTag   = isShop && item.quantity ? `<span class="qty-tag">${esc(item.quantity)}</span>` : '';
+
+  row.innerHTML = `
+    <button class="cb${item.done?' checked':''}" style="--lc:${color}">
+      <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+        <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="item-body">
+      <div class="item-text">${esc(item.text)}</div>${subProg}
+    </div>
+    ${qtyTag}
+    <button class="menu-btn">
+      <svg width="3" height="13" viewBox="0 0 3 13" fill="var(--tx3)">
+        <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="1.5" cy="6.5" r="1.5"/><circle cx="1.5" cy="11.5" r="1.5"/>
+      </svg>
+    </button>`;
+
+  row.querySelector('.cb').addEventListener('click', e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    toggleItem(item.id, r.left + r.width/2, r.top + r.height/2);
+  });
+  row.querySelector('.menu-btn').addEventListener('click', () => {
+    S.itemId = item.id; openSheet('sh-item-actions');
+  });
+
+  if (isGoals) {
+    const sub = document.createElement('div');
+    sub.className = 'subgoals';
+    sub.id = `sub-${item.id}`;
+    if (item.subItems) {
+      item.subItems.forEach(sg => {
+        const sgr = document.createElement('div');
+        sgr.className = `sg-row${sg.done?' done':''}`;
+        sgr.innerHTML = `
+          <button class="cb${sg.done?' checked':''}" style="width:18px;height:18px;min-width:18px;--lc:${color}">
+            <svg width="9" height="7" viewBox="0 0 11 9" fill="none">
+              <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <span class="sg-text">${esc(sg.text)}</span>`;
+        sgr.querySelector('.cb').addEventListener('click', e => {
+          const r = e.currentTarget.getBoundingClientRect();
+          toggleSubGoal(item.id, sg.id, r.left+r.width/2, r.top+r.height/2);
+        });
+        sub.appendChild(sgr);
+      });
+    }
+    const addSub = document.createElement('div');
+    addSub.className = 'sg-add';
+    addSub.innerHTML = `<span>+</span> Lägg till delmål`;
+    addSub.addEventListener('click', () => { S.itemId = item.id; showAddSubGoal(); });
+    sub.appendChild(addSub);
+    row.appendChild(sub);
+
+    row.querySelector('.item-body').addEventListener('click', () => sub.classList.toggle('open'));
+  }
+
+  return row;
+}
+
+// ════════════════════════════════════════
+// TOGGLE ITEMS
+// ════════════════════════════════════════
+function toggleItem(id, cx, cy) {
+  const src = getSource(); if (!src) return;
+  const item = findItem(src.items, id); if (!item) return;
+  item.done = !item.done;
+  item.doneAt = item.done ? Date.now() : null;
+  if (item.done) { burst(cx, cy); vibrate(); }
+  save(); renderList();
+}
+
+function toggleSubGoal(parentId, subId, cx, cy) {
+  const src = getSource(); if (!src) return;
+  const parent = findItem(src.items, parentId); if (!parent?.subItems) return;
+  const sg = parent.subItems.find(s => s.id === subId); if (!sg) return;
+  sg.done = !sg.done;
+  if (sg.done) { burst(cx, cy); vibrate(); }
+  save(); renderList();
+}
+
+// ════════════════════════════════════════
+// ITEM ACTIONS
+// ════════════════════════════════════════
+document.getElementById('act-del').addEventListener('click', () => {
+  const src = getSource(); if (!src) return;
+  src.items = src.items.filter(i => i.id !== S.itemId);
+  save(); closeSheet(); renderList();
+});
+
+document.getElementById('act-edit').addEventListener('click', () => {
+  const item = activeItem(); if (!item) return;
+  document.getElementById('edit-inp').value = item.text;
+  document.getElementById('edit-btn').style.background = getActiveColor();
+  closeSheet();
+  setTimeout(() => { openSheet('sh-edit'); document.getElementById('edit-inp').focus(); }, 320);
+});
+
+document.getElementById('edit-btn').addEventListener('click', () => {
+  const text = document.getElementById('edit-inp').value.trim(); if (!text) return;
+  const item = activeItem(); if (!item) return;
+  item.text = text; save(); closeSheet(); renderList();
+});
+
+// ════════════════════════════════════════
+// MOVE ITEM
+// ════════════════════════════════════════
+document.getElementById('act-move').addEventListener('click', () => {
+  const picker = document.getElementById('move-picker');
+  picker.innerHTML = '';
+
+  // Build targets list
+  const timeLists  = [];
+  const otherLists = [];
+  const sublists   = [];
+
+  S.lists.forEach(l => {
+    if (l.type === 'group') {
+      l.sublists.forEach(sl => {
+        if (sl.id !== S.listId) {
+          sublists.push({ id: sl.id, name: sl.name, groupName: l.name, color: l.color, groupId: l.id });
+        }
+      });
+    } else {
+      if (l.id === S.listId) return;
+      if (TIME_IDS.includes(l.id)) timeLists.push(l);
+      else otherLists.push(l);
+    }
+  });
+
+  function addSection(label, items, isTime) {
+    if (!items.length) return;
+    if (label) {
+      const s = document.createElement('div'); s.className = 'pick-section'; s.textContent = label;
+      picker.appendChild(s);
+    }
+    items.forEach(t => {
+      const row = document.createElement('div');
+      row.className = `pick-row${isTime ? ' pick-time' : ''}`;
+      row.innerHTML = `
+        <div class="pick-dot" style="background:${t.color}"></div>
+        <span class="pick-name">${esc(t.name)}</span>
+        ${t.groupName ? `<span class="pick-sub">${esc(t.groupName)}</span>` : ''}`;
+      row.addEventListener('click', () => moveItemTo(t.groupId ?? null, t.id));
+      picker.appendChild(row);
+    });
+  }
+
+  addSection('Tidslistor', timeLists, true);
+  addSection('Övriga', otherLists, false);
+  addSection('I grupper', sublists, false);
+
+  closeSheet();
+  setTimeout(() => openSheet('sh-move'), 320);
+});
+
+function moveItemTo(targetGroupId, targetListId) {
+  const src = getSource();
+  const idx = src.items.findIndex(i => i.id === S.itemId); if (idx === -1) return;
+  const [item] = src.items.splice(idx, 1);
+  item.done = false; item.doneAt = null;
+
+  let target;
+  if (targetGroupId) {
+    const g = getList(targetGroupId);
+    target = g.sublists.find(sl => sl.id === targetListId);
+  } else {
+    target = getList(targetListId);
+  }
+  if (target) target.items.unshift(item);
+  save(); closeSheet(); renderList();
+}
+
+// ════════════════════════════════════════
+// ADD ITEM
+// ════════════════════════════════════════
+function showAdd() {
+  const src   = getSource(); if (!src) return;
+  const color = getActiveColor();
+  const isSrc = S.groupId ? 'shopping' : getList(S.listId)?.type;
+
+  document.getElementById('add-title').textContent = `Lägg till i ${src.name}`;
+  document.getElementById('add-inp').value = '';
+  document.getElementById('add-inp').placeholder =
+    isSrc === 'shopping' ? 'Vad ska du handla?' :
+    isSrc === 'goals'    ? 'Vad vill du uppnå?' : 'Vad ska du göra?';
+
+  const extra = document.getElementById('add-extra');
+  extra.innerHTML = isSrc === 'shopping'
+    ? `<input class="inp" id="qty-inp" placeholder="Antal / mängd  (valfritt)" autocomplete="off" style="margin-top:2px">`
+    : '';
+
+  document.getElementById('add-btn').style.background = color;
+  document.getElementById('add-btn').onclick = submitAdd;
+  openSheet('sh-add');
+  setTimeout(() => document.getElementById('add-inp').focus(), 360);
+}
+
+function submitAdd() {
+  const text = document.getElementById('add-inp').value.trim(); if (!text) return;
+  const src   = getSource(); if (!src) return;
+  const isSrc = S.groupId ? 'shopping' : getList(S.listId)?.type;
+
+  const item = { id: uid(), text, done: false, createdAt: Date.now(), doneAt: null };
+  if (isSrc === 'shopping') {
+    const q = document.getElementById('qty-inp');
+    if (q) item.quantity = q.value.trim() || null;
+  }
+  if (isSrc === 'goals') item.subItems = [];
+  src.items.unshift(item);
+  save(); closeSheet(); renderList();
+}
+
+function showAddSubGoal() {
+  const color = getActiveColor();
+  document.getElementById('add-title').textContent = 'Lägg till delmål';
+  document.getElementById('add-inp').value = '';
+  document.getElementById('add-inp').placeholder = 'Beskriv delmålet';
+  document.getElementById('add-extra').innerHTML = '';
+  document.getElementById('add-btn').style.background = color;
+  document.getElementById('add-btn').onclick = submitSubGoal;
+  openSheet('sh-add');
+  setTimeout(() => document.getElementById('add-inp').focus(), 360);
+}
+
+function submitSubGoal() {
+  const text = document.getElementById('add-inp').value.trim(); if (!text) return;
+  const src    = getSource(); if (!src) return;
+  const parent = findItem(src.items, S.itemId); if (!parent) return;
+  if (!parent.subItems) parent.subItems = [];
+  parent.subItems.push({ id: uid(), text, done: false });
+  save(); closeSheet(); renderList();
+}
+
+// ════════════════════════════════════════
+// SUBLIST (ADD/DELETE)
+// ════════════════════════════════════════
+function showAddSublist() {
+  const group = getList(S.groupId); if (!group) return;
+  const labels = { gifts:'Vems lista? (t.ex. Mamma)', shopping:'Kategori (t.ex. Mat & dryck)', favorites:'Kategori (t.ex. Böcker)' };
+  document.getElementById('add-sl-title').textContent = 'Ny lista';
+  document.getElementById('add-sl-inp').value = '';
+  document.getElementById('add-sl-inp').placeholder = labels[group.id] ?? 'Listans namn';
+  document.getElementById('add-sl-btn').style.background = group.color;
+  openSheet('sh-add-sublist');
+  setTimeout(() => document.getElementById('add-sl-inp').focus(), 360);
+}
+
+document.getElementById('add-sl-btn').addEventListener('click', () => {
+  const name = document.getElementById('add-sl-inp').value.trim(); if (!name) return;
+  const group = getList(S.groupId); if (!group) return;
+  group.sublists.push({ id: uid(), name, items: [] });
+  save(); closeSheet(); renderGroup();
+});
+
+// ════════════════════════════════════════
+// LIST OPTIONS
+// ════════════════════════════════════════
+function showListOpts() {
+  const src = getSource(); if (!src) return;
+  document.getElementById('list-opts-title').textContent = src.name;
+
+  // Show delete only for sublists (not built-in top-level lists)
+  const isDeletable = !!S.groupId;
+  document.getElementById('lopt-del').style.display = isDeletable ? 'flex' : 'none';
+  openSheet('sh-list-opts');
+}
+
+document.getElementById('lopt-done').addEventListener('click', () => {
+  const src = getSource(); if (!src) return;
+  src.items = src.items.filter(i => !i.done);
+  save(); closeSheet(); renderList();
+});
+
+document.getElementById('lopt-del').addEventListener('click', () => {
+  showConfirm('Ta bort listan?', 'Listan och allt innehåll tas bort permanent.', () => {
+    const group = getList(S.groupId); if (!group) return;
+    group.sublists = group.sublists.filter(sl => sl.id !== S.listId);
+    save(); closeSheet(); goBack();
+  });
+});
+
+// ════════════════════════════════════════
+// CREATE TOP-LEVEL LIST
+// ════════════════════════════════════════
+function showCreateList() {
+  S.newList = { icon: EMOJIS[0], color: COLORS[0] };
+  document.getElementById('create-inp').value = '';
+
+  const eg = document.getElementById('emoji-grid');
+  eg.innerHTML = '';
+  EMOJIS.forEach(e => {
+    const el = document.createElement('div');
+    el.className = `eg${e === S.newList.icon ? ' sel' : ''}`;
+    el.textContent = e;
+    el.addEventListener('click', () => {
+      S.newList.icon = e;
+      eg.querySelectorAll('.eg').forEach(x => x.classList.remove('sel')); el.classList.add('sel');
+    });
+    eg.appendChild(el);
+  });
+
+  const cg = document.getElementById('color-grid');
+  cg.innerHTML = '';
+  COLORS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = `cg${c === S.newList.color ? ' sel' : ''}`;
+    el.style.background = c;
+    el.addEventListener('click', () => {
+      S.newList.color = c;
+      document.getElementById('create-btn').style.background = c;
+      cg.querySelectorAll('.cg').forEach(x => x.classList.remove('sel')); el.classList.add('sel');
+    });
+    cg.appendChild(el);
+  });
+
+  document.getElementById('create-btn').style.background = COLORS[0];
+  openSheet('sh-create');
+  setTimeout(() => document.getElementById('create-inp').focus(), 360);
+}
+
+document.getElementById('create-btn').addEventListener('click', () => {
+  const name = document.getElementById('create-inp').value.trim(); if (!name) return;
+  S.lists.push({ id: uid(), name, icon: S.newList.icon, color: S.newList.color, type:'custom', items:[] });
+  save(); closeSheet(); renderHome();
+});
+
+// ════════════════════════════════════════
+// CONFIRM
+// ════════════════════════════════════════
+function showConfirm(title, body, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').textContent  = body;
+  S.confirmCb = cb;
+  openSheet('sh-confirm');
+}
+document.getElementById('confirm-ok').addEventListener('click', () => {
+  if (S.confirmCb) { S.confirmCb(); S.confirmCb = null; }
+});
+document.getElementById('confirm-cancel').addEventListener('click', closeSheet);
+
+// ════════════════════════════════════════
+// SHEETS
+// ════════════════════════════════════════
+function openSheet(id) {
+  document.querySelectorAll('.sheet.on').forEach(s => s.classList.remove('on'));
+  S.openSheet = id;
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+function closeSheet() {
+  document.querySelectorAll('.sheet.on').forEach(s => s.classList.remove('on'));
+  document.getElementById('overlay').classList.remove('on');
+  S.openSheet = null;
+}
+
+// ════════════════════════════════════════
+// CONFETTI (gold palette)
+// ════════════════════════════════════════
+function burst(cx, cy) {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+
+  const particles = Array.from({length:26}, () => ({
+    x: cx, y: cy,
+    vx: (Math.random()-0.5)*9,
+    vy: -(Math.random()*8+3),
+    size: Math.random()*6+2,
+    color: CONF_COLORS[Math.floor(Math.random()*CONF_COLORS.length)],
+    rot: Math.random()*360, rspd: (Math.random()-0.5)*10,
+    alpha: 1, g: 0.34,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle',
+  }));
+
+  let raf;
+  (function frame() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      if (p.alpha <= 0) return; alive = true;
+      p.vy += p.g; p.x += p.vx; p.y += p.vy;
+      p.alpha = Math.max(0, p.alpha - 0.024);
+      p.rot += p.rspd;
+      ctx.save();
+      ctx.globalAlpha = p.alpha; ctx.translate(p.x, p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'circle') { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,Math.PI*2); ctx.fill(); }
+      else ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.5);
+      ctx.restore();
+    });
+    if (alive) raf = requestAnimationFrame(frame);
+    else canvas.style.display = 'none';
+  })();
+}
+
+function vibrate() { navigator.vibrate && navigator.vibrate([6,15,6]); }
+
+// ════════════════════════════════════════
+// EVENTS
+// ════════════════════════════════════════
+document.getElementById('overlay').addEventListener('click', closeSheet);
+document.getElementById('g-back').addEventListener('click', goBack);
+document.getElementById('g-add-btn').addEventListener('click', showAddSublist);
+document.getElementById('l-back').addEventListener('click', goBack);
+document.getElementById('fab').addEventListener('click', showAdd);
+document.getElementById('l-opts-btn').addEventListener('click', showListOpts);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (S.openSheet === 'sh-add') { e.preventDefault(); document.getElementById('add-btn').click(); }
+    if (S.openSheet === 'sh-edit') { e.preventDefault(); document.getElementById('edit-btn').click(); }
+    if (S.openSheet === 'sh-create') { e.preventDefault(); document.getElementById('create-btn').click(); }
+    if (S.openSheet === 'sh-add-sublist') { e.preventDefault(); document.getElementById('add-sl-btn').click(); }
+  }
+  if (e.key === 'Escape') closeSheet();
+});
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════
+load();
+renderHome();
+</script>
+</body>
+</html>
