@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Listig">
@@ -80,7 +80,10 @@
     }
     .list-card:active { transform: scale(0.94); }
 
-    .card-icon { font-size: 26px; line-height: 1; }
+    .card-icon {
+      font-size: 44px; font-weight: 200; line-height: 1;
+      color: rgba(28,24,20,0.28); letter-spacing: 0.05em;
+    }
 
     .card-info { padding-bottom: 14px; }
     .card-count {
@@ -417,7 +420,6 @@
         </svg>
       </button>
       <div class="g-hd-center">
-        <span id="g-icon" class="g-icon"></span>
         <span id="g-name" class="g-name"></span>
       </div>
       <button class="ghost-btn" id="g-add-btn">
@@ -724,7 +726,6 @@ function renderHome() {
     card.className = 'list-card';
     card.style.cssText = `background:${list.color};`;
     card.innerHTML = `
-      <div class="card-icon">${list.icon}</div>
       <div class="card-info">
         <div class="card-count">${countText}</div>
         <div class="card-name">${esc(list.name)}</div>
@@ -753,7 +754,6 @@ function renderGroup() {
   const hd = document.getElementById('group-hd');
   setViewColor(hd, group.color);
   document.getElementById('v-group').style.background = group.color;
-  document.getElementById('g-icon').textContent = group.icon;
   document.getElementById('g-name').textContent  = group.name;
 
   const wrap = document.getElementById('sublists-wrap');
@@ -762,7 +762,7 @@ function renderGroup() {
   if (!group.sublists.length) {
     const e = document.createElement('div');
     e.className = 'group-empty';
-    e.innerHTML = `<div class="e-icon">${group.icon}</div><p>Inga listor ännu.<br>Tryck + för att skapa en.</p>`;
+    e.innerHTML = `<p>Inga listor ännu.<br>Tryck + för att skapa en.</p>`;
     wrap.appendChild(e);
   }
 
@@ -815,7 +815,6 @@ function renderList() {
 
   if (!src.items.length) {
     wrap.innerHTML = `<div class="empty-state">
-      <div class="e-icon">${group ? group.icon : getList(S.listId)?.icon ?? '📝'}</div>
       <div class="e-title">Listan är tom</div>
       <div class="e-sub">Tryck + för att lägga till</div>
     </div>`;
