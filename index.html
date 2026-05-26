@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Listig">
   <meta name="theme-color" content="#1C1814">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
   <title>Listig</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -235,6 +236,17 @@
       color: var(--tx3); background: var(--surf); padding: 3px 8px; border-radius: 3px;
       flex-shrink: 0; margin-top: 3px; align-self: flex-start;
     }
+    .price-tag {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+      color: var(--tx2); flex-shrink: 0; margin-top: 3px; align-self: flex-start;
+    }
+    .total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 0 6px; margin-top: 6px;
+      border-top: 1px solid var(--bdr);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--tx2);
+    }
     .menu-btn {
       width: 28px; height: 28px; border: none; background: none; cursor: pointer;
       color: var(--tx3); border-radius: 4px;
@@ -436,13 +448,15 @@
       </button>
     </div>
     <div id="items-wrap" class="items-wrap"></div>
-    <button id="fab" class="fab">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
   </div>
 </div>
+
+<!-- FAB lives outside views so position:fixed works on iOS -->
+<button id="fab" class="fab" style="display:none">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
 
 <canvas id="confetti"></canvas>
 <div id="overlay"></div>
@@ -614,6 +628,11 @@ function setViewColor(el, color) {
 // NAVIGATION
 // ════════════════════════════════════════
 function pos(id, p) { document.getElementById(id).dataset.pos = p; }
+function fab(show, color) {
+  const el = document.getElementById('fab');
+  el.style.display = show ? 'flex' : 'none';
+  if (show && color) { el.style.background = color; el.style.boxShadow = `0 2px 20px ${color}90`; }
+}
 
 function goHome() {
   closeSheet();
@@ -625,6 +644,7 @@ function goHome() {
     else pos('v-list', 'right');
   }
   S.view = 'home'; S.groupId = null; S.listId = null;
+  fab(false);
   renderHome();
 }
 
@@ -632,6 +652,7 @@ function openGroup(id) {
   closeSheet();
   S.groupId = id; S.listId = null; S.view = 'group';
   pos('v-home', 'left'); pos('v-group', 'center'); pos('v-list', 'right');
+  fab(false);
   renderGroup();
 }
 
@@ -639,6 +660,7 @@ function openList(id) {
   closeSheet();
   S.groupId = null; S.listId = id; S.view = 'list';
   pos('v-home', 'left'); pos('v-list', 'center'); pos('v-group', 'right');
+  fab(true, getList(id)?.color);
   renderList();
 }
 
@@ -646,6 +668,7 @@ function openSublist(groupId, sublistId) {
   closeSheet();
   S.groupId = groupId; S.listId = sublistId; S.view = 'list';
   pos('v-group', 'left'); pos('v-list', 'center');
+  fab(true, getList(groupId)?.color);
   renderList();
 }
 
@@ -654,11 +677,13 @@ function goBack() {
   if (S.view === 'list' && S.groupId) {
     pos('v-list', 'right'); pos('v-group', 'center');
     S.listId = null; S.view = 'group';
+    fab(false);
     renderGroup();
   } else if (S.view === 'list' || S.view === 'group') {
     const from = S.view === 'group' ? 'v-group' : 'v-list';
     pos(from, 'right'); pos('v-home', 'center');
     S.view = 'home'; S.groupId = null; S.listId = null;
+    fab(false);
     renderHome();
   }
 }
@@ -773,7 +798,7 @@ function renderList() {
   const group  = S.groupId ? getList(S.groupId) : null;
   const color  = getActiveColor();
   const isGoals = !group && getList(S.listId)?.type === 'goals';
-  const isShop  = !group && getList(S.listId)?.type === 'shopping';
+  const isShop  = S.groupId === 'shopping';
 
   // Header
   const hd = document.getElementById('list-hd');
@@ -781,8 +806,6 @@ function renderList() {
   document.getElementById('l-crumb').textContent = group ? group.name : '';
   document.getElementById('l-crumb').style.display = group ? 'block' : 'none';
   document.getElementById('l-name').textContent  = src.name;
-  document.getElementById('fab').style.background = color;
-  document.getElementById('fab').style.boxShadow  = `0 2px 20px ${color}90`;
 
   const wrap = document.getElementById('items-wrap');
   wrap.innerHTML = '';
@@ -808,6 +831,16 @@ function renderList() {
     wrap.appendChild(lbl);
     done.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
   }
+
+  if (isShop) {
+    const total = src.items.filter(i => !i.done && i.price).reduce((s, i) => s + i.price, 0);
+    if (total > 0) {
+      const t = document.createElement('div');
+      t.className = 'total-row';
+      t.innerHTML = `<span>Totalt kvar</span><span>${total.toLocaleString('sv-SE')} kr</span>`;
+      wrap.appendChild(t);
+    }
+  }
 }
 
 function makeRow(item, color, isGoals, isShop) {
@@ -819,6 +852,7 @@ function makeRow(item, color, isGoals, isShop) {
   const subDone  = isGoals && item.subItems ? item.subItems.filter(s=>s.done).length : 0;
   const subProg  = subCount > 0 ? `<div class="sub-prog">${subDone} av ${subCount} delmål</div>` : '';
   const qtyTag   = isShop && item.quantity ? `<span class="qty-tag">${esc(item.quantity)}</span>` : '';
+  const priceTag = isShop && item.price    ? `<span class="price-tag">${item.price.toLocaleString('sv-SE')} kr</span>` : '';
 
   row.innerHTML = `
     <button class="cb${item.done?' checked':''}" style="--lc:${color}">
@@ -829,7 +863,7 @@ function makeRow(item, color, isGoals, isShop) {
     <div class="item-body">
       <div class="item-text">${esc(item.text)}</div>${subProg}
     </div>
-    ${qtyTag}
+    ${qtyTag}${priceTag}
     <button class="menu-btn">
       <svg width="3" height="13" viewBox="0 0 3 13" fill="var(--tx3)">
         <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="1.5" cy="6.5" r="1.5"/><circle cx="1.5" cy="11.5" r="1.5"/>
@@ -998,17 +1032,19 @@ function moveItemTo(targetGroupId, targetListId) {
 function showAdd() {
   const src   = getSource(); if (!src) return;
   const color = getActiveColor();
-  const isSrc = S.groupId ? 'shopping' : getList(S.listId)?.type;
+  const isSrc = S.groupId ? getList(S.groupId)?.id : getList(S.listId)?.type;
 
   document.getElementById('add-title').textContent = `Lägg till i ${src.name}`;
   document.getElementById('add-inp').value = '';
   document.getElementById('add-inp').placeholder =
     isSrc === 'shopping' ? 'Vad ska du handla?' :
-    isSrc === 'goals'    ? 'Vad vill du uppnå?' : 'Vad ska du göra?';
+    isSrc === 'goals'    ? 'Vad vill du uppnå?' :
+    isSrc === 'gifts'    ? 'Vad ska du ge?' : 'Vad ska du göra?';
 
   const extra = document.getElementById('add-extra');
   extra.innerHTML = isSrc === 'shopping'
-    ? `<input class="inp" id="qty-inp" placeholder="Antal / mängd  (valfritt)" autocomplete="off" style="margin-top:2px">`
+    ? `<input class="inp" id="qty-inp" placeholder="Antal / mängd (valfritt)" autocomplete="off" style="margin-top:2px">
+       <input class="inp" id="price-inp" placeholder="Pris i kr (valfritt)" type="number" inputmode="decimal" min="0" autocomplete="off" style="margin-top:2px">`
     : '';
 
   document.getElementById('add-btn').style.background = color;
@@ -1020,12 +1056,14 @@ function showAdd() {
 function submitAdd() {
   const text = document.getElementById('add-inp').value.trim(); if (!text) return;
   const src   = getSource(); if (!src) return;
-  const isSrc = S.groupId ? 'shopping' : getList(S.listId)?.type;
+  const isSrc = S.groupId ? getList(S.groupId)?.id : getList(S.listId)?.type;
 
   const item = { id: uid(), text, done: false, createdAt: Date.now(), doneAt: null };
   if (isSrc === 'shopping') {
     const q = document.getElementById('qty-inp');
+    const p = document.getElementById('price-inp');
     if (q) item.quantity = q.value.trim() || null;
+    if (p && p.value) item.price = parseFloat(p.value) || null;
   }
   if (isSrc === 'goals') item.subItems = [];
   src.items.unshift(item);
