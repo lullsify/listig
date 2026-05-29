@@ -298,6 +298,20 @@
     .item-body { flex: 1; min-width: 0; }
     .item-text { font-size: 16px; line-height: 1.5; color: var(--tx); word-break: break-word; }
     .sub-prog  { font-size: 12px; color: var(--tx3); margin-top: 3px; font-weight: 500; letter-spacing: 0.04em; }
+
+    /* Circular progress ring for goals */
+    .goal-ring {
+      position: relative; width: 36px; height: 36px; flex-shrink: 0;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      margin-top: -1px;
+    }
+    .ring-svg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      transform: rotate(-90deg);
+    }
+    .ring-bg   { fill: none; stroke: var(--bdr); stroke-width: 3.2; }
+    .ring-fill { fill: none; stroke: var(--lc);  stroke-width: 3.2; stroke-linecap: round; }
+    .ring-ck   { position: relative; z-index: 1; }
     .qty-tag {
       font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--tx3); background: var(--surf); padding: 3px 8px; border-radius: 3px;
@@ -323,11 +337,10 @@
 
     /* Sub-goals */
     .subgoals {
-      flex-basis: 100%; margin-left: 36px; margin-top: 12px;
-      display: none; flex-direction: column; gap: 0;
-      border-top: 1px solid var(--bdr); padding-top: 10px;
+      flex-basis: 100%; margin-left: 36px; margin-top: 10px;
+      display: flex; flex-direction: column; gap: 0;
+      border-top: 1px solid var(--bdr); padding-top: 8px;
     }
-    .subgoals.open { display: flex; }
     .sg-row {
       display: flex; align-items: center; gap: 12px;
       padding: 9px 0; border-bottom: 1px solid var(--bdr);
@@ -374,6 +387,13 @@
       transition: transform 0.18s ease;
     }
     .fab:active { transform: scale(0.88); }
+    .fab-paste {
+      right: calc(20px + 54px + 14px);
+      width: 44px; height: 44px;
+      background: var(--surf2) !important;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.16) !important;
+      color: var(--tx2);
+    }
 
     /* ── OVERLAY & SHEETS ── */
     #overlay {
@@ -683,24 +703,16 @@
       font-size: 13px; color: var(--tx);
     }
     .dish-x { color: var(--tx3); cursor: pointer; font-size: 17px; line-height: 0.85; background: none; border: none; padding: 0; }
-    .dish-add-row { display: flex; margin-bottom: 10px; }
+    .dish-add-row { display: flex; align-items: center; margin-bottom: 18px; gap: 8px; }
     .dish-add-inp { flex: 1; margin: 0 !important; font-size: 15px !important; }
     .dish-add-btn {
-      width: 100%; border-radius: 10px; margin-bottom: 22px;
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
       background: var(--gold); border: none; color: #fff;
-      font-size: 14px; font-weight: 700; letter-spacing: 0.05em;
-      padding: 13px 18px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 22px; line-height: 1; font-weight: 300;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
     }
     .dish-add-btn:active { opacity: 0.75; }
-    .detail-photo-img {
-      width: 100%; max-height: 160px; object-fit: cover;
-      border-radius: 10px; display: block; margin-bottom: 10px;
-    }
-    .photo-btn {
-      font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--gold); cursor: pointer; background: none; border: none; padding: 0;
-    }
     .detail-del-btn {
       width: 100%; padding: 14px; border: 1.5px solid rgba(192,57,43,0.3);
       border-radius: 4px; color: #C0392B; background: none; cursor: pointer;
@@ -825,15 +837,17 @@
   <div id="v-home" class="view" data-pos="center">
     <div class="home-hd">
       <div>
-        <h1 class="app-name">Listig</h1>
+        <div style="display:flex;align-items:center;gap:10px">
+          <h1 class="app-name">Listig</h1>
+          <button class="ghost-btn" id="pin-settings-btn" title="Inställningar">
+            <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+              <rect x="1" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M3.5 7V4.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
         <p class="home-date" id="home-date"></p>
       </div>
-      <button class="ghost-btn" id="pin-settings-btn" style="flex-shrink:0" title="Inställningar">
-        <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
-          <rect x="1" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M3.5 7V4.5a2.5 2.5 0 015 0V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
     </div>
     <div class="cards-grid" id="cards-grid"></div>
   </div>
@@ -881,6 +895,13 @@
 </div>
 
 <!-- FAB lives outside views so position:fixed works on iOS -->
+<button id="fab-paste" class="fab fab-paste" style="display:none" title="Klistra in lista">
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <rect x="5" y="3" width="10" height="13" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M5 5H4a1 1 0 00-1 1v9a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M8 7h4M8 10h4M8 13h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>
+</button>
 <button id="fab" class="fab" style="display:none">
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
@@ -931,7 +952,7 @@
       <span>Importera data</span>
     </div>
   </div>
-  <input type="file" id="import-file-input" accept=".json" style="display:none">
+  <input type="file" id="import-file-input" accept=".json" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
 </div>
 
 <!-- ══ MAP OVERLAY ══ -->
@@ -1011,22 +1032,19 @@
     <div class="dishes-wrap" id="dishes-wrap"></div>
     <div class="dish-add-row">
       <input class="inp dish-add-inp" id="dish-inp" placeholder="Skriv en rätt…" autocomplete="off" autocapitalize="sentences">
+      <button class="dish-add-btn" id="dish-add-btn">+</button>
     </div>
-    <button class="dish-add-btn" id="dish-add-btn">
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="flex-shrink:0">
-        <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      Lägg till
-    </button>
 
-    <div class="grid-lbl">Foto</div>
-    <div id="detail-photo-wrap"></div>
-    <input type="file" id="detail-photo-inp" accept="image/*" style="display:none">
-
-    <button class="pl-goto-btn" id="detail-map-btn" style="margin-top:18px;margin-bottom:4px">
-      <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1L9 6L13 7L9 8L7 13L5 8L1 7L5 6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
-      Visa på kartan
-    </button>
+    <div style="display:flex;gap:10px;margin-top:18px;margin-bottom:4px">
+      <button class="pl-goto-btn" id="detail-map-btn" style="flex:1">
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1L9 6L13 7L9 8L7 13L5 8L1 7L5 6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Visa på kartan
+      </button>
+      <button class="pl-goto-btn" id="detail-share-btn" style="flex:1">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="11" cy="3" r="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="3" cy="7" r="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="11" cy="11" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M4.8 6.1l4.5-2.3M4.8 7.9l4.5 2.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Dela
+      </button>
+    </div>
     <button class="detail-del-btn" id="detail-del-btn">Ta bort plats</button>
   </div>
 
@@ -1194,6 +1212,19 @@
 </div>
 
 
+<!-- ── IMPORT ── -->
+<div id="sh-import" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Importera data</div>
+  <label for="import-file-input" class="btn" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;cursor:pointer">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 11V2M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Välj backup-fil (.json)
+  </label>
+  <p style="font-size:13px;color:var(--tx3);margin-bottom:8px;text-align:center;line-height:1.5">— eller klistra in backup-texten nedan —</p>
+  <textarea class="inp bulk-ta" id="import-ta" rows="6" placeholder='Klistra in din backup-data här...' autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
+  <button class="btn" id="import-ta-btn">Importera inklistrad text</button>
+</div>
+
 <!-- ── CONFIRM ── -->
 <div id="sh-confirm" class="sheet">
   <div class="handle"></div>
@@ -1216,7 +1247,8 @@ const DEFAULT_LISTS = [
   { id:'shopping',  name:'Inköpslistor', icon:'🛒', color:'#EBBFA4', type:'group',
     sublists:[{ id:'sl-gen', name:'Allmänt', items:[] }] },
   { id:'gifts',     name:'Presenter',    icon:'🎁', color:'#CBA8D4', type:'group', sublists:[] },
-  { id:'favorites', name:'Favoriter',    icon:'⭐', color:'#F2C490', type:'group', sublists:[] },
+  { id:'favlist',   name:'Favoriter',    icon:'❤️', color:'#E8A4B8', type:'notes', items:[] },
+  { id:'favorites', name:'Platser',       icon:'📍', color:'#F2C490', type:'group', sublists:[] },
 ];
 
 const TIME_IDS = ['todo-day','todo-week','todo-month'];
@@ -1337,7 +1369,9 @@ function setViewColor(el, color) {
 function pos(id, p) { document.getElementById(id).dataset.pos = p; }
 function fab(show, color) {
   const el = document.getElementById('fab');
+  const ep = document.getElementById('fab-paste');
   el.style.display = show ? 'flex' : 'none';
+  ep.style.display = show ? 'flex' : 'none';
   if (show && color) { el.style.background = color; el.style.boxShadow = `0 2px 20px ${color}90`; }
 }
 
@@ -1425,12 +1459,13 @@ function renderHome() {
     const rem = total - done;
     const pct = total > 0 ? (done / total * 100).toFixed(1) : 0;
 
-    const showCount = list.type === 'todo' || list.type === 'goals';
+    const showCount = (list.type === 'todo' && list.id !== 'todo-month') || list.type === 'goals';
     let countText = '';
     if (showCount) {
-      countText = rem > 0 ? `${rem} kvar` : total > 0 ? 'Klart' : '';
+      // "Klart" visas bara på todo-listor, inte Mål
+      countText = rem > 0 ? `${rem} kvar` : (total > 0 && list.type !== 'goals') ? 'Klart' : '';
     }
-    const showBar = showCount && total > 0;
+    const showBar = false; // ingen stapel på korten
 
     const card = document.createElement('div');
     card.className = 'list-card';
@@ -1488,6 +1523,18 @@ function renderGroup() {
     e.className = 'group-empty';
     e.innerHTML = `<p>Inga listor ännu.<br>Tryck + för att skapa en.</p>`;
     wrap.appendChild(e);
+  }
+
+  // "Visa alla på karta" — när det finns kartor att slå ihop
+  const mapSublists = group.sublists.filter(sl => sl.useMap);
+  if (group.id === 'favorites' && mapSublists.length >= 1) {
+    const allBtn = document.createElement('button');
+    allBtn.className = 'pl-goto-btn';
+    allBtn.style.cssText = 'width:100%;margin-bottom:16px;justify-content:center';
+    allBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1c0 0-4 3.5-4 6a4 4 0 008 0c0-2.5-4-6-4-6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="7" cy="7" r="1.4" stroke="currentColor" stroke-width="1.3"/></svg>
+      Visa alla platser på karta`;
+    allBtn.addEventListener('click', () => showMap(null));
+    wrap.appendChild(allBtn);
   }
 
   group.sublists.forEach(sl => {
@@ -1646,6 +1693,26 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
   const qtyTag   = isShop && item.quantity ? `<span class="qty-tag">${esc(item.quantity)}</span>` : '';
   const priceTag = isShop && item.price    ? `<span class="price-tag">${item.price.toLocaleString('sv-SE')} kr</span>` : '';
 
+  // Circular progress ring for goals that have sub-goals
+  const pct = item.done ? 100 : (subCount > 0 ? Math.round(subDone / subCount * 100) : 0);
+  const cbHtml = (isGoals && subCount > 0)
+    ? `<div class="goal-ring" style="--lc:${color}">
+         <svg viewBox="0 0 36 36" class="ring-svg">
+           <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
+           <circle class="ring-fill" cx="18" cy="18" r="15.9" stroke-dasharray="${pct} 100"/>
+         </svg>
+         ${item.done
+           ? `<svg class="ring-ck" width="11" height="9" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4.5L4 7.5L10 1" stroke="#1C1814" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>`
+           : (pct > 0 && pct < 100 ? `<span style="position:relative;z-index:1;font-size:9px;font-weight:800;color:var(--tx2)">${pct}%</span>` : '')}
+       </div>`
+    : `<button class="cb${item.done?' checked':(item.inProgress?' in-progress':'')}" style="--lc:${color}">
+         <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+           <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+       </button>`;
+
   // Cross-list badge
   const fromBadge = sourceListId === 'todo-week'  ? `<span class="from-week-badge">Vecka</span>`
                   : sourceListId === 'todo-month' ? `<span class="from-month-badge">Månad</span>` : '';
@@ -1660,11 +1727,7 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     ? `<span class="sched-chip">${formatScheduledDay(item.scheduledDay)}</span>` : '';
 
   row.innerHTML = `
-    <button class="cb${item.done?' checked':(item.inProgress?' in-progress':'')}" style="--lc:${color}">
-      <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-        <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    ${cbHtml}
     <div class="item-body">
       <div class="item-text">${esc(item.text)}</div>${subProg}
     </div>
@@ -1675,7 +1738,7 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
       </svg>
     </button>`;
 
-  row.querySelector('.cb').addEventListener('click', e => {
+  (row.querySelector('.cb') ?? row.querySelector('.goal-ring')).addEventListener('click', e => {
     const r = e.currentTarget.getBoundingClientRect();
     toggleItem(item.id, r.left + r.width/2, r.top + r.height/2, sourceListId ?? null);
   });
@@ -1713,14 +1776,18 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
         sub.appendChild(sgr);
       });
     }
-    const addSub = document.createElement('div');
-    addSub.className = 'sg-add';
-    addSub.innerHTML = `<span>+</span> Lägg till delmål`;
-    addSub.addEventListener('click', () => { S.itemId = item.id; showAddSubGoal(); });
-    sub.appendChild(addSub);
+    if (!item.done) {
+      const addSub = document.createElement('div');
+      addSub.className = 'sg-add';
+      addSub.innerHTML = `<svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> Lägg till delmål`;
+      addSub.addEventListener('click', e => {
+        e.stopPropagation();
+        S.itemId = item.id;
+        showAddSubGoal();
+      });
+      sub.appendChild(addSub);
+    }
     row.appendChild(sub);
-
-    row.querySelector('.item-body').addEventListener('click', () => sub.classList.toggle('open'));
   }
 
   return row;
@@ -2001,9 +2068,9 @@ function showListOpts() {
   document.getElementById('list-opts-title').textContent = src.name;
 
   const isDeletable = !!S.groupId;
-  const isGoalsList = !S.groupId && getList(S.listId)?.type === 'goals';
-  document.getElementById('lopt-del').style.display  = isDeletable  ? 'flex' : 'none';
-  document.getElementById('lopt-done').style.display = isGoalsList  ? 'none' : 'flex';
+  const isTodoList  = !S.groupId && getList(S.listId)?.type === 'todo';
+  document.getElementById('lopt-del').style.display  = isDeletable ? 'flex' : 'none';
+  document.getElementById('lopt-done').style.display = isTodoList  ? 'flex' : 'none';
 
   // Map convert: only for Favoriter sublists
   const isFavSublist = S.groupId === 'favorites' && S.listId;
@@ -2296,37 +2363,66 @@ document.getElementById('pin-remove-btn').addEventListener('click', () => {
 // ════════════════════════════════════════
 document.getElementById('export-btn').addEventListener('click', () => {
   const data = localStorage.getItem('listig_v4') ?? '[]';
-  const blob = new Blob([data], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = `listig-backup-${date}.json`;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-  closeSheet();
+  const date = new Date().toISOString().slice(0, 10);
+  const fileName = `listig-backup-${date}.json`;
+
+  if (navigator.share) {
+    // iOS / mobile: use native share sheet
+    const file = new File([data], fileName, { type: 'application/json' });
+    const shareData = navigator.canShare?.({ files: [file] })
+      ? { files: [file], title: 'Listig backup' }
+      : { title: 'Listig backup', text: data };
+    navigator.share(shareData).catch(() => {}).finally(() => closeSheet());
+  } else {
+    // Desktop: trigger file download
+    const blob = new Blob([data], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    closeSheet();
+  }
 });
 
 document.getElementById('import-btn').addEventListener('click', () => {
-  document.getElementById('import-file-input').click();
+  document.getElementById('import-ta').value = '';
+  closeSheet();
+  setTimeout(() => openSheet('sh-import'), 340);
 });
+
+function doImport(jsonText) {
+  const parsed = JSON.parse(jsonText);
+  if (!Array.isArray(parsed)) throw new Error('Ogiltigt format');
+  localStorage.setItem('listig_v4', JSON.stringify(parsed));
+  load(); runMigration(); renderHome();
+  if (S.view === 'list') { goHome(); }
+}
 
 document.getElementById('import-file-input').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
     try {
-      const parsed = JSON.parse(ev.target.result);
-      if (!Array.isArray(parsed)) throw new Error('Ogiltigt format');
-      localStorage.setItem('listig_v4', JSON.stringify(parsed));
-      load(); runMigration(); renderHome();
+      doImport(ev.target.result);
       closeSheet();
-      if (S.view === 'list') S.view = 'home';
     } catch(err) {
       alert('Kunde inte importera — kontrollera att filen är en giltig Listig-backup.');
     }
     e.target.value = '';
   };
   reader.readAsText(file);
+});
+
+document.getElementById('import-ta-btn').addEventListener('click', () => {
+  const text = document.getElementById('import-ta').value.trim();
+  if (!text) return;
+  try {
+    doImport(text);
+    closeSheet();
+  } catch(err) {
+    alert('Ogiltig backup-data — kontrollera att du klistrat in hela texten.');
+  }
 });
 
 // ════════════════════════════════════════
@@ -2371,6 +2467,7 @@ function runMigration() {
     'goals':      '#E8D47C',
     'shopping':   '#EBBFA4',
     'gifts':      '#CBA8D4',
+    'favlist':    '#E8A4B8',
     'favorites':  '#F2C490',
   };
   let forced = false;
@@ -2378,6 +2475,36 @@ function runMigration() {
     const lst = getList(id);
     if (lst && lst.color !== col) { lst.color = col; forced = true; }
   });
+  // Byt namn Favoriter → Platser och ikonen
+  const favLst = getList('favorites');
+  if (favLst && (favLst.name === 'Favoriter' || favLst.icon === '⭐')) {
+    favLst.name = 'Platser'; favLst.icon = '📍'; forced = true;
+  }
+
+  // Lägg till Favoriter-listan om den saknas
+  if (!getList('favlist')) {
+    const idx = S.lists.findIndex(l => l.id === 'favorites');
+    const newFav = { id:'favlist', name:'Favoriter', icon:'❤️', color:'#E8A4B8', type:'notes', items:[] };
+    if (idx >= 0) S.lists.splice(idx, 0, newFav); else S.lists.push(newFav);
+    forced = true;
+  }
+
+  // Skapa defaultkategorier för Platser
+  const plats = getList('favorites');
+  if (plats) {
+    if (plats.sublists.length === 0) {
+      plats.sublists = [
+        { id: 'pl-try',  name: 'Att testa',    items: [], useMap: true, markerColor: '#FFFFFF', isTryList: true },
+        { id: 'pl-rest', name: 'Restauranger', items: [], useMap: true, markerColor: '#EDAAA4' },
+        { id: 'pl-akt',  name: 'Aktiviteter',  items: [], useMap: true, markerColor: '#E8D47C' },
+      ];
+      forced = true;
+    } else if (!plats.sublists.find(s => s.id === 'pl-try')) {
+      plats.sublists.unshift({ id: 'pl-try', name: 'Att testa', items: [], useMap: true, markerColor: '#FFFFFF', isTryList: true });
+      forced = true;
+    }
+  }
+
   if (forced) save();
 
   const now      = Date.now();
@@ -2504,12 +2631,15 @@ function showBulkAdd() {
 
 document.getElementById('bulk-btn').addEventListener('click', () => {
   const raw = document.getElementById('bulk-ta').value;
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const lines = raw.split('\n')
+    .map(l => l
+      .replace(/^(\d+[.)]\s+|[-*•]\s*(\[[ xXvV✓]\]\s*)?)/u, '') // strip - [ ], * , 1. etc
+      .trim())
+    .filter(Boolean);
   if (!lines.length) return;
   const src = getSource(); if (!src) return;
-  lines.forEach(text => {
-    src.items.unshift({ id: uid(), text, done: false, createdAt: Date.now(), doneAt: null });
-  });
+  const toAdd = lines.map(text => ({ id: uid(), text, done: false, createdAt: Date.now(), doneAt: null }));
+  src.items.unshift(...toAdd); // preserve pasted order, add at top
   save(); closeSheet(); renderList();
 });
 
@@ -2554,7 +2684,7 @@ function showMap(filterSublistId) {
   const overlay = document.getElementById('map-overlay');
   const group = getList('favorites');
   const sl = filterSublistId ? group?.sublists.find(s => s.id === filterSublistId) : null;
-  document.getElementById('map-title').textContent = sl?.name ?? group?.name ?? 'Favoriter';
+  document.getElementById('map-title').textContent = sl?.name ?? group?.name ?? 'Platser';
   document.getElementById('pin-list-title').textContent = sl?.name ?? 'Platser';
   overlay.classList.add('on');
 
@@ -2598,7 +2728,7 @@ function hideMap() {
 
 // ── Custom marker icon ──
 function makeMarkerIcon(color) {
-  const c = '#E5281E';
+  const c = color ?? '#EDAAA4';
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="24" viewBox="0 0 40 38">
     <defs>
       <filter id="hs" x="-40%" y="-40%" width="180%" height="180%">
@@ -2619,7 +2749,7 @@ function makeMarkerIcon(color) {
          C 22.2 3.3, 24.7 2, 27.5 2
          C 33.3 2, 38 6.7, 38 12.5
          C 38 23, 21 34, 20 35 Z"
-      fill="${c}"/>
+      fill="${c}" stroke="${c === '#FFFFFF' ? '#C8BFB5' : 'none'}" stroke-width="1.5"/>
     <path
       d="M20 35
          C 19 34, 2 23, 2 12.5
@@ -2650,10 +2780,18 @@ function renderMapPins() {
   sublists.forEach(sl => {
     sl.items.forEach(item => {
       if (item.lat == null) return;
-      const marker = L.marker([item.lat, item.lng], { icon: makeMarkerIcon(favColor) });
+      // "Att testa": vitt hjärta → bocka av → rosa hjärta + detaljpanel
+      const markerColor = sl.isTryList
+        ? (item.done ? '#EDAAA4' : '#FFFFFF')
+        : (sl.markerColor ?? '#EDAAA4');
+      const marker = L.marker([item.lat, item.lng], { icon: makeMarkerIcon(markerColor) });
       marker.on('click', e => {
         L.DomEvent.stopPropagation(e);
         closePinPanel();
+        if (sl.isTryList && !item.done) {
+          item.done = true; item.doneAt = Date.now();
+          save(); renderMapPins();
+        }
         openPinDetail(item, sl.id);
       });
       marker.addTo(leafMap);
@@ -2696,7 +2834,7 @@ function onMapTap(e) {
     list.style.display    = '';
     const group = getList('favorites');
     if (!group || !group.sublists.length) {
-      list.innerHTML = '<p style="font-size:13px;color:var(--tx3);padding:8px">Skapa en lista i Favoriter först.</p>';
+      list.innerHTML = '<p style="font-size:13px;color:var(--tx3);padding:8px">Skapa en lista i Platser först.</p>';
     } else {
       group.sublists.forEach((sl, i) => {
         if (i === 0) selectedPinSl = sl.id;
@@ -2728,8 +2866,11 @@ document.getElementById('pin-btn').addEventListener('click', () => {
   if (!selectedPinSl) return;
   const group = getList('favorites'); if (!group) return;
   const sl = group.sublists.find(s => s.id === selectedPinSl); if (!sl) return;
-  sl.items.unshift({ id: uid(), text: name, done: false, createdAt: Date.now(), doneAt: null, lat: pendingPin.lat, lng: pendingPin.lng });
+  const newItem = { id: uid(), text: name, done: false, createdAt: Date.now(), doneAt: null, lat: pendingPin.lat, lng: pendingPin.lng };
+  const newSlId = selectedPinSl;
+  sl.items.unshift(newItem);
   save(); closePinPanel(); renderMapPins();
+  openPinDetail(newItem, newSlId);
 });
 
 document.getElementById('pin-cancel').addEventListener('click', closePinPanel);
@@ -2752,7 +2893,7 @@ function openPinDetail(item, slId) {
   document.getElementById('detail-sl-lbl').textContent = sl?.name ?? '';
   renderDetailStars(item.rating ?? 0);
   renderDetailDishes(item.dishes ?? []);
-  renderDetailPhoto(item.photo ?? null);
+
   document.getElementById('pin-detail-panel').classList.add('on');
   document.getElementById('map-hint').classList.add('hidden');
 }
@@ -2818,16 +2959,6 @@ function renderDetailDishes(dishes) {
   });
 }
 
-function renderDetailPhoto(photoSrc) {
-  const wrap = document.getElementById('detail-photo-wrap');
-  if (photoSrc) {
-    wrap.innerHTML = `<img class="detail-photo-img" src="${photoSrc}" alt=""><button class="photo-btn" id="photo-change-btn">Byt foto</button>`;
-    wrap.querySelector('#photo-change-btn').addEventListener('click', () => document.getElementById('detail-photo-inp').click());
-  } else {
-    wrap.innerHTML = `<button class="photo-btn" id="photo-add-btn">+ Lägg till foto</button>`;
-    wrap.querySelector('#photo-add-btn').addEventListener('click', () => document.getElementById('detail-photo-inp').click());
-  }
-}
 
 document.getElementById('dish-add-btn').addEventListener('click', () => {
   const inp = document.getElementById('dish-inp');
@@ -2843,13 +2974,6 @@ document.getElementById('dish-inp').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); document.getElementById('dish-add-btn').click(); }
 });
 
-document.getElementById('detail-photo-inp').addEventListener('change', async e => {
-  const file = e.target.files[0]; if (!file) return;
-  const dataUrl = await resizeImage(file, 800, 500, 0.78);
-  const it = getDetailItem(); if (!it) return;
-  it.photo = dataUrl; save(); renderDetailPhoto(dataUrl);
-  e.target.value = '';
-});
 
 document.getElementById('detail-map-btn').addEventListener('click', () => {
   const it = getDetailItem(); if (!it) return;
@@ -2859,6 +2983,31 @@ document.getElementById('detail-map-btn').addEventListener('click', () => {
   hidePinList();
   detailItemId = null; detailSlId = null;
   leafMap.setView([it.lat, it.lng], 16);
+});
+
+document.getElementById('detail-share-btn').addEventListener('click', () => {
+  const it = getDetailItem(); if (!it) return;
+  const group = getList('favorites');
+  const sl = group?.sublists.find(s => s.id === detailSlId);
+
+  const stars = it.rating
+    ? (Number.isInteger(it.rating)
+        ? '⭐'.repeat(it.rating)
+        : '⭐'.repeat(Math.floor(it.rating)) + '½')
+    : null;
+
+  const lines = [`📍 ${it.text}`];
+  if (sl?.name)          lines.push(`📋 ${sl.name}`);
+  if (stars)             lines.push(`${stars}`);
+  if (it.dishes?.length) lines.push(`🍽️ ${it.dishes.join(', ')}`);
+  if (it.lat != null)    lines.push(`🗺️ https://maps.google.com/?q=${it.lat},${it.lng}`);
+
+  const text = lines.join('\n');
+  if (navigator.share) {
+    navigator.share({ title: it.text, text }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(text).then(() => alert('Kopierat!'));
+  }
 });
 
 document.getElementById('detail-del-btn').addEventListener('click', () => {
@@ -2956,9 +3105,13 @@ function showPinList() {
       const card = document.createElement('div');
       card.className = 'pl-card';
 
+      const hc = sl.isTryList
+        ? (item.done ? '#EDAAA4' : '#FFFFFF')
+        : (sl.markerColor ?? '#EDAAA4');
+      const hStroke = hc === '#FFFFFF' ? '#C8BFB5' : 'none';
       const thumbHtml = hasPhoto
         ? `<div class="pl-thumb"><img src="${item.photo}" alt=""></div>`
-        : `<div class="pl-thumb"><span class="pl-thumb-heart">❤️</span></div>`;
+        : `<div class="pl-thumb"><svg width="22" height="20" viewBox="0 0 40 38" fill="${hc}" stroke="${hStroke}" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M20 35C19 34 2 23 2 12.5C2 6.7 6.7 2 12.5 2C15.3 2 17.8 3.3 19.3 5.4L20 6.4L20.7 5.4C22.2 3.3 24.7 2 27.5 2C33.3 2 38 6.7 38 12.5C38 23 21 34 20 35Z"/></svg></div>`;
 
       const metaLines = [];
       if (stars)               metaLines.push(`<span class="pl-stars-sm">${stars}</span>`);
@@ -3188,6 +3341,7 @@ document.getElementById('g-back').addEventListener('click', goBack);
 document.getElementById('g-opts-btn').addEventListener('click', showGroupOpts);
 document.getElementById('l-back').addEventListener('click', goBack);
 document.getElementById('fab').addEventListener('click', showAdd);
+document.getElementById('fab-paste').addEventListener('click', showBulkAdd);
 document.getElementById('l-opts-btn').addEventListener('click', showListOpts);
 
 // List opts — rename + bulk add
