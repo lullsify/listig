@@ -15,13 +15,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #F8EBDC;
-      --surf:     #FDF4EC;
-      --surf2:    #FFFAF5;
+      --bg:       #FAF6F1;
+      --surf:     #FDFBF8;
+      --surf2:    #FFFFFF;
       --tx:       #1C1814;
       --tx2:      #6A6258;
       --tx3:      #A09888;
-      --bdr:      #E8D5C0;
+      --bdr:      #E5DDD5;
       --gold:     #B8986A;
       --gold-lt:  #D4B98A;
       --r:        8px;
@@ -518,7 +518,7 @@
     .from-week-badge {
       font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
       padding: 2px 7px; border-radius: 3px;
-      background: #8BD58F; color: rgba(28,24,20,0.65);
+      background: #98C99C; color: rgba(28,24,20,0.65);
       flex-shrink: 0; align-self: center; margin-top: 2px;
     }
     /* Due-date chip */
@@ -528,12 +528,12 @@
       background: var(--surf); border: 1px solid var(--bdr); color: var(--tx3);
       flex-shrink: 0; align-self: center; margin-top: 2px;
     }
-    .due-chip.due-today { background: #E9E086; border-color: #D4CB60; color: rgba(28,24,20,0.75); }
+    .due-chip.due-today { background: #E8D47C; border-color: #D0BC58; color: rgba(28,24,20,0.75); }
     /* From-month badge */
     .from-month-badge {
       font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
       padding: 2px 7px; border-radius: 3px;
-      background: #5BA98D; color: rgba(28,24,20,0.65);
+      background: #92BCE0; color: rgba(28,24,20,0.65);
       flex-shrink: 0; align-self: center; margin-top: 2px;
     }
 
@@ -570,7 +570,7 @@
     #map-overlay {
       position: fixed; inset: 0; z-index: 300;
       display: none; flex-direction: column;
-      background: #F8EBDC;
+      background: #FAF6F1;
     }
     #map-overlay.on { display: flex; }
     #map-hd {
@@ -668,12 +668,13 @@
       color: var(--tx3); margin-bottom: 20px;
     }
     .star-row { display: flex; gap: 4px; margin-bottom: 22px; }
-    .star-btn {
-      font-size: 30px; line-height: 1; cursor: pointer;
-      background: none; border: none; padding: 2px 3px;
-      color: var(--bdr); transition: color 0.13s;
+    .star-slot { position: relative; width: 36px; height: 36px; cursor: pointer; }
+    .star-svg  { width: 36px; height: 36px; display: block; }
+    .star-hit-l, .star-hit-r {
+      position: absolute; top: 0; bottom: 0; width: 50%; z-index: 2;
     }
-    .star-btn.on { color: var(--gold); }
+    .star-hit-l { left: 0; }
+    .star-hit-r { right: 0; }
     .dishes-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
     .dish-chip {
       display: flex; align-items: center; gap: 6px;
@@ -1004,13 +1005,7 @@
     <div class="detail-sl-lbl" id="detail-sl-lbl"></div>
 
     <div class="grid-lbl">Betyg</div>
-    <div class="star-row" id="star-row">
-      <button class="star-btn" data-val="1">★</button>
-      <button class="star-btn" data-val="2">★</button>
-      <button class="star-btn" data-val="3">★</button>
-      <button class="star-btn" data-val="4">★</button>
-      <button class="star-btn" data-val="5">★</button>
-    </div>
+    <div class="star-row" id="star-row"></div>
 
     <div class="grid-lbl">Favoriträtter</div>
     <div class="dishes-wrap" id="dishes-wrap"></div>
@@ -1214,20 +1209,20 @@
 // CONSTANTS
 // ════════════════════════════════════════
 const DEFAULT_LISTS = [
-  { id:'todo-day',  name:'Idag',         icon:'☀️', color:'#F17EBD', type:'todo',  items:[] },
-  { id:'todo-week', name:'Denna vecka',  icon:'📅', color:'#8BD58F', type:'todo',  items:[] },
-  { id:'todo-month',name:'Denna månad',  icon:'🗓️', color:'#B19CE2', type:'todo',  items:[] },
-  { id:'goals',     name:'Mål',          icon:'🎯', color:'#E9E086', type:'goals', items:[] },
-  { id:'shopping',  name:'Inköpslistor', icon:'🛒', color:'#FFC86F', type:'group',
+  { id:'todo-day',  name:'Idag',         icon:'☀️', color:'#EDAAA4', type:'todo',  items:[] },
+  { id:'todo-week', name:'Denna vecka',  icon:'📅', color:'#98C99C', type:'todo',  items:[] },
+  { id:'todo-month',name:'Denna månad',  icon:'🗓️', color:'#92BCE0', type:'todo',  items:[] },
+  { id:'goals',     name:'Mål',          icon:'🎯', color:'#E8D47C', type:'goals', items:[] },
+  { id:'shopping',  name:'Inköpslistor', icon:'🛒', color:'#EBBFA4', type:'group',
     sublists:[{ id:'sl-gen', name:'Allmänt', items:[] }] },
-  { id:'gifts',     name:'Presenter',    icon:'🎁', color:'#D286D0', type:'group', sublists:[] },
-  { id:'favorites', name:'Favoriter',    icon:'⭐', color:'#5BA98D', type:'group', sublists:[] },
+  { id:'gifts',     name:'Presenter',    icon:'🎁', color:'#CBA8D4', type:'group', sublists:[] },
+  { id:'favorites', name:'Favoriter',    icon:'⭐', color:'#F2C490', type:'group', sublists:[] },
 ];
 
 const TIME_IDS = ['todo-day','todo-week','todo-month'];
 
 const EMOJIS = ['📝','🎯','🛒','🎁','⭐','💪','📚','🏃','🧘','🍎','💡','🎶','🌿','✈️','🏠','💰','❤️','🐶','🌸','🎨','🧁','🔑','🌙','☕'];
-const COLORS = ['#B19CE2','#D286D0','#F17EBD','#5BA98D','#8BD58F','#E9E086','#FFC86F','#FF847F'];
+const COLORS = ['#EDAAA4','#98C99C','#92BCE0','#E8D47C','#EBBFA4','#CBA8D4','#F2C490','#A8D4C8','#C4B4E4','#E8A4B8','#A4C4E8','#B4D4A0'];
 const CONF_COLORS = ['#C4A97A','#E8D5A8','#F5F0E8','#B8986A','#D4B98A','#ffffff','#E8C87A','#F0DCA8'];
 
 // ════════════════════════════════════════
@@ -1430,10 +1425,12 @@ function renderHome() {
     const rem = total - done;
     const pct = total > 0 ? (done / total * 100).toFixed(1) : 0;
 
+    const showCount = list.type === 'todo' || list.type === 'goals';
     let countText = '';
-    if (list.type === 'todo') {
+    if (showCount) {
       countText = rem > 0 ? `${rem} kvar` : total > 0 ? 'Klart' : '';
     }
+    const showBar = showCount && total > 0;
 
     const card = document.createElement('div');
     card.className = 'list-card';
@@ -1443,11 +1440,23 @@ function renderHome() {
         <div class="card-count">${countText}</div>
         <div class="card-name">${esc(list.name)}</div>
       </div>
-      <div class="card-bar"><div class="card-bar-fill" style="width:${pct}%"></div></div>`;
+      ${showBar ? `<div class="card-bar"><div class="card-bar-fill" style="width:${pct}%"></div></div>` : ''}`;
     card.addEventListener('click', () => {
       if (list.type === 'group') openGroup(list.id);
       else openList(list.id);
     });
+
+    // Långtryck → byt namn
+    let pressTimer;
+    card.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(() => {
+        navigator.vibrate?.(30);
+        showRename('list', list.id, null, list.name);
+      }, 600);
+    }, { passive: true });
+    card.addEventListener('touchend',   () => clearTimeout(pressTimer), { passive: true });
+    card.addEventListener('touchmove',  () => clearTimeout(pressTimer), { passive: true });
+
     grid.appendChild(card);
   });
 
@@ -1888,18 +1897,18 @@ function showAdd() {
 
   document.getElementById('add-title').textContent = `Lägg till i ${src.name}`;
   document.getElementById('add-inp').value = '';
+  const isTodoList = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
   document.getElementById('add-inp').placeholder =
     isSrc === 'shopping' ? 'Vad ska du handla?' :
     isSrc === 'goals'    ? 'Vad vill du uppnå?' :
-    isSrc === 'gifts'    ? 'Vad ska du ge?' : 'Vad ska du göra?';
-
-  const isTodo = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+    isSrc === 'gifts'    ? 'Vad ska du ge?' :
+    isTodoList           ? 'Vad ska du göra?' : `Lägg till i ${src.name}…`;
 
   const extra = document.getElementById('add-extra');
   if (isSrc === 'shopping') {
     extra.innerHTML = `<input class="inp" id="qty-inp" placeholder="Antal / mängd (valfritt)" autocomplete="off" style="margin-top:2px">
        <input class="inp" id="price-inp" placeholder="Pris i kr (valfritt)" type="number" inputmode="decimal" min="0" autocomplete="off" style="margin-top:2px">`;
-  } else if (isTodo) {
+  } else if (isTodoList) {
     extra.innerHTML = `<div class="grid-lbl" style="margin-top:16px;margin-bottom:2px">Datum (valfritt)</div>
       <input class="inp" id="due-inp" type="date" style="color:var(--tx2)">`;
   } else {
@@ -2326,29 +2335,20 @@ document.getElementById('import-file-input').addEventListener('change', e => {
 function runMigration() {
   // ── Färgmigration: byt ut gamla färger mot nya paletten ──
   const COLOR_MAP = {
-    // Allra första paletten
-    '#F2BFBA': '#F17EBD',
-    '#B4D9B8': '#8BD58F',
-    '#AECAE8': '#5BA98D',
-    '#EEE0A4': '#E9E086',
-    '#F4CEBC': '#FFC86F',
-    '#D8BAD8': '#D286D0',
-    '#A8CED8': '#5BA98D',
-    '#F2D4A8': '#FFC86F',
-    '#C4E4D4': '#8BD58F',
-    '#E8C4D4': '#F17EBD',
-    '#C8D8F0': '#B19CE2',
-    '#D4EAB8': '#E9E086',
-    // Förra omgångens palett
-    '#BFA7EB': '#B19CE2',
-    '#E29FD9': '#D286D0',
-    '#F99FC3': '#F17EBD',
-    '#DFAAC3': '#F17EBD',
-    '#5BA98D': '#5BA98D',
-    '#A4E4BF': '#8BD58F',
-    '#E3F29C': '#E9E086',
-    '#FFF197': '#E9E086',
-    '#FFE5B6': '#FFC86F',
+    // Alla tidigare varianter → nya mättade versioner
+    '#F2BFBA': '#EDAAA4', '#B4D9B8': '#98C99C', '#AECAE8': '#92BCE0',
+    '#EEE0A4': '#E8D47C', '#F4CEBC': '#EBBFA4', '#D8BAD8': '#CBA8D4',
+    '#F2C490': '#F2C490', '#F2D4A8': '#EBBFA4', '#C4E4D4': '#A8D4C8',
+    '#E8C4D4': '#E8A4B8', '#C8D8F0': '#92BCE0', '#D4EAB8': '#B4D4A0',
+    '#BFA7EB': '#C4B4E4', '#E29FD9': '#CBA8D4', '#F99FC3': '#EDAAA4',
+    '#DFAAC3': '#EDAAA4', '#9FD2D5': '#A8D4C8', '#A4E4BF': '#98C99C',
+    '#E3F29C': '#E8D47C', '#FFF197': '#E8D47C', '#FFE5B6': '#EBBFA4',
+    '#B19CE2': '#C4B4E4', '#D286D0': '#CBA8D4', '#F17EBD': '#E8A4B8',
+    '#5BA98D': '#A8D4C8', '#8BD58F': '#98C99C', '#E9E086': '#E8D47C',
+    '#FFC86F': '#F2C490', '#FF847F': '#EDAAA4',
+    '#DCD2F2': '#C4B4E4', '#EBC9EA': '#CBA8D4', '#F9C5E1': '#EDAAA4',
+    '#B5D8CC': '#A8D4C8', '#CBECCD': '#98C99C', '#F5F1C9': '#E8D47C',
+    '#FFE6BE': '#F2C490', '#FFC8C5': '#EDAAA4',
   };
   let colorChanged = false;
   S.lists.forEach(lst => {
@@ -2362,6 +2362,23 @@ function runMigration() {
     });
   });
   if (colorChanged) save();
+
+  // ── Tvinga rätt färg per lista oavsett vad som ligger i localStorage ──
+  const FORCED = {
+    'todo-day':   '#EDAAA4',
+    'todo-week':  '#98C99C',
+    'todo-month': '#92BCE0',
+    'goals':      '#E8D47C',
+    'shopping':   '#EBBFA4',
+    'gifts':      '#CBA8D4',
+    'favorites':  '#F2C490',
+  };
+  let forced = false;
+  Object.entries(FORCED).forEach(([id, col]) => {
+    const lst = getList(id);
+    if (lst && lst.color !== col) { lst.color = col; forced = true; }
+  });
+  if (forced) save();
 
   const now      = Date.now();
   const ONE_DAY  = 86400000;
@@ -2629,7 +2646,7 @@ function renderMapPins() {
     ? group.sublists.filter(sl => sl.id === currentMapSublistId)
     : group.sublists;
 
-  const favColor = group.color ?? '#5BA98D';
+  const favColor = group.color ?? '#F2C490';
   sublists.forEach(sl => {
     sl.items.forEach(item => {
       if (item.lat == null) return;
@@ -2701,7 +2718,7 @@ function onMapTap(e) {
     }
   }
 
-  const favColor = getList('favorites')?.color ?? '#5BA98D';
+  const favColor = getList('favorites')?.color ?? '#F2C490';
   document.getElementById('pin-btn').style.background = favColor;
   openPinPanel();
 }
@@ -2750,10 +2767,39 @@ function closePinDetail() {
   detailItemId = null; detailSlId = null;
 }
 
+let _sgN = 0;
 function renderDetailStars(rating) {
-  document.querySelectorAll('.star-btn').forEach(btn => {
-    btn.classList.toggle('on', +btn.dataset.val <= rating);
-  });
+  const row = document.getElementById('star-row');
+  row.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const pct = rating >= i ? 100 : rating >= i - 0.5 ? 50 : 0;
+    const gid = `sg${++_sgN}`;
+    const slot = document.createElement('div');
+    slot.className = 'star-slot';
+    slot.innerHTML = `
+      <svg viewBox="0 0 24 24" class="star-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${gid}" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="${pct}%" style="stop-color:var(--gold)"/>
+            <stop offset="${pct}%" style="stop-color:var(--bdr)"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9-6.2-3.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1z"
+              fill="url(#${gid})"/>
+      </svg>
+      <div class="star-hit-l" data-val="${i - 0.5}"></div>
+      <div class="star-hit-r" data-val="${i}"></div>`;
+    slot.querySelectorAll('[data-val]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const it = getDetailItem(); if (!it) return;
+        const val = +el.dataset.val;
+        it.rating = it.rating === val ? 0 : val;
+        save(); renderDetailStars(it.rating);
+      });
+    });
+    row.appendChild(slot);
+  }
 }
 
 function renderDetailDishes(dishes) {
@@ -2782,15 +2828,6 @@ function renderDetailPhoto(photoSrc) {
     wrap.querySelector('#photo-add-btn').addEventListener('click', () => document.getElementById('detail-photo-inp').click());
   }
 }
-
-document.querySelectorAll('.star-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const it = getDetailItem(); if (!it) return;
-    const val = +btn.dataset.val;
-    it.rating = (it.rating === val) ? 0 : val; // tap same star = clear
-    save(); renderDetailStars(it.rating);
-  });
-});
 
 document.getElementById('dish-add-btn').addEventListener('click', () => {
   const inp = document.getElementById('dish-inp');
@@ -2913,7 +2950,7 @@ function showPinList() {
         lastSlId = sl.id;
       }
 
-      const stars    = item.rating ? '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating) : '';
+      const stars    = item.rating ? `★ ${item.rating}` : '';
       const hasPhoto = !!item.photo;
 
       const card = document.createElement('div');
@@ -3131,7 +3168,7 @@ async function doMapSearch(q) {
             });
           }
         }
-        document.getElementById('pin-btn').style.background = getList('favorites')?.color ?? '#5BA98D';
+        document.getElementById('pin-btn').style.background = getList('favorites')?.color ?? '#F2C490';
         setTimeout(openPinPanel, 300);
       };
       row.addEventListener('touchend', pickPlace, { passive: false });
