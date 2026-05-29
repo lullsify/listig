@@ -50,7 +50,7 @@
       will-change: transform;
     }
     .view[data-pos="center"] { transform: translateX(0); }
-    .view[data-pos="left"]   { transform: translateX(-28%); pointer-events: none; }
+    .view[data-pos="left"]   { transform: translateX(-100%); pointer-events: none; }
     .view[data-pos="right"]  { transform: translateX(100%); pointer-events: none; }
 
     /* ── PIN LOCK ── */
@@ -1247,7 +1247,7 @@ const DEFAULT_LISTS = [
   { id:'shopping',  name:'Inköpslistor', icon:'🛒', color:'#EBBFA4', type:'group',
     sublists:[{ id:'sl-gen', name:'Allmänt', items:[] }] },
   { id:'gifts',     name:'Presenter',    icon:'🎁', color:'#CBA8D4', type:'group', sublists:[] },
-  { id:'favlist',   name:'Favoriter',    icon:'❤️', color:'#E8A4B8', type:'notes', items:[] },
+  { id:'favlist',   name:'Favoriter',    icon:'❤️', color:'#E8A4B8', type:'todo',  items:[] },
   { id:'favorites', name:'Platser',       icon:'📍', color:'#F2C490', type:'group', sublists:[] },
 ];
 
@@ -1459,7 +1459,7 @@ function renderHome() {
     const rem = total - done;
     const pct = total > 0 ? (done / total * 100).toFixed(1) : 0;
 
-    const showCount = (list.type === 'todo' && list.id !== 'todo-month') || list.type === 'goals';
+    const showCount = (list.type === 'todo' && list.id !== 'todo-month' && list.id !== 'favlist') || list.type === 'goals';
     let countText = '';
     if (showCount) {
       // "Klart" visas bara på todo-listor, inte Mål
@@ -2068,7 +2068,7 @@ function showListOpts() {
   document.getElementById('list-opts-title').textContent = src.name;
 
   const isDeletable = !!S.groupId;
-  const isTodoList  = !S.groupId && getList(S.listId)?.type === 'todo';
+  const isTodoList  = !S.groupId && getList(S.listId)?.type === 'todo' && S.listId !== 'favlist';
   document.getElementById('lopt-del').style.display  = isDeletable ? 'flex' : 'none';
   document.getElementById('lopt-done').style.display = isTodoList  ? 'flex' : 'none';
 
@@ -2484,9 +2484,13 @@ function runMigration() {
   // Lägg till Favoriter-listan om den saknas
   if (!getList('favlist')) {
     const idx = S.lists.findIndex(l => l.id === 'favorites');
-    const newFav = { id:'favlist', name:'Favoriter', icon:'❤️', color:'#E8A4B8', type:'notes', items:[] };
+    const newFav = { id:'favlist', name:'Favoriter', icon:'❤️', color:'#E8A4B8', type:'todo',  items:[] };
     if (idx >= 0) S.lists.splice(idx, 0, newFav); else S.lists.push(newFav);
     forced = true;
+  } else {
+    // Fixa typ om den råkade bli 'notes'
+    const fl = getList('favlist');
+    if (fl && fl.type !== 'todo') { fl.type = 'todo'; forced = true; }
   }
 
   // Skapa defaultkategorier för Platser
@@ -2495,13 +2499,18 @@ function runMigration() {
     if (plats.sublists.length === 0) {
       plats.sublists = [
         { id: 'pl-try',  name: 'Att testa',    items: [], useMap: true, markerColor: '#FFFFFF', isTryList: true },
-        { id: 'pl-rest', name: 'Restauranger', items: [], useMap: true, markerColor: '#EDAAA4' },
+        { id: 'pl-rest', name: 'Restauranger', items: [], useMap: true, markerColor: '#E8A4B8' },
         { id: 'pl-akt',  name: 'Aktiviteter',  items: [], useMap: true, markerColor: '#E8D47C' },
       ];
       forced = true;
     } else if (!plats.sublists.find(s => s.id === 'pl-try')) {
       plats.sublists.unshift({ id: 'pl-try', name: 'Att testa', items: [], useMap: true, markerColor: '#FFFFFF', isTryList: true });
       forced = true;
+    }
+    // Uppdatera Restauranger-färg till Favoriter-rosa
+    const restSl = plats.sublists.find(s => s.id === 'pl-rest');
+    if (restSl && restSl.markerColor !== '#E8A4B8') {
+      restSl.markerColor = '#E8A4B8'; forced = true;
     }
   }
 
@@ -2732,12 +2741,8 @@ function makeMarkerIcon(color) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="24" viewBox="0 0 40 38">
     <defs>
       <filter id="hs" x="-40%" y="-40%" width="180%" height="180%">
-        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.38)"/>
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.28)"/>
       </filter>
-      <radialGradient id="hg" cx="38%" cy="28%" r="55%">
-        <stop offset="0%" stop-color="white" stop-opacity="0.45"/>
-        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-      </radialGradient>
     </defs>
     <path filter="url(#hs)"
       d="M20 35
@@ -2750,17 +2755,6 @@ function makeMarkerIcon(color) {
          C 33.3 2, 38 6.7, 38 12.5
          C 38 23, 21 34, 20 35 Z"
       fill="${c}" stroke="${c === '#FFFFFF' ? '#C8BFB5' : 'none'}" stroke-width="1.5"/>
-    <path
-      d="M20 35
-         C 19 34, 2 23, 2 12.5
-         C 2 6.7, 6.7 2, 12.5 2
-         C 15.3 2, 17.8 3.3, 19.3 5.4
-         L 20 6.4
-         L 20.7 5.4
-         C 22.2 3.3, 24.7 2, 27.5 2
-         C 33.3 2, 38 6.7, 38 12.5
-         C 38 23, 21 34, 20 35 Z"
-      fill="url(#hg)"/>
   </svg>`;
   return L.divIcon({
     html: svg, className: '', iconSize: [26, 24], iconAnchor: [13, 23], popupAnchor: [0, -24]
@@ -2782,15 +2776,25 @@ function renderMapPins() {
       if (item.lat == null) return;
       // "Att testa": vitt hjärta → bocka av → rosa hjärta + detaljpanel
       const markerColor = sl.isTryList
-        ? (item.done ? '#EDAAA4' : '#FFFFFF')
-        : (sl.markerColor ?? '#EDAAA4');
+        ? (item.done ? '#E8A4B8' : '#FFFFFF')
+        : (sl.markerColor ?? '#E8A4B8');
       const marker = L.marker([item.lat, item.lng], { icon: makeMarkerIcon(markerColor) });
       marker.on('click', e => {
         L.DomEvent.stopPropagation(e);
         closePinPanel();
         if (sl.isTryList && !item.done) {
-          item.done = true; item.doneAt = Date.now();
-          save(); renderMapPins();
+          // Flytta från "Att testa" till Restauranger
+          const plats = getList('favorites');
+          const restSl = plats?.sublists.find(s => s.id === 'pl-rest');
+          if (restSl) {
+            const idx = sl.items.indexOf(item);
+            if (idx >= 0) sl.items.splice(idx, 1);
+            item.done = false; item.doneAt = null;
+            restSl.items.unshift(item);
+            save(); renderMapPins();
+            openPinDetail(item, 'pl-rest');
+            return;
+          }
         }
         openPinDetail(item, sl.id);
       });
@@ -3106,8 +3110,8 @@ function showPinList() {
       card.className = 'pl-card';
 
       const hc = sl.isTryList
-        ? (item.done ? '#EDAAA4' : '#FFFFFF')
-        : (sl.markerColor ?? '#EDAAA4');
+        ? (item.done ? '#E8A4B8' : '#FFFFFF')
+        : (sl.markerColor ?? '#E8A4B8');
       const hStroke = hc === '#FFFFFF' ? '#C8BFB5' : 'none';
       const thumbHtml = hasPhoto
         ? `<div class="pl-thumb"><img src="${item.photo}" alt=""></div>`
