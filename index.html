@@ -512,13 +512,34 @@
       touch-action: none;
     }
     .drag-handle:active { opacity: 0.6; }
-    .item-row.dragging { opacity: 0.2; pointer-events: none; }
-    .item-row.drag-over::before {
-      content: ''; display: block; position: absolute;
-      left: 0; right: 0; top: -1px; height: 2px;
-      background: var(--lc); border-radius: 1px;
+    .item-row.is-dragging-src { opacity: 0.18; }
+    .drag-insert-line {
+      height: 2px; background: var(--lc); border-radius: 1px;
+      margin: 0 4px; display: none; flex-shrink: 0;
     }
-    .item-row.drag-over { position: relative; }
+
+    /* ── Import drop zone ── */
+    .import-zone {
+      display: block; border: 2px dashed var(--bdr); border-radius: 14px;
+      padding: 36px 20px; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; margin-bottom: 16px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .import-zone:active, .import-zone.dragover {
+      border-color: var(--gold); background: rgba(184,152,106,0.07);
+    }
+    .import-zone.ready { border-color: #6BAF8A; background: rgba(107,175,138,0.07); }
+    .import-zone-icon { font-size: 38px; margin-bottom: 10px; }
+    .import-zone-title { font-size: 15px; font-weight: 600; color: var(--tx); margin-bottom: 5px; }
+    .import-zone-sub { font-size: 12px; color: var(--tx3); line-height: 1.5; }
+    .import-paste-toggle { margin-top: 4px; }
+    .import-paste-toggle summary {
+      font-size: 13px; color: var(--tx3); cursor: pointer;
+      text-align: center; padding: 10px 0; list-style: none; -webkit-appearance: none;
+    }
+    .import-paste-toggle summary::marker, .import-paste-toggle summary::-webkit-details-marker { display: none; }
+    .import-paste-toggle[open] summary { color: var(--tx2); }
+    .import-paste-inner { margin-top: 8px; }
 
     /* ── Goal photo ── */
     .goal-photo {
@@ -1080,6 +1101,10 @@
   <div class="handle"></div>
   <div class="sh-title" id="pin-sh-title">Inställningar</div>
   <div class="act-list">
+    <div class="act-row" id="settings-routines-btn"><span class="act-icon">🔄</span><span>Rutiner</span></div>
+  </div>
+  <div class="grid-lbl" style="margin-top:18px">Säkerhet</div>
+  <div class="act-list">
     <div class="act-row" id="pin-change-btn"><span class="act-icon">🔑</span><span id="pin-change-label">Skapa pinkod</span></div>
     <div class="act-row danger" id="pin-remove-btn" style="display:none"><span class="act-icon">✕</span><span>Ta bort pinkod</span></div>
   </div>
@@ -1104,7 +1129,6 @@
       <span>Importera data</span>
     </div>
   </div>
-  <input type="file" id="import-file-input" accept=".json" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
 </div>
 
 <!-- ══ MAP OVERLAY ══ -->
@@ -1409,14 +1433,16 @@
 <!-- ── IMPORT ── -->
 <div id="sh-import" class="sheet">
   <div class="handle"></div>
-  <div class="sh-title">Importera data</div>
-  <label for="import-file-input" class="btn" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;cursor:pointer">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 11V2M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    Välj backup-fil (.json)
+  <div class="sh-title">Återställ från backup</div>
+
+  <label class="import-zone" id="import-zone">
+    <div class="import-zone-icon" id="import-zone-icon">📂</div>
+    <div class="import-zone-title" id="import-zone-title">Tryck här för att välja fil</div>
+    <div class="import-zone-sub" id="import-zone-sub">listig-backup-ÅÅÅÅ-MM-DD.json</div>
+    <input type="file" id="import-file-input" accept=".json,application/json" style="display:none">
   </label>
-  <p style="font-size:13px;color:var(--tx3);margin-bottom:8px;text-align:center;line-height:1.5">— eller klistra in backup-texten nedan —</p>
-  <textarea class="inp bulk-ta" id="import-ta" rows="6" placeholder='Klistra in din backup-data här...' autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
-  <button class="btn" id="import-ta-btn">Importera inklistrad text</button>
+
+  <button class="btn" id="import-confirm-btn" style="display:none;background:#6BAF8A">Importera →</button>
 </div>
 
 <!-- ── CONFIRM ── -->
@@ -1640,7 +1666,7 @@ function getMonthKey(d = new Date()) {
 
 function getWeekRange() {
   const days = getWeekDays();
-  return { start: days[0].date, end: days[6].date };
+  return { start: days[0].date, end: days[5].date };
 }
 
 function getWeekDays() {
@@ -1648,9 +1674,9 @@ function getWeekDays() {
   const dow = today.getDay();
   const monday = new Date(today);
   monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
-  const names = ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
+  const names = ['Mån','Tis','Ons','Tor','Fre','Lör'];
   const todayStr = getTodayStr();
-  return Array.from({length:7}, (_,i) => {
+  return Array.from({length:6}, (_,i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     const ds = localDateStr(d);
@@ -1787,21 +1813,6 @@ function renderHome() {
 
     grid.appendChild(card);
   });
-
-  // Rutiner card
-  const rc = document.createElement('div');
-  rc.className = 'routines-card';
-  const rCount = S.routines.length;
-  rc.innerHTML = `
-    <div>
-      <div class="card-icon" style="font-size:34px">🔄</div>
-    </div>
-    <div class="card-info">
-      <div class="card-count"></div>
-      <div class="card-name">Rutiner</div>
-    </div>`;
-  rc.addEventListener('click', showRoutines);
-  grid.appendChild(rc);
 
   // New list card
   const nc = document.createElement('div');
@@ -2112,8 +2123,8 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     S.itemId = item.id;
     document.getElementById('act-schedule').style.display =
       (S.listId === 'todo-week' && !S.groupId) ? 'flex' : 'none';
-    // Visa "Ändra datum" för todo-dag/vecka/månad-listor
-    const showDate = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+    // Visa "Ändra datum" för vecka/månad-listor (inte Idag)
+    const showDate = ['todo-week','todo-month'].includes(S.listId) && !S.groupId;
     document.getElementById('act-date').style.display = showDate ? 'flex' : 'none';
     // Show in-progress option for todo/goals lists, not done items, not shopping
     const showProg = !item.done && !S.groupId && !['shopping'].includes(S.listId);
@@ -2386,7 +2397,7 @@ function showAdd() {
 
   document.getElementById('add-title').textContent = `Lägg till i ${src.name}`;
   document.getElementById('add-inp').value = '';
-  const isTodoList = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+  const isTodoList = ['todo-week','todo-month'].includes(S.listId) && !S.groupId;
   document.getElementById('add-inp').placeholder =
     isSrc === 'shopping' ? 'Vad ska du handla?' :
     isSrc === 'goals'    ? 'Vad vill du uppnå?' :
@@ -2935,6 +2946,11 @@ document.getElementById('pin-remove-btn').addEventListener('click', () => {
   closeSheet();
 });
 
+document.getElementById('settings-routines-btn').addEventListener('click', () => {
+  closeSheet();
+  setTimeout(() => showRoutines(), 320);
+});
+
 // ════════════════════════════════════════
 // IMPORT / EXPORT
 // ════════════════════════════════════════
@@ -2962,44 +2978,93 @@ document.getElementById('export-btn').addEventListener('click', () => {
   }
 });
 
-document.getElementById('import-btn').addEventListener('click', () => {
-  document.getElementById('import-ta').value = '';
-  closeSheet();
-  setTimeout(() => openSheet('sh-import'), 340);
-});
-
 function doImport(jsonText) {
   const parsed = JSON.parse(jsonText);
-  if (!Array.isArray(parsed)) throw new Error('Ogiltigt format');
-  localStorage.setItem('listig_v4', JSON.stringify(parsed));
+  let data;
+  if (Array.isArray(parsed)) {
+    // Gammalt format: bara en array av listor
+    data = { lists: parsed, routines: [], lastMonthStr: null, lastReviewWeek: null };
+  } else if (parsed && Array.isArray(parsed.lists)) {
+    // Nytt format: fullt state-objekt { lists, routines, ... }
+    data = parsed;
+  } else {
+    throw new Error('Ogiltigt format');
+  }
+  localStorage.setItem('listig_v4', JSON.stringify(data));
   load(); runMigration(); renderHome();
   if (S.view === 'list') { goHome(); }
+  closeSheet();
+  setTimeout(() => alert('✅ Data importerad! Alla dina listor är återställda.'), 200);
+}
+
+// ── Import zone: file picker + drag-and-drop ──
+let _importPending = null;
+
+function resetImportZone() {
+  document.getElementById('import-zone-icon').textContent  = '📂';
+  document.getElementById('import-zone-title').textContent = 'Tryck här för att välja fil';
+  document.getElementById('import-zone-sub').textContent   = 'listig-backup-ÅÅÅÅ-MM-DD.json';
+  document.getElementById('import-zone').classList.remove('ready', 'dragover');
+  document.getElementById('import-confirm-btn').style.display = 'none';
+  _importPending = null;
+}
+
+function previewImportFile(file, text) {
+  try {
+    const parsed = JSON.parse(text);
+    if (!parsed || (!Array.isArray(parsed) && !Array.isArray(parsed.lists))) throw new Error();
+    _importPending = text;
+    const kb = (file.size / 1024).toFixed(0);
+    document.getElementById('import-zone-icon').textContent  = '✅';
+    document.getElementById('import-zone-title').textContent = file.name;
+    document.getElementById('import-zone-sub').textContent   = `${kb} KB · Redo att återställas`;
+    document.getElementById('import-zone').classList.add('ready');
+    document.getElementById('import-confirm-btn').style.display = 'block';
+  } catch {
+    document.getElementById('import-zone-icon').textContent  = '⚠️';
+    document.getElementById('import-zone-title').textContent = 'Ogiltig fil';
+    document.getElementById('import-zone-sub').textContent   = 'Välj en giltig Listig-backup (.json)';
+    document.getElementById('import-zone').classList.remove('ready');
+    document.getElementById('import-confirm-btn').style.display = 'none';
+    _importPending = null;
+  }
 }
 
 document.getElementById('import-file-input').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      doImport(ev.target.result);
-      closeSheet();
-    } catch(err) {
-      alert('Kunde inte importera — kontrollera att filen är en giltig Listig-backup.');
-    }
-    e.target.value = '';
-  };
+  reader.onload = ev => { previewImportFile(file, ev.target.result); };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('import-confirm-btn').addEventListener('click', () => {
+  if (!_importPending) return;
+  try {
+    doImport(_importPending);
+    _importPending = null;
+  } catch {
+    alert('Kunde inte importera — filen verkar skadad.');
+  }
+});
+
+// Drag-and-drop (desktop)
+const _importZone = document.getElementById('import-zone');
+_importZone.addEventListener('dragover', e => { e.preventDefault(); _importZone.classList.add('dragover'); });
+_importZone.addEventListener('dragleave', () => _importZone.classList.remove('dragover'));
+_importZone.addEventListener('drop', e => {
+  e.preventDefault(); _importZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => previewImportFile(file, ev.target.result);
   reader.readAsText(file);
 });
 
-document.getElementById('import-ta-btn').addEventListener('click', () => {
-  const text = document.getElementById('import-ta').value.trim();
-  if (!text) return;
-  try {
-    doImport(text);
-    closeSheet();
-  } catch(err) {
-    alert('Ogiltig backup-data — kontrollera att du klistrat in hela texten.');
-  }
+// Reset zone each time the sheet opens
+document.getElementById('import-btn').addEventListener('click', () => {
+  resetImportZone();
+  closeSheet();
+  setTimeout(() => openSheet('sh-import'), 340);
 });
 
 // ════════════════════════════════════════
@@ -4105,63 +4170,102 @@ function beginDrag(e, itemId, row) {
   e.stopPropagation();
   navigator.vibrate?.(18);
 
-  const touch  = e.touches[0];
-  const rect   = row.getBoundingClientRect();
-  const wrap   = document.getElementById('items-wrap');
+  const touch = e.touches[0];
+  const rect  = row.getBoundingClientRect();
+  const wrap  = document.getElementById('items-wrap');
 
-  // Ghost
+  // Ghost — lightweight clone for visual feedback
   const ghost = row.cloneNode(true);
-  ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;
-    width:${rect.width}px;background:var(--surf2);border-radius:8px;
-    box-shadow:0 8px 28px rgba(0,0,0,0.22);opacity:0.97;pointer-events:none;z-index:600;
-    display:flex;align-items:flex-start;gap:14px;padding:15px 0;box-sizing:border-box;`;
+  ghost.style.cssText = `
+    position:fixed;left:${rect.left}px;top:${rect.top}px;
+    width:${rect.width}px;height:${rect.height}px;
+    background:var(--surf2);border-radius:10px;
+    box-shadow:0 12px 36px rgba(0,0,0,0.22);
+    opacity:0.96;pointer-events:none;z-index:600;
+    transition:none;box-sizing:border-box;`;
   document.body.appendChild(ghost);
 
-  row.classList.add('dragging');
+  // Insertion indicator line (moved into DOM between rows during drag)
+  const line = document.createElement('div');
+  line.className = 'drag-insert-line';
 
-  _drag = { itemId, row, ghost, wrap,
+  row.classList.add('is-dragging-src');
+
+  _drag = {
+    itemId, row, ghost, wrap, line,
     offsetY: touch.clientY - rect.top,
-    targetId: null };
+    insertBeforeId: undefined,  // undefined = not yet determined
+  };
 }
 
 document.addEventListener('touchmove', e => {
   if (!_drag) return;
   e.preventDefault();
   const touch = e.touches[0];
-  _drag.ghost.style.top = (touch.clientY - _drag.offsetY) + 'px';
-
-  // Detect drop target
-  const rows = [..._drag.wrap.querySelectorAll('.item-row:not(.dragging):not(.done)')];
   const cy = touch.clientY;
-  let found = null;
-  rows.forEach(r => {
-    const rb = r.getBoundingClientRect();
-    if (cy >= rb.top && cy <= rb.bottom) found = r;
-  });
-  _drag.wrap.querySelectorAll('.item-row.drag-over').forEach(r => r.classList.remove('drag-over'));
-  if (found) { found.classList.add('drag-over'); _drag.targetId = found.dataset.id; }
-  else _drag.targetId = null;
+
+  _drag.ghost.style.top = (cy - _drag.offsetY) + 'px';
+
+  // Active (non-done, non-dragging) rows
+  const rows = [..._drag.wrap.querySelectorAll('.item-row:not(.is-dragging-src):not(.done)')];
+  if (!rows.length) return;
+
+  let placed = false;
+  for (let i = 0; i < rows.length; i++) {
+    const rb = rows[i].getBoundingClientRect();
+    if (cy < rb.top + rb.height / 2) {
+      // Insert before rows[i]
+      if (_drag.line.nextSibling !== rows[i]) {
+        rows[i].parentNode.insertBefore(_drag.line, rows[i]);
+      }
+      _drag.line.style.display = 'block';
+      _drag.insertBeforeId = rows[i].dataset.id;
+      placed = true;
+      break;
+    }
+  }
+  if (!placed) {
+    // Insert after the last active row
+    const last = rows[rows.length - 1];
+    if (_drag.line.previousSibling !== last) {
+      last.after(_drag.line);
+    }
+    _drag.line.style.display = 'block';
+    _drag.insertBeforeId = null;  // null = end of active items
+  }
 }, { passive: false });
 
 document.addEventListener('touchend', () => {
   if (!_drag) return;
-  _drag.ghost.remove();
-  _drag.row.classList.remove('dragging');
-  _drag.wrap.querySelectorAll('.item-row.drag-over').forEach(r => r.classList.remove('drag-over'));
-
-  if (_drag.targetId && _drag.targetId !== _drag.itemId) {
-    const src = getSource();
-    if (src) {
-      const fi = src.items.findIndex(i => i.id === _drag.itemId);
-      const ti = src.items.findIndex(i => i.id === _drag.targetId);
-      if (fi >= 0 && ti >= 0 && fi !== ti) {
-        const [item] = src.items.splice(fi, 1);
-        src.items.splice(ti > fi ? ti - 1 : ti, 0, item);
-        save(); renderList();
-      }
-    }
-  }
+  const { itemId, insertBeforeId, ghost, row, line } = _drag;
   _drag = null;
+
+  ghost.remove();
+  if (line.parentNode) line.remove();
+  row.classList.remove('is-dragging-src');
+
+  // insertBeforeId === undefined means finger never moved — no reorder
+  if (insertBeforeId === undefined) return;
+
+  const src = getSource();
+  if (!src) return;
+  const fi = src.items.findIndex(i => i.id === itemId);
+  if (fi < 0) return;
+
+  const [item] = src.items.splice(fi, 1);
+
+  if (insertBeforeId) {
+    // Insert before the target item
+    const ti = src.items.findIndex(i => i.id === insertBeforeId);
+    src.items.splice(ti >= 0 ? ti : src.items.length, 0, item);
+  } else {
+    // Insert after last non-done item
+    let lastActive = -1;
+    src.items.forEach((it, idx) => { if (!it.done) lastActive = idx; });
+    src.items.splice(lastActive + 1, 0, item);
+  }
+  save();
+  renderList();
 });
 
 // ════════════════════════════════════════
@@ -4181,21 +4285,25 @@ function checkRoutines() {
 
   S.routines.forEach(r => {
     if (!r.days?.includes(dow)) return;
-    const target = getList(r.targetList); if (!target) return;
-    const gKey = r.targetList === 'todo-day' ? dayKey
-               : r.targetList === 'todo-week' ? weekKey : monKey;
-    if (r.lastAdded?.[gKey]) return;
-    // Only add if not already present (undone, same text)
-    if (!target.items.some(i => !i.done && i.text === r.text)) {
-      target.items.unshift({ id: uid(), text: r.text, done: false, createdAt: Date.now(), doneAt: null, isRoutine: r.id });
+    if (!r.lastAdded) r.lastAdded = {};
+
+    function tryAdd(listId, gKey) {
+      const trackKey = `${listId}_${gKey}`;
+      if (r.lastAdded[trackKey]) return;
+      const target = getList(listId); if (!target) return;
+      if (!target.items.some(i => !i.done && i.text === r.text)) {
+        target.items.unshift({ id: uid(), text: r.text, done: false, createdAt: Date.now(), doneAt: null, isRoutine: r.id });
+        changed = true;
+      }
+      // Keep bounded (max 30 keys)
+      const keys = Object.keys(r.lastAdded);
+      if (keys.length > 30) delete r.lastAdded[keys[0]];
+      r.lastAdded[trackKey] = true;
       changed = true;
     }
-    if (!r.lastAdded) r.lastAdded = {};
-    // Keep only last 14 keys to prevent unbounded growth
-    const keys = Object.keys(r.lastAdded);
-    if (keys.length > 14) delete r.lastAdded[keys[0]];
-    r.lastAdded[gKey] = true;
-    changed = true;
+
+    // Lägg till i Idag den dag rutinen matchar
+    tryAdd('todo-day', dayKey);
   });
   if (changed) save();
 }
@@ -4264,11 +4372,12 @@ function showEditRoutine(id) {
 function buildDaySelGrid(selectedDays) {
   const grid = document.getElementById('day-sel-grid');
   grid.innerHTML = '';
-  DAY_NAMES.forEach((name, i) => {
+  // Display Mon first: [1=Mån, 2=Tis, 3=Ons, 4=Tor, 5=Fre, 6=Lör, 0=Sön]
+  [1,2,3,4,5,6,0].forEach(dayIdx => {
     const btn = document.createElement('button');
-    btn.className = `day-sel-btn${selectedDays.includes(i) ? ' sel' : ''}`;
-    btn.dataset.day = i;
-    btn.textContent = name;
+    btn.className = `day-sel-btn${selectedDays.includes(dayIdx) ? ' sel' : ''}`;
+    btn.dataset.day = dayIdx;
+    btn.textContent = DAY_NAMES[dayIdx];
     btn.addEventListener('click', () => btn.classList.toggle('sel'));
     grid.appendChild(btn);
   });
