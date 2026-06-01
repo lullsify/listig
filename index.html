@@ -216,6 +216,19 @@
     .sl-name { flex: 1; font-size: 15px; font-weight: 200; letter-spacing: 0.08em; color: rgba(28,24,20,0.82); }
     .sl-count { font-size: 11px; color: rgba(28,24,20,0.4); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
     .sl-arrow { color: rgba(28,24,20,0.3); }
+    /* Favoriter-item: hjärtbullet (ingen kryssruta) */
+    .fav-bullet {
+      flex-shrink: 0; width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: #E8A4B8;
+    }
+
+    .sl-opts-btn {
+      flex-shrink: 0; background: none; border: none; cursor: pointer;
+      padding: 8px 4px 8px 10px; margin-right: -4px;
+      opacity: 0.45; display: flex; align-items: center;
+    }
+    .sl-opts-btn:active { opacity: 0.9; }
 
     .sl-add-row {
       display: flex; align-items: center; gap: 12px;
@@ -275,6 +288,8 @@
     .item-row:last-child { border-bottom: none; }
     .item-row.done { opacity: 0.38; }
     .item-row.done .item-text { text-decoration: line-through; }
+    .item-row.is-goal.done { opacity: 0.55; }
+    .item-row.is-goal.done .item-text { text-decoration: none; }
 
     /* Luxury checkbox — thin circle, draws checkmark */
     .cb {
@@ -347,7 +362,7 @@
     }
     .sg-row:last-child { border-bottom: none; }
     .sg-text { font-size: 14px; color: var(--tx); flex: 1; }
-    .sg-row.done .sg-text { text-decoration: line-through; opacity: 0.45; }
+    .sg-row.done .sg-text { opacity: 0.45; }
     .sg-add {
       display: flex; align-items: center; gap: 8px;
       font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
@@ -387,13 +402,14 @@
       transition: transform 0.18s ease;
     }
     .fab:active { transform: scale(0.88); }
-    .fab-paste {
-      right: calc(20px + 54px + 14px);
-      width: 44px; height: 44px;
-      background: var(--surf2) !important;
-      box-shadow: 0 2px 14px rgba(0,0,0,0.16) !important;
-      color: var(--tx2);
+    .add-paste-link {
+      display: none; width: 100%; margin-top: 10px;
+      background: none; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--tx3);
+      letter-spacing: 0.04em; padding: 10px 0;
+      align-items: center; justify-content: center; gap: 7px;
     }
+    .add-paste-link:active { opacity: 0.6; }
 
     /* ── OVERLAY & SHEETS ── */
     #overlay {
@@ -487,6 +503,129 @@
       border: 2.5px solid transparent; transition: border-color 0.15s, transform 0.15s;
     }
     .cg.sel { border-color: var(--tx); transform: scale(0.8); }
+
+    /* ── Drag to reorder ── */
+    .drag-handle {
+      flex-shrink: 0; width: 20px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.22; cursor: grab; color: var(--tx3);
+      touch-action: none;
+    }
+    .drag-handle:active { opacity: 0.6; }
+    .item-row.dragging { opacity: 0.2; pointer-events: none; }
+    .item-row.drag-over::before {
+      content: ''; display: block; position: absolute;
+      left: 0; right: 0; top: -1px; height: 2px;
+      background: var(--lc); border-radius: 1px;
+    }
+    .item-row.drag-over { position: relative; }
+
+    /* ── Goal photo ── */
+    .goal-photo {
+      width: 100%; max-height: 120px; object-fit: cover;
+      border-radius: 8px; margin-top: 8px; display: block; cursor: pointer;
+    }
+
+    /* ── Rutiner home card ── */
+    .routines-card {
+      border-radius: var(--r); min-height: 164px;
+      background: #A8D4C8;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 18px 16px 0; overflow: hidden; cursor: pointer; position: relative;
+      transition: transform 0.14s ease;
+    }
+    .routines-card:active { transform: scale(0.94); }
+
+    /* ── Routine rows in management sheet ── */
+    .routine-row {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 8px; border-bottom: 1px solid var(--bdr); cursor: pointer;
+    }
+    .routine-row:last-child { border-bottom: none; }
+    .routine-row:active { background: var(--surf); border-radius: 6px; }
+    .routine-day-chip {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 3px; background: var(--surf); color: var(--tx3);
+    }
+    .routine-days { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+    /* ── Day selector in add-routine ── */
+    .day-sel-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; }
+    .day-sel-btn {
+      aspect-ratio: 1; border-radius: 6px; border: 1.5px solid var(--bdr);
+      background: var(--surf); font-size: 9px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--tx3); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .day-sel-btn.sel { background: rgba(28,24,20,0.85); color: #fff; border-color: rgba(28,24,20,0.85); }
+
+    /* ── Mallar ── */
+    .template-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 15px 8px; border-bottom: 1px solid var(--bdr); cursor: pointer;
+      transition: background 0.14s; border-radius: 6px;
+    }
+    .template-row:last-child { border-bottom: none; }
+    .template-row:active { background: var(--surf); }
+    .template-icon { font-size: 26px; flex-shrink: 0; }
+    .template-info { flex: 1; }
+    .template-name { font-size: 15px; font-weight: 500; color: var(--tx); }
+    .template-desc { font-size: 12px; color: var(--tx3); margin-top: 2px; }
+
+    /* ── Delad lista (sharing) ── */
+    .share-code-box {
+      background: var(--surf); border: 1.5px solid var(--bdr); border-radius: 10px;
+      padding: 20px; text-align: center; margin: 14px 0;
+    }
+    .share-code {
+      font-size: 32px; font-weight: 200; letter-spacing: 0.22em;
+      color: var(--tx); font-variant-numeric: tabular-nums;
+    }
+    .share-code-lbl {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--tx3); margin-top: 6px;
+    }
+    .share-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--bdr);
+      flex-shrink: 0; transition: background 0.3s;
+    }
+    .share-status-dot.live { background: #5CB85C; }
+
+    /* ── Weekly review ── */
+    .review-emoji { font-size: 44px; text-align: center; padding: 14px 0 4px; }
+    .review-stat { text-align: center; margin-bottom: 20px; }
+    .review-stat-num {
+      font-size: 52px; font-weight: 200; color: var(--tx); line-height: 1; letter-spacing: -0.02em;
+    }
+    .review-stat-lbl {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--tx3); margin-top: 6px;
+    }
+    .review-item-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 6px; border-bottom: 1px solid var(--bdr); font-size: 15px; color: var(--tx);
+    }
+    .review-item-row:last-child { border-bottom: none; }
+    .review-del-btn {
+      margin-left: auto; background: none; border: none; font-size: 20px;
+      color: var(--tx3); cursor: pointer; padding: 4px 2px; flex-shrink: 0;
+    }
+
+    /* Segmented control — list creation */
+    .seg-ctrl {
+      display: flex; border-radius: 8px; overflow: hidden;
+      border: 1.5px solid var(--bdr);
+    }
+    .seg-btn {
+      flex: 1; padding: 11px 8px; border: none; background: transparent;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--tx3); cursor: pointer; transition: background 0.15s, color 0.15s;
+      font-family: inherit;
+    }
+    .seg-btn + .seg-btn { border-left: 1.5px solid var(--bdr); }
+    .seg-btn.sel { background: rgba(28,24,20,0.85); color: #fff; }
 
     /* Toggle switch */
     .toggle-row { display: flex; align-items: center; justify-content: space-between; }
@@ -915,13 +1054,6 @@
 </div>
 
 <!-- FAB lives outside views so position:fixed works on iOS -->
-<button id="fab-paste" class="fab fab-paste" style="display:none" title="Klistra in lista">
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <rect x="5" y="3" width="10" height="13" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-    <path d="M5 5H4a1 1 0 00-1 1v9a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M8 7h4M8 10h4M8 13h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-  </svg>
-</button>
 <button id="fab" class="fab" style="display:none">
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
@@ -1091,7 +1223,7 @@
           <path d="M8 2L2 8L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <span class="g-name" style="flex:1;text-align:center" id="pin-list-title">Platser</span>
+      <span class="g-name" style="flex:1;text-align:center" id="pin-list-title">Platser att besöka</span>
       <div style="width:36px"></div>
     </div>
     <!-- Toolbar: sort + area filter -->
@@ -1116,6 +1248,9 @@
 </div>
 
 <canvas id="confetti"></canvas>
+<div id="boom-wrap" style="display:none;position:fixed;inset:0;z-index:1000;pointer-events:none;align-items:center;justify-content:center">
+  <span id="boom-txt" style="font-size:72px;font-weight:200;letter-spacing:0.18em;text-transform:uppercase;color:#2C2420;will-change:transform,opacity">SÅÅÅJA!</span>
+</div>
 <div id="overlay"></div>
 
 <!-- ── ADD ITEM ── -->
@@ -1125,12 +1260,20 @@
   <input class="inp" id="add-inp" autocomplete="off" autocorrect="on" autocapitalize="sentences">
   <div id="add-extra"></div>
   <button class="btn" id="add-btn">Lägg till</button>
+  <button class="add-paste-link" id="add-paste-link">
+    <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+      <rect x="5" y="3" width="10" height="13" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M5 5H4a1 1 0 00-1 1v9a1 1 0 001 1h8a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M8 7h4M8 10h4M8 13h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+    Klistra in lista
+  </button>
 </div>
 
 <!-- ── ADD SUBLIST ── -->
 <div id="sh-add-sublist" class="sheet">
   <div class="handle"></div>
-  <div class="sh-title" id="add-sl-title">Ny lista</div>
+  <div class="sh-title" id="add-sl-title">Ny underkategori</div>
   <input class="inp" id="add-sl-inp" autocomplete="off" autocapitalize="words">
   <div id="add-sl-map-wrap" style="display:none">
     <div class="toggle-row" style="margin-top:18px">
@@ -1161,9 +1304,20 @@
     </div>
     <div class="act-row" id="act-schedule" style="display:none"><span class="act-icon">📅</span><span>Schemalägg dag</span></div>
     <div class="act-row" id="act-move"><span class="act-icon">↗</span><span>Flytta till…</span></div>
+    <div class="act-row" id="act-date" style="display:none"><span class="act-icon">📅</span><span>Ändra datum</span></div>
+    <div class="act-row" id="act-photo" style="display:none"><span class="act-icon">📷</span><span id="act-photo-lbl">Lägg till foto</span></div>
     <div class="act-row" id="act-edit"><span class="act-icon">✏</span><span>Ändra text</span></div>
     <div class="act-row danger" id="act-del"><span class="act-icon">✕</span><span>Ta bort</span></div>
   </div>
+</div>
+
+<!-- ── EDIT DATE ── -->
+<div id="sh-edit-date" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Ändra datum</div>
+  <input class="inp" id="edit-date-inp" type="date" style="color:var(--tx2)">
+  <button class="btn" id="edit-date-save">Spara</button>
+  <button class="btn btn-ghost" id="edit-date-clear">Ta bort datum</button>
 </div>
 
 <!-- ── SCHEDULE DAY ── -->
@@ -1186,6 +1340,7 @@
   <div class="handle"></div>
   <div class="sh-title" id="list-opts-title"></div>
   <div class="act-list">
+    <div class="act-row" id="lopt-routines" style="display:none"><span class="act-icon">🔄</span><span>Rutiner</span></div>
     <div class="act-row" id="lopt-rename"><span class="act-icon">✏</span><span>Byt namn</span></div>
     <div class="act-row" id="lopt-bulk"><span class="act-icon">⎘</span><span>Klistra in lista</span></div>
     <div class="act-row" id="lopt-done"><span class="act-icon">◎</span><span>Rensa avklarade</span></div>
@@ -1197,12 +1352,27 @@
 <!-- ── CREATE LIST ── -->
 <div id="sh-create" class="sheet">
   <div class="handle"></div>
-  <div class="sh-title">Ny lista</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+    <div class="sh-title" style="margin-bottom:0">Ny lista</div>
+    <button style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold)" id="show-templates-btn">Använd mall</button>
+  </div>
   <input class="inp" id="create-inp" placeholder="Namn" autocomplete="off" autocapitalize="words">
   <div class="grid-lbl">Emoji</div>
   <div class="emoji-grid" id="emoji-grid"></div>
   <div class="grid-lbl">Färg</div>
   <div class="color-grid" id="color-grid"></div>
+  <div class="grid-lbl" style="margin-top:18px">Struktur</div>
+  <div class="seg-ctrl" id="create-type-ctrl">
+    <button class="seg-btn sel" data-val="flat">Enkel lista</button>
+    <button class="seg-btn" data-val="group">Med underkategorier</button>
+  </div>
+  <div id="create-check-wrap">
+    <div class="grid-lbl" style="margin-top:14px">Punkter</div>
+    <div class="seg-ctrl" id="create-check-ctrl">
+      <button class="seg-btn sel" data-val="check">Bocka av</button>
+      <button class="seg-btn" data-val="bullet">Anteckningar</button>
+    </div>
+  </div>
   <button class="btn" id="create-btn">Skapa lista</button>
 </div>
 
@@ -1211,7 +1381,8 @@
   <div class="handle"></div>
   <div class="sh-title" id="group-opts-title"></div>
   <div class="act-list">
-    <div class="act-row" id="gopt-add"><span class="act-icon">+</span><span>Ny lista</span></div>
+    <div class="act-row" id="gopt-add"><span class="act-icon">+</span><span>Ny underkategori</span></div>
+    <div class="act-row" id="gopt-share"><span class="act-icon">🔗</span><span>Dela lista</span></div>
     <div class="act-row" id="gopt-rename"><span class="act-icon">✏</span><span>Byt namn</span></div>
     <div class="act-row" id="gopt-map" style="display:none"><span class="act-icon">📍</span><span>Visa på karta</span></div>
   </div>
@@ -1229,8 +1400,8 @@
 <div id="sh-bulk" class="sheet">
   <div class="handle"></div>
   <div class="sh-title">Klistra in lista</div>
-  <p style="font-size:13px;color:var(--tx3);margin-bottom:14px;line-height:1.5">Klistra in text — varje rad blir en egen punkt.</p>
-  <textarea class="inp bulk-ta" id="bulk-ta" rows="8" placeholder="Rad 1&#10;Rad 2&#10;Rad 3..." autocorrect="on" autocapitalize="sentences"></textarea>
+  <p id="bulk-desc" style="font-size:13px;color:var(--tx3);margin-bottom:14px;line-height:1.5">Klistra in text — varje rad blir en egen punkt.</p>
+  <textarea class="inp bulk-ta" id="bulk-ta" rows="8" placeholder="Rad 1&#10;Rad 2&#10;Rad 3..." autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>
   <button class="btn" id="bulk-btn">Lägg till</button>
 </div>
 
@@ -1257,21 +1428,103 @@
   <button class="btn btn-ghost" id="confirm-cancel">Avbryt</button>
 </div>
 
+<div id="sh-sl-opts" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="sl-opts-title"></div>
+  <div class="act-row" id="slopt-rename"><span class="act-icon">✏</span><span>Byt namn</span></div>
+  <div class="act-row danger" id="slopt-del"><span class="act-icon">✕</span><span>Ta bort lista</span></div>
+</div>
+
+<!-- ── RUTINER – hantera återkommande uppgifter ── -->
+<div id="sh-routines" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Rutiner</div>
+  <div id="routines-list"></div>
+  <div class="sl-add-row" id="add-routine-row" style="margin-top:4px">
+    <span style="font-size:18px;opacity:0.5">+</span> Ny rutin
+  </div>
+</div>
+
+<!-- ── LÄGG TILL / REDIGERA RUTIN ── -->
+<div id="sh-add-routine" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="add-routine-title">Ny rutin</div>
+  <input class="inp" id="routine-text-inp" placeholder="Vad ska göras?" autocomplete="off" autocapitalize="sentences">
+  <div class="grid-lbl" style="margin-top:18px">Vilka dagar?</div>
+  <div class="day-sel-grid" id="day-sel-grid"></div>
+  <div class="grid-lbl" style="margin-top:16px">Lägg till i lista</div>
+  <div class="seg-ctrl" id="routine-list-ctrl">
+    <button class="seg-btn sel" data-list="todo-day">Idag</button>
+    <button class="seg-btn" data-list="todo-week">Denna vecka</button>
+    <button class="seg-btn" data-list="todo-month">Denna månad</button>
+  </div>
+  <button class="btn" id="save-routine-btn">Spara rutin</button>
+  <button class="btn btn-ghost" id="del-routine-btn" style="display:none;color:#C0392B">Ta bort rutin</button>
+</div>
+
+<!-- ── VECKOREVIEW ── -->
+<div id="sh-review" class="sheet">
+  <div class="handle"></div>
+  <div class="review-emoji">✨</div>
+  <div class="review-stat">
+    <div class="review-stat-num" id="review-done-count">0</div>
+    <div class="review-stat-lbl">uppgifter avklarade den gångna veckan</div>
+  </div>
+  <div id="review-leftover-wrap" style="display:none">
+    <div class="sh-title">Inte färdiga än</div>
+    <div id="review-items-list"></div>
+  </div>
+  <button class="btn" id="review-ok-btn">Ny vecka — kör! 🚀</button>
+  <button class="btn btn-ghost" id="review-clear-btn" style="display:none">Ta bort alla ej avklarade</button>
+</div>
+
+<!-- ── MALLAR ── -->
+<div id="sh-templates" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Välj mall</div>
+  <div id="templates-list"></div>
+</div>
+
+<!-- ── DELAD LISTA ── -->
+<div id="sh-share" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="share-sheet-title">Dela lista</div>
+  <div class="share-code-box">
+    <div class="share-code" id="share-code-display">—</div>
+    <div class="share-code-lbl">Kod — dela med din partner</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 0 4px">
+    <div class="share-status-dot" id="share-status-dot"></div>
+    <span style="font-size:13px;color:var(--tx3)" id="share-status-txt">Ansluter…</span>
+  </div>
+  <button class="btn btn-ghost" id="share-join-section" style="margin-top:16px">
+    <span style="font-size:14px">Anslut till en annans lista</span>
+  </button>
+  <div id="join-code-wrap" style="display:none;margin-top:4px">
+    <input class="inp" id="join-code-inp" placeholder="Ange kod (t.ex. 4829)" inputmode="numeric" maxlength="6" autocomplete="off">
+    <button class="btn" id="join-code-btn" style="margin-top:12px">Anslut</button>
+  </div>
+  <button class="btn btn-ghost danger" id="share-stop-btn" style="display:none;margin-top:10px;color:#C0392B">Avsluta delning</button>
+</div>
+
+<!-- hidden photo input for goals -->
+<input type="file" id="goal-photo-input" accept="image/*" capture="environment" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ════════════════════════════════════════
 // CONSTANTS
 // ════════════════════════════════════════
 const DEFAULT_LISTS = [
-  { id:'todo-day',  name:'Idag',         icon:'☀️', color:'#EDAAA4', type:'todo',  items:[] },
-  { id:'todo-week', name:'Denna vecka',  icon:'📅', color:'#98C99C', type:'todo',  items:[] },
-  { id:'todo-month',name:'Denna månad',  icon:'🗓️', color:'#92BCE0', type:'todo',  items:[] },
+  { id:'todo-day',  name:'TO DO: Idag',        icon:'☀️', color:'#EDAAA4', type:'todo',  items:[] },
+  { id:'todo-week', name:'TO DO: Denna vecka', icon:'📅', color:'#98C99C', type:'todo',  items:[] },
+  { id:'todo-month',name:'TO DO: Denna månad', icon:'🗓️', color:'#92BCE0', type:'todo',  items:[] },
   { id:'goals',     name:'Mål',          icon:'🎯', color:'#E8D47C', type:'goals', items:[] },
-  { id:'shopping',  name:'Inköpslistor', icon:'🛒', color:'#EBBFA4', type:'group',
+  { id:'favorites', name:'Platser att besöka', icon:'📍', color:'#F2C490', type:'group', sublists:[] },
+  { id:'shopping',  name:'Inköpslistor',      icon:'🛒', color:'#EBBFA4', type:'group',
     sublists:[{ id:'sl-gen', name:'Allmänt', items:[] }] },
-  { id:'gifts',     name:'Presenter',    icon:'🎁', color:'#CBA8D4', type:'group', sublists:[] },
-  { id:'favlist',   name:'Favoriter',    icon:'❤️', color:'#E8A4B8', type:'todo',  items:[] },
-  { id:'favorites', name:'Platser',       icon:'📍', color:'#F2C490', type:'group', sublists:[] },
+  { id:'gifts',     name:'Presentidéer',      icon:'🎁', color:'#CBA8D4', type:'group', sublists:[] },
+  { id:'favlist',   name:'Favoriter',    icon:'❤️', color:'#E8A4B8', type:'group', sublists:[] },
 ];
 
 const TIME_IDS = ['todo-day','todo-week','todo-month'];
@@ -1292,6 +1545,11 @@ let S = {
   newList: { icon: EMOJIS[0], color: COLORS[0] },
   confirmCb: null,
   lists: [],
+  lastMonthStr: null,
+  slOptsGroupId: null, slOptsId: null,
+  routines: [],          // recurring task templates
+  lastReviewWeek: null,  // 'YYYY-Www' of last week-review shown
+  editRoutineId: null,   // routine being edited in sh-add-routine
 };
 
 // ════════════════════════════════════════
@@ -1300,12 +1558,31 @@ let S = {
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem('listig_v4'));
-    S.lists = d?.lists ?? DEFAULT_LISTS.map(l => deepCopy(l));
+    S.lists          = d?.lists          ?? DEFAULT_LISTS.map(l => deepCopy(l));
+    S.lastMonthStr   = d?.lastMonthStr   ?? null;
+    S.routines       = d?.routines       ?? [];
+    S.lastReviewWeek = d?.lastReviewWeek ?? null;
   } catch {
-    S.lists = DEFAULT_LISTS.map(l => deepCopy(l));
+    S.lists          = DEFAULT_LISTS.map(l => deepCopy(l));
+    S.lastMonthStr   = null;
+    S.routines       = [];
+    S.lastReviewWeek = null;
   }
 }
-function save() { localStorage.setItem('listig_v4', JSON.stringify({ lists: S.lists })); }
+let _shareWs = null, _shareListId = null, _shareCode = null, _shareRole = null;
+
+function save() {
+  localStorage.setItem('listig_v4', JSON.stringify({
+    lists: S.lists,
+    lastMonthStr: S.lastMonthStr,
+    routines: S.routines,
+    lastReviewWeek: S.lastReviewWeek,
+  }));
+  // Broadcast to share partner if active
+  if (_shareWs?.readyState === WebSocket.OPEN && _shareListId) {
+    broadcastShareUpdate(_shareListId);
+  }
+}
 function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
 // ════════════════════════════════════════
@@ -1392,9 +1669,7 @@ function setViewColor(el, color) {
 function pos(id, p) { document.getElementById(id).dataset.pos = p; }
 function fab(show, color) {
   const el = document.getElementById('fab');
-  const ep = document.getElementById('fab-paste');
   el.style.display = show ? 'flex' : 'none';
-  ep.style.display = show ? 'flex' : 'none';
   if (show && color) { el.style.background = color; el.style.boxShadow = `0 2px 20px ${color}90`; }
 }
 
@@ -1416,7 +1691,7 @@ function openGroup(id) {
   closeSheet();
   S.groupId = id; S.listId = null; S.view = 'group';
   pos('v-home', 'left'); pos('v-group', 'center'); pos('v-list', 'right');
-  fab(false);
+  fab(true, getList(id)?.color);
   renderGroup();
 }
 
@@ -1447,7 +1722,7 @@ function goBack() {
   if (S.view === 'list' && S.groupId) {
     pos('v-list', 'right'); pos('v-group', 'center');
     S.listId = null; S.view = 'group';
-    fab(false);
+    fab(true, getList(S.groupId)?.color);
     renderGroup();
   } else if (S.view === 'list' || S.view === 'group') {
     const from = S.view === 'group' ? 'v-group' : 'v-list';
@@ -1482,12 +1757,7 @@ function renderHome() {
     const rem = total - done;
     const pct = total > 0 ? (done / total * 100).toFixed(1) : 0;
 
-    const showCount = (list.type === 'todo' && list.id !== 'todo-month' && list.id !== 'favlist') || list.type === 'goals';
-    let countText = '';
-    if (showCount) {
-      // "Klart" visas bara på todo-listor, inte Mål
-      countText = rem > 0 ? `${rem} kvar` : (total > 0 && list.type !== 'goals') ? 'Klart' : '';
-    }
+    const countText = '';
     const showBar = false; // ingen stapel på korten
 
     const card = document.createElement('div');
@@ -1518,6 +1788,21 @@ function renderHome() {
     grid.appendChild(card);
   });
 
+  // Rutiner card
+  const rc = document.createElement('div');
+  rc.className = 'routines-card';
+  const rCount = S.routines.length;
+  rc.innerHTML = `
+    <div>
+      <div class="card-icon" style="font-size:34px">🔄</div>
+    </div>
+    <div class="card-info">
+      <div class="card-count"></div>
+      <div class="card-name">Rutiner</div>
+    </div>`;
+  rc.addEventListener('click', showRoutines);
+  grid.appendChild(rc);
+
   // New list card
   const nc = document.createElement('div');
   nc.className = 'list-card card-new';
@@ -1544,7 +1829,9 @@ function renderGroup() {
   if (!group.sublists.length) {
     const e = document.createElement('div');
     e.className = 'group-empty';
-    e.innerHTML = `<p>Inga listor ännu.<br>Tryck + för att skapa en.</p>`;
+    e.innerHTML = group.id === 'favlist'
+      ? `<p>Inga favoriter ännu.<br>Tryck + för att lägga till en favoritlista.</p>`
+      : `<p>Inga listor ännu.<br>Tryck + för att skapa en.</p>`;
     wrap.appendChild(e);
   }
 
@@ -1569,26 +1856,39 @@ function renderGroup() {
           <path d="M5 12S1 8.5 1 5a4 4 0 018 0c0 3.5-4 7-4 7z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
           <circle cx="5" cy="5" r="1.5" stroke="currentColor" stroke-width="1.4"/>
         </svg></span>` : '';
-    const countLabel = sl.useMap
+    const countLabel = (group.id === 'favlist' || group.noCheck) ? '' : sl.useMap
       ? (sl.items.length > 0 ? `${sl.items.length} platser` : 'Inga platser')
       : (rem > 0 ? rem + ' kvar' : sl.items.length > 0 ? 'Klart' : 'Tom');
     row.innerHTML = `
       ${mapIcon}
       <span class="sl-name">${esc(sl.name)}</span>
       <span class="sl-count">${countLabel}</span>
-      <span class="sl-arrow">
-        <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
-          <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <button class="sl-opts-btn">
+        <svg width="3" height="13" viewBox="0 0 3 13" fill="currentColor">
+          <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="1.5" cy="6.5" r="1.5"/><circle cx="1.5" cy="11.5" r="1.5"/>
         </svg>
-      </span>`;
+      </button>`;
     row.addEventListener('click', () => openSublist(group.id, sl.id));
+
+    const optsBtn = row.querySelector('.sl-opts-btn');
+    optsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      S.slOptsGroupId = group.id;
+      S.slOptsId = sl.id;
+      document.getElementById('sl-opts-title').textContent = sl.name;
+      openSheet('sh-sl-opts');
+    });
+
     wrap.appendChild(row);
   });
 
   // Add new sublist button
   const addRow = document.createElement('div');
   addRow.className = 'sl-add-row';
-  addRow.innerHTML = `<span style="font-size:18px;opacity:0.5">+</span> Ny lista`;
+  const addRowLabel = group.id === 'gifts' ? 'Ny presentkategori'
+    : group.id === 'favlist' ? 'Ny favoritlista'
+    : 'Ny underkategori';
+  addRow.innerHTML = `<span style="font-size:18px;opacity:0.5">+</span> ${addRowLabel}`;
   addRow.addEventListener('click', showAddSublist);
   wrap.appendChild(addRow);
 }
@@ -1615,6 +1915,8 @@ function renderList() {
 
   const isToday = !S.groupId && S.listId === 'todo-day';
   const isWeek  = !S.groupId && S.listId === 'todo-week';
+  const isMonth = !S.groupId && S.listId === 'todo-month';
+  const isTimeTodo = isToday || isWeek || isMonth;
   const inProg  = src.items.filter(i => !i.done && i.inProgress);
   const active  = src.items.filter(i => !i.done && !i.inProgress);
   const done    = src.items.filter(i => i.done);
@@ -1641,9 +1943,25 @@ function renderList() {
 
   const hasAnything = src.items.length || scheduled.length || dueFromWeek.length || dueFromMonth.length || dueThisWeek.length;
   if (!hasAnything) {
+    const _isFavlist = !S.groupId && S.listId === 'favlist';
+    let _etitle = 'Listan är tom';
+    let _esub   = 'Tryck + för att lägga till';
+    if (_isFavlist) {
+      _etitle = 'Inga favoriter ännu';
+      _esub   = 'Tryck på + för att lägga till en favoritlista';
+    } else if (isTimeTodo) {
+      _etitle = 'Listan är tom';
+      _esub   = 'Tryck på + för att lägga till en ny To do';
+    } else if (S.groupId === 'gifts') {
+      _etitle = 'Listan är tom';
+      _esub   = 'Tryck + för att lägga till en ny presentidé';
+    } else if (S.groupId === 'favlist') {
+      _etitle = 'Listan är tom';
+      _esub   = 'Tryck + för att lägga till en favorit';
+    }
     wrap.innerHTML = `<div class="empty-state">
-      <div class="e-title">Listan är tom</div>
-      <div class="e-sub">Tryck + för att lägga till</div>
+      <div class="e-title">${_etitle}</div>
+      <div class="e-sub">${_esub}</div>
     </div>`;
     return;
   }
@@ -1656,6 +1974,12 @@ function renderList() {
     inProg.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
   }
 
+  if (isTimeTodo && active.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.textContent = 'To do';
+    wrap.appendChild(lbl);
+  }
   active.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
 
   if (scheduled.length) {
@@ -1687,9 +2011,11 @@ function renderList() {
   }
 
   const isGifts   = !S.groupId && S.listId === 'gifts' || S.groupId === 'gifts';
-  const isFavlist = !S.groupId && S.listId === 'favlist';
-  const isPlatser = S.groupId === 'favorites';
-  if (done.length && !isFavlist && !isPlatser) {
+  const isFavlist  = !S.groupId && S.listId === 'favlist';
+  const isFavSub   = S.groupId === 'favlist';
+  const isPlatser  = S.groupId === 'favorites';
+  const isNoCheck  = S.groupId ? !!getList(S.groupId)?.noCheck : !!getList(S.listId)?.noCheck;
+  if (done.length && !isFavlist && !isFavSub && !isPlatser && !isNoCheck) {
     const lbl = document.createElement('div');
     lbl.className = isGoals ? 'section-lbl section-achieved' : 'section-lbl';
     lbl.textContent = isGoals
@@ -1712,7 +2038,7 @@ function renderList() {
 
 function makeRow(item, color, isGoals, isShop, sourceListId) {
   const row = document.createElement('div');
-  row.className = `item-row${item.done ? ' done' : (item.inProgress ? ' in-progress' : '')}`;
+  row.className = `item-row${isGoals ? ' is-goal' : ''}${item.done ? ' done' : (item.inProgress ? ' in-progress' : '')}`;
   row.dataset.id = item.id;
 
   const subCount = isGoals && item.subItems ? item.subItems.length : 0;
@@ -1720,26 +2046,30 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
   const subProg  = subCount > 0 ? `<div class="sub-prog">${subDone} av ${subCount} delmål</div>` : '';
   const qtyTag   = isShop && item.quantity ? `<span class="qty-tag">${esc(item.quantity)}</span>` : '';
   const priceTag = isShop && item.price    ? `<span class="price-tag">${item.price.toLocaleString('sv-SE')} kr</span>` : '';
+  const photoHtml = isGoals && item.photo  ? `<img src="${item.photo}" class="goal-photo" loading="lazy">` : '';
+
+  const isFavNote = S.groupId === 'favlist'
+    || (S.groupId ? !!getList(S.groupId)?.noCheck : !!getList(S.listId)?.noCheck);
 
   // Circular progress ring for goals that have sub-goals
   const pct = item.done ? 100 : (subCount > 0 ? Math.round(subDone / subCount * 100) : 0);
-  const cbHtml = (isGoals && subCount > 0)
-    ? `<div class="goal-ring" style="--lc:${color}">
-         <svg viewBox="0 0 36 36" class="ring-svg">
-           <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
-           <circle class="ring-fill" cx="18" cy="18" r="15.9" stroke-dasharray="${pct} 100"/>
-         </svg>
-         ${item.done
-           ? `<svg class="ring-ck" width="11" height="9" viewBox="0 0 11 9" fill="none">
-                <path d="M1 4.5L4 7.5L10 1" stroke="#1C1814" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>`
-           : (pct > 0 && pct < 100 ? `<span style="position:relative;z-index:1;font-size:9px;font-weight:800;color:var(--tx2)">${pct}%</span>` : '')}
-       </div>`
-    : `<button class="cb${item.done?' checked':(item.inProgress?' in-progress':'')}" style="--lc:${color}">
-         <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-           <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-         </svg>
-       </button>`;
+  // När ett mål med delmål är uppnått → visa vanlig cb precis som mål utan delmål
+  const showRing = isGoals && subCount > 0 && !item.done;
+  const cbHtml = isFavNote
+    ? `<span class="fav-bullet">♡</span>`
+    : showRing
+      ? `<div class="goal-ring" style="--lc:${color}">
+           <svg viewBox="0 0 36 36" class="ring-svg">
+             <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
+             <circle class="ring-fill" cx="18" cy="18" r="15.9" stroke-dasharray="${pct} 100"/>
+           </svg>
+           ${pct > 0 && pct < 100 ? `<span style="position:relative;z-index:1;font-size:9px;font-weight:800;color:var(--tx2)">${pct}%</span>` : ''}
+         </div>`
+      : `<button class="cb${item.done?' checked':(item.inProgress?' in-progress':'')}" style="--lc:${color}">
+           <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+             <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+         </button>`;
 
   // Cross-list badge
   const fromBadge = sourceListId === 'todo-week'  ? `<span class="from-week-badge">Vecka</span>`
@@ -1757,16 +2087,24 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
   row.innerHTML = `
     ${cbHtml}
     <div class="item-body">
-      <div class="item-text">${esc(item.text)}</div>${subProg}
+      <div class="item-text">${esc(item.text)}</div>${subProg}${photoHtml}
     </div>
     ${schedChip}${dueChip}${fromBadge}${qtyTag}${priceTag}
     <button class="menu-btn" style="${sourceListId ? 'display:none' : ''}">
       <svg width="3" height="13" viewBox="0 0 3 13" fill="var(--tx3)">
         <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="1.5" cy="6.5" r="1.5"/><circle cx="1.5" cy="11.5" r="1.5"/>
       </svg>
-    </button>`;
+    </button>
+    <div class="drag-handle" style="${(sourceListId || item.done || isFavNote) ? 'display:none' : ''}">
+      <svg width="12" height="9" viewBox="0 0 12 9" fill="currentColor">
+        <rect y="0" width="12" height="1.5" rx="0.75"/>
+        <rect y="3.75" width="12" height="1.5" rx="0.75"/>
+        <rect y="7.5" width="12" height="1.5" rx="0.75"/>
+      </svg>
+    </div>`;
 
-  (row.querySelector('.cb') ?? row.querySelector('.goal-ring')).addEventListener('click', e => {
+  const checkEl = row.querySelector('.cb') ?? row.querySelector('.goal-ring');
+  if (checkEl) checkEl.addEventListener('click', e => {
     const r = e.currentTarget.getBoundingClientRect();
     toggleItem(item.id, r.left + r.width/2, r.top + r.height/2, sourceListId ?? null);
   });
@@ -1774,13 +2112,26 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     S.itemId = item.id;
     document.getElementById('act-schedule').style.display =
       (S.listId === 'todo-week' && !S.groupId) ? 'flex' : 'none';
+    // Visa "Ändra datum" för todo-dag/vecka/månad-listor
+    const showDate = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+    document.getElementById('act-date').style.display = showDate ? 'flex' : 'none';
     // Show in-progress option for todo/goals lists, not done items, not shopping
     const showProg = !item.done && !S.groupId && !['shopping'].includes(S.listId);
     document.getElementById('act-progress').style.display = showProg ? 'flex' : 'none';
     document.getElementById('act-progress-label').textContent =
       item.inProgress ? 'Avmarkera påbörjad' : 'Markera som påbörjad';
+    // Photo: only for active goal items
+    const isGoalItem = !S.groupId && getList(S.listId)?.type === 'goals' && !item.done;
+    document.getElementById('act-photo').style.display = isGoalItem ? 'flex' : 'none';
+    document.getElementById('act-photo-lbl').textContent = item.photo ? 'Byt foto' : 'Lägg till foto';
     openSheet('sh-item-actions');
   });
+
+  // Drag handle
+  const dragHandle = row.querySelector('.drag-handle');
+  if (dragHandle && !item.done && !sourceListId && !isFavNote) {
+    dragHandle.addEventListener('touchstart', e => beginDrag(e, item.id, row), { passive: false });
+  }
 
   if (isGoals) {
     const sub = document.createElement('div');
@@ -1846,6 +2197,13 @@ function toggleItem(id, cx, cy, sourceListId) {
   const item = findItem(src.items, id); if (!item) return;
   item.done = !item.done;
   item.doneAt = item.done ? Date.now() : null;
+  const isGoalItem = src.type === 'goals';
+  if (item.done && isGoalItem) {
+    save();
+    fullConfetti(); vibrateLong();
+    setTimeout(() => renderList(), 80);
+    return;
+  }
   if (item.done) { burst(cx, cy); vibrate(); }
   save(); renderList();
 }
@@ -1855,7 +2213,23 @@ function toggleSubGoal(parentId, subId, cx, cy) {
   const parent = findItem(src.items, parentId); if (!parent?.subItems) return;
   const sg = parent.subItems.find(s => s.id === subId); if (!sg) return;
   sg.done = !sg.done;
+
+  // Om alla delmål nu är klara → slutför huvudmålet automatiskt (skippa burst, kör fullConfetti)
+  const allDone = parent.subItems.length > 0 && parent.subItems.every(s => s.done);
+  if (sg.done && allDone && !parent.done) {
+    parent.done = true;
+    parent.doneAt = Date.now();
+    save();
+    fullConfetti(); vibrateLong();
+    setTimeout(() => renderList(), 80);
+    return;
+  }
+
   if (sg.done) { burst(cx, cy); vibrate(); }
+  // Om ett delmål avmarkeras och huvudmålet var klart → öppna det igen
+  if (!sg.done && parent.done) {
+    parent.done = false; parent.doneAt = null;
+  }
   save(); renderList();
 }
 
@@ -1911,6 +2285,26 @@ document.getElementById('edit-btn').addEventListener('click', () => {
   const text = document.getElementById('edit-inp').value.trim(); if (!text) return;
   const item = activeItem(); if (!item) return;
   item.text = text; save(); closeSheet(); renderList();
+});
+
+// ── Ändra datum ──
+document.getElementById('act-date').addEventListener('click', () => {
+  const item = activeItem(); if (!item) return;
+  document.getElementById('edit-date-inp').value = item.dueDate ?? '';
+  document.getElementById('edit-date-save').style.background = getActiveColor();
+  closeSheet();
+  setTimeout(() => openSheet('sh-edit-date'), 320);
+});
+document.getElementById('edit-date-save').addEventListener('click', () => {
+  const item = activeItem(); if (!item) return;
+  const val = document.getElementById('edit-date-inp').value;
+  item.dueDate = val || null;
+  save(); closeSheet(); renderList();
+});
+document.getElementById('edit-date-clear').addEventListener('click', () => {
+  const item = activeItem(); if (!item) return;
+  item.dueDate = null;
+  save(); closeSheet(); renderList();
 });
 
 // ════════════════════════════════════════
@@ -1997,6 +2391,7 @@ function showAdd() {
     isSrc === 'shopping' ? 'Vad ska du handla?' :
     isSrc === 'goals'    ? 'Vad vill du uppnå?' :
     isSrc === 'gifts'    ? 'Vad ska du ge?' :
+    isSrc === 'favlist'  ? 'Lägg till en favorit…' :
     isTodoList           ? 'Vad ska du göra?' : `Lägg till i ${src.name}…`;
 
   const extra = document.getElementById('add-extra');
@@ -2012,6 +2407,11 @@ function showAdd() {
 
   document.getElementById('add-btn').style.background = color;
   document.getElementById('add-btn').onclick = submitAdd;
+
+  // Visa "Klistra in lista" för alla listor utom mål
+  const pasteLink = document.getElementById('add-paste-link');
+  pasteLink.style.display = isSrc !== 'goals' ? 'flex' : 'none';
+
   openSheet('sh-add');
   setTimeout(() => document.getElementById('add-inp').focus(), 360);
 }
@@ -2062,15 +2462,13 @@ function submitSubGoal() {
 function showAddSublist() {
   const group = getList(S.groupId); if (!group) return;
   const labels = { gifts:'Vems lista? (t.ex. Mamma)', shopping:'Kategori (t.ex. Mat & dryck)', favorites:'Kategori (t.ex. Restauranger)' };
-  document.getElementById('add-sl-title').textContent = 'Ny lista';
+  document.getElementById('add-sl-title').textContent = 'Ny underkategori';
   document.getElementById('add-sl-inp').value = '';
   document.getElementById('add-sl-inp').placeholder = labels[group.id] ?? 'Listans namn';
   document.getElementById('add-sl-btn').style.background = group.color;
 
-  // Show map toggle only inside Favoriter
-  const mapWrap = document.getElementById('add-sl-map-wrap');
-  mapWrap.style.display = group.id === 'favorites' ? 'block' : 'none';
-  document.getElementById('sl-map-toggle').classList.remove('on');
+  // Platser-sublists always use map — hide toggle
+  document.getElementById('add-sl-map-wrap').style.display = 'none';
 
   openSheet('sh-add-sublist');
   setTimeout(() => document.getElementById('add-sl-inp').focus(), 360);
@@ -2083,7 +2481,7 @@ document.getElementById('sl-map-toggle').addEventListener('click', function() {
 document.getElementById('add-sl-btn').addEventListener('click', () => {
   const name = document.getElementById('add-sl-inp').value.trim(); if (!name) return;
   const group = getList(S.groupId); if (!group) return;
-  const useMap = group.id === 'favorites' && document.getElementById('sl-map-toggle').classList.contains('on');
+  const useMap = group.id === 'favorites'; // Platser-sublists always use map
   group.sublists.push({ id: uid(), name, items: [], useMap: useMap || undefined });
   save(); closeSheet(); renderGroup();
 });
@@ -2096,9 +2494,11 @@ function showListOpts() {
   document.getElementById('list-opts-title').textContent = src.name;
 
   const isDeletable = !!S.groupId;
-  const isTodoList  = !S.groupId && getList(S.listId)?.type === 'todo' && S.listId !== 'favlist';
-  document.getElementById('lopt-del').style.display  = isDeletable ? 'flex' : 'none';
-  document.getElementById('lopt-done').style.display = isTodoList  ? 'flex' : 'none';
+  const isTodoList  = !S.groupId && getList(S.listId)?.type === 'todo' && S.listId !== 'favlist' && !getList(S.listId)?.noCheck;
+  const isTimeTodoList = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+  document.getElementById('lopt-del').style.display      = isDeletable   ? 'flex' : 'none';
+  document.getElementById('lopt-done').style.display     = isTodoList    ? 'flex' : 'none';
+  document.getElementById('lopt-routines').style.display = isTimeTodoList ? 'flex' : 'none';
 
   // Map convert: only for Favoriter sublists
   const isFavSublist = S.groupId === 'favorites' && S.listId;
@@ -2118,6 +2518,11 @@ document.getElementById('lopt-done').addEventListener('click', () => {
   const src = getSource(); if (!src) return;
   src.items = src.items.filter(i => !i.done);
   save(); closeSheet(); renderList();
+});
+
+document.getElementById('lopt-routines').addEventListener('click', () => {
+  closeSheet();
+  setTimeout(() => showRoutines(), 320);
 });
 
 document.getElementById('lopt-del').addEventListener('click', () => {
@@ -2173,14 +2578,43 @@ function showCreateList() {
   });
 
   document.getElementById('create-btn').style.background = COLORS[0];
+
+  // Reset structure + item-type toggles
+  document.querySelectorAll('#create-type-ctrl .seg-btn').forEach(b =>
+    b.classList.toggle('sel', b.dataset.val === 'flat'));
+  document.querySelectorAll('#create-check-ctrl .seg-btn').forEach(b =>
+    b.classList.toggle('sel', b.dataset.val === 'check'));
+
   openSheet('sh-create');
   setTimeout(() => document.getElementById('create-inp').focus(), 360);
 }
 
 document.getElementById('create-btn').addEventListener('click', () => {
   const name = document.getElementById('create-inp').value.trim(); if (!name) return;
-  S.lists.push({ id: uid(), name, icon: S.newList.icon, color: S.newList.color, type:'custom', items:[] });
+  const isGroup  = document.querySelector('#create-type-ctrl .seg-btn.sel')?.dataset.val === 'group';
+  const isBullet = document.querySelector('#create-check-ctrl .seg-btn.sel')?.dataset.val === 'bullet';
+  let newList;
+  if (isGroup) {
+    newList = { id: uid(), name, icon: S.newList.icon, color: S.newList.color, type: 'group', sublists: [] };
+    if (isBullet) newList.noCheck = true;
+  } else {
+    newList = { id: uid(), name, icon: S.newList.icon, color: S.newList.color, type: 'todo', items: [] };
+    if (isBullet) newList.noCheck = true;
+  }
+  S.lists.push(newList);
   save(); closeSheet(); renderHome();
+});
+
+// Segmented control clicks
+document.getElementById('create-type-ctrl').addEventListener('click', e => {
+  const btn = e.target.closest('.seg-btn'); if (!btn) return;
+  document.querySelectorAll('#create-type-ctrl .seg-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+});
+document.getElementById('create-check-ctrl').addEventListener('click', e => {
+  const btn = e.target.closest('.seg-btn'); if (!btn) return;
+  document.querySelectorAll('#create-check-ctrl .seg-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
 });
 
 // ════════════════════════════════════════
@@ -2196,6 +2630,22 @@ document.getElementById('confirm-ok').addEventListener('click', () => {
   if (S.confirmCb) { S.confirmCb(); S.confirmCb = null; }
 });
 document.getElementById('confirm-cancel').addEventListener('click', closeSheet);
+
+// ── Underkategori-alternativ (⋮ i gruppvyn) ──
+document.getElementById('slopt-rename').addEventListener('click', () => {
+  const g  = getList(S.slOptsGroupId); if (!g) return;
+  const sl = g.sublists.find(s => s.id === S.slOptsId); if (!sl) return;
+  closeSheet();
+  setTimeout(() => showRename('sublist', sl.id, g.id, sl.name), 320);
+});
+document.getElementById('slopt-del').addEventListener('click', () => {
+  const g  = getList(S.slOptsGroupId); if (!g) return;
+  const sl = g.sublists.find(s => s.id === S.slOptsId); if (!sl) return;
+  showConfirm(`Ta bort "${sl.name}"?`, 'Listan och allt innehåll tas bort permanent.', () => {
+    g.sublists = g.sublists.filter(s => s.id !== S.slOptsId);
+    save(); closeSheet(); renderGroup();
+  });
+});
 
 // ════════════════════════════════════════
 // SHEETS
@@ -2215,7 +2665,10 @@ function closeSheet() {
 // ════════════════════════════════════════
 // CONFETTI (gold palette)
 // ════════════════════════════════════════
+let _burstRaf = null;
+
 function burst(cx, cy) {
+  if (_burstRaf) { cancelAnimationFrame(_burstRaf); _burstRaf = null; }
   const canvas = document.getElementById('confetti');
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -2232,7 +2685,6 @@ function burst(cx, cy) {
     shape: Math.random() > 0.5 ? 'rect' : 'circle',
   }));
 
-  let raf;
   (function frame() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     let alive = false;
@@ -2248,12 +2700,109 @@ function burst(cx, cy) {
       else ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.5);
       ctx.restore();
     });
-    if (alive) raf = requestAnimationFrame(frame);
-    else canvas.style.display = 'none';
+    if (alive) _burstRaf = requestAnimationFrame(frame);
+    else { _burstRaf = null; canvas.style.display = 'none'; }
   })();
 }
 
 function vibrate() { navigator.vibrate && navigator.vibrate([6,15,6]); }
+function vibrateLong() { navigator.vibrate && navigator.vibrate([30,40,60,40,80]); }
+
+function fullConfetti() {
+  // Avbryt eventuell pågående burst-animation så den inte döljer canvasen
+  if (_burstRaf) { cancelAnimationFrame(_burstRaf); _burstRaf = null; }
+
+  const canvas = document.getElementById('confetti');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+  const W = canvas.width, H = canvas.height;
+
+  // Appens exakta färgpalett
+  const cols = COLORS;
+
+  // 300 partiklar med fördröjd start (delay) → ihållande regn i 2500ms
+  const RAIN_DURATION = 2500;
+  const TOTAL         = 5500;
+  const particles = Array.from({length: 300}, () => ({
+    x:      Math.random() * W,
+    y:      -30,
+    vx:     (Math.random() - 0.5) * 2.8,
+    vy:     Math.random() * 3.5 + 2.8,
+    w:      Math.random() * 12 + 5,
+    h:      Math.random() * 5  + 3,
+    color:  cols[Math.floor(Math.random() * cols.length)],
+    rot:    Math.random() * 360,
+    rspd:   (Math.random() - 0.5) * 8,
+    wobble: Math.random() * Math.PI * 2,
+    wSpd:   Math.random() * 0.07 + 0.03,
+    delay:  Math.random() * RAIN_DURATION,  // sprids jämnt över 2500ms
+    alpha:  0,
+    born:   false,
+    shape:  Math.random() > 0.3 ? 'rect' : 'circle',
+  }));
+
+  // BOOM! — visas efter 600ms, tonas ut vid 2200ms
+  const boom    = document.getElementById('boom-wrap');
+  const boomTxt = document.getElementById('boom-txt');
+  boom.style.display = 'flex';
+  boomTxt.style.transition = 'none';
+  boomTxt.style.opacity    = '0';
+  boomTxt.style.transform  = 'scale(0.3)';
+  setTimeout(() => {
+    boomTxt.style.transition = 'opacity 0.28s ease, transform 0.34s cubic-bezier(0.17,0.67,0.25,1.5)';
+    boomTxt.style.opacity    = '1';
+    boomTxt.style.transform  = 'scale(1)';
+  }, 600);
+  setTimeout(() => {
+    boomTxt.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    boomTxt.style.opacity    = '0';
+    boomTxt.style.transform  = 'scale(1.2)';
+    setTimeout(() => { boom.style.display = 'none'; }, 650);
+  }, 2200);
+
+  let t0 = null;
+  function frame(ts) {
+    if (!t0) t0 = ts;
+    const elapsed = ts - t0;
+    ctx.clearRect(0, 0, W, H);
+    let alive = false;
+
+    particles.forEach(p => {
+      if (elapsed < p.delay) { alive = true; return; }   // väntar på sin tur
+      if (!p.born) { p.born = true; p.x = Math.random() * W; p.y = -20; p.alpha = 1; }
+      if (p.y > H + 20 || p.alpha <= 0) return;
+      alive = true;
+
+      p.wobble += p.wSpd;
+      p.x  += p.vx + Math.sin(p.wobble) * 0.7;
+      p.y  += p.vy;
+      p.rot += p.rspd;
+
+      // Fade out sista 1,2 sekunden
+      if (elapsed > TOTAL - 1200) {
+        p.alpha = Math.max(0, 1 - (elapsed - (TOTAL - 1200)) / 1200);
+      }
+
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'circle') {
+        ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      }
+      ctx.restore();
+    });
+
+    if (alive && elapsed < TOTAL + 400) requestAnimationFrame(frame);
+    else canvas.style.display = 'none';
+  }
+  requestAnimationFrame(frame);
+}
 
 // ════════════════════════════════════════
 // PIN LOCK
@@ -2487,6 +3036,19 @@ function runMigration() {
   });
   if (colorChanged) save();
 
+  // ── Uppdatera listnamn till TO DO: prefix ──
+  const NAME_MIGRATION = {
+    'todo-day':   { from: 'Idag',         to: 'TO DO: Idag' },
+    'todo-week':  { from: 'Denna vecka',  to: 'TO DO: Denna vecka' },
+    'todo-month': { from: 'Denna månad',  to: 'TO DO: Denna månad' },
+    'gifts':      { from: 'Presenter',    to: 'Presentidéer' },
+    'favorites':  { from: 'Platser',      to: 'Platser att besöka' },
+  };
+  Object.entries(NAME_MIGRATION).forEach(([id, {from, to}]) => {
+    const lst = getList(id);
+    if (lst && lst.name === from) { lst.name = to; colorChanged = true; }
+  });
+
   // ── Tvinga rätt färg per lista oavsett vad som ligger i localStorage ──
   const FORCED = {
     'todo-day':   '#EDAAA4',
@@ -2503,22 +3065,35 @@ function runMigration() {
     const lst = getList(id);
     if (lst && lst.color !== col) { lst.color = col; forced = true; }
   });
-  // Byt namn Favoriter → Platser och ikonen
+  // Fixa ikon + gamla namn → Platser att besöka
   const favLst = getList('favorites');
-  if (favLst && (favLst.name === 'Favoriter' || favLst.icon === '⭐')) {
-    favLst.name = 'Platser'; favLst.icon = '📍'; forced = true;
+  if (favLst && (favLst.name === 'Favoriter' || favLst.name === 'Platser' || favLst.icon === '⭐')) {
+    if (favLst.name === 'Favoriter' || favLst.name === 'Platser') favLst.name = 'Platser att besöka';
+    favLst.icon = '📍'; forced = true;
   }
 
   // Lägg till Favoriter-listan om den saknas
   if (!getList('favlist')) {
     const idx = S.lists.findIndex(l => l.id === 'favorites');
-    const newFav = { id:'favlist', name:'Favoriter', icon:'❤️', color:'#E8A4B8', type:'todo',  items:[] };
+    const newFav = { id:'favlist', name:'Favoriter', icon:'❤️', color:'#E8A4B8', type:'group', sublists:[] };
     if (idx >= 0) S.lists.splice(idx, 0, newFav); else S.lists.push(newFav);
     forced = true;
   } else {
-    // Fixa typ om den råkade bli 'notes'
+    // Konvertera favlist från todo → group (strukturändring)
     const fl = getList('favlist');
-    if (fl && fl.type !== 'todo') { fl.type = 'todo'; forced = true; }
+    if (fl && fl.type !== 'group') {
+      fl.type = 'group';
+      if (!fl.sublists) fl.sublists = [];
+      delete fl.items;
+      forced = true;
+    }
+    if (fl && !fl.sublists) { fl.sublists = []; forced = true; }
+    // Ta bort felaktigt auto-skapad "Mina favoriter"
+    if (fl?.sublists) {
+      const before = fl.sublists.length;
+      fl.sublists = fl.sublists.filter(s => s.name !== 'Mina favoriter');
+      if (fl.sublists.length !== before) forced = true;
+    }
   }
 
   // Skapa defaultkategorier för Platser
@@ -2542,6 +3117,22 @@ function runMigration() {
     }
   }
 
+  // ── Byt ordning: Platser ska ligga före Inköpslistor ──
+  const shoppingIdx  = S.lists.findIndex(l => l.id === 'shopping');
+  const favoritesIdx = S.lists.findIndex(l => l.id === 'favorites');
+  if (shoppingIdx >= 0 && favoritesIdx >= 0 && shoppingIdx < favoritesIdx) {
+    [S.lists[shoppingIdx], S.lists[favoritesIdx]] = [S.lists[favoritesIdx], S.lists[shoppingIdx]];
+    forced = true;
+  }
+
+  // ── Alla underkategorier i Platser ska använda kartan ──
+  const platsLst = getList('favorites');
+  if (platsLst) {
+    platsLst.sublists.forEach(sl => {
+      if (!sl.useMap) { sl.useMap = true; forced = true; }
+    });
+  }
+
   if (forced) save();
 
   const now      = Date.now();
@@ -2555,6 +3146,18 @@ function runMigration() {
   if (!today || !week || !month) return;
 
   let changed = false;
+
+  // ── Nollställ avklarat i "Denna månad" vid ny kalendermånad ──
+  const currentMonthStr  = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const currentMonthStart = new Date(currentMonthStr + '-01T00:00:00').getTime();
+  // Rensa alltid avklarade uppgifter som bockatse av FÖRE nuvarande månad
+  const beforeReset = month.items.length;
+  month.items = month.items.filter(i => !i.done || !i.doneAt || i.doneAt >= currentMonthStart);
+  if (month.items.length !== beforeReset) changed = true;
+  if (S.lastMonthStr !== currentMonthStr) {
+    S.lastMonthStr = currentMonthStr;
+    changed = true;
+  }
 
   // ── Avklarade: flytta framåt baserat på tid ──
 
@@ -2659,25 +3262,71 @@ document.getElementById('rename-btn').addEventListener('click', () => {
 // BULK ADD
 // ════════════════════════════════════════
 function showBulkAdd() {
-  const color = getActiveColor();
+  const color   = getActiveColor();
+  const isMap   = !!(S.groupId === 'favorites' && S.listId);
   document.getElementById('bulk-ta').value = '';
   document.getElementById('bulk-btn').style.background = color;
+  document.getElementById('bulk-desc').textContent = isMap
+    ? 'Klistra in platser från Google Maps — en plats per block (tom rad mellan). Koordinater hämtas automatiskt ur Google Maps-länkar.'
+    : 'Klistra in text — varje rad blir en egen punkt.';
+  document.getElementById('bulk-ta').placeholder = isMap
+    ? 'Café Espresso\nKungsgatan 5, Stockholm\nhttps://maps.google.com/?q=...\n\nRestaurang X\n...'
+    : 'Rad 1\nRad 2\nRad 3...';
   openSheet('sh-bulk');
   setTimeout(() => document.getElementById('bulk-ta').focus(), 360);
 }
 
+// Extraherar koordinater ur en Google Maps-URL
+function extractMapCoords(text) {
+  const m = text.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+            text.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+            text.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  return m ? { lat: parseFloat(m[1]), lng: parseFloat(m[2]) } : null;
+}
+
 document.getElementById('bulk-btn').addEventListener('click', () => {
   const raw = document.getElementById('bulk-ta').value;
-  const lines = raw.split('\n')
-    .map(l => l
-      .replace(/^(\d+[.)]\s+|[-*•]\s*(\[[ xXvV✓]\]\s*)?)/u, '') // strip - [ ], * , 1. etc
-      .trim())
-    .filter(Boolean);
-  if (!lines.length) return;
   const src = getSource(); if (!src) return;
-  const toAdd = lines.map(text => ({ id: uid(), text, done: false, createdAt: Date.now(), doneAt: null }));
-  src.items.unshift(...toAdd); // preserve pasted order, add at top
-  save(); closeSheet(); renderList();
+  const isMap = S.groupId === 'favorites' && !!S.listId;
+
+  if (isMap) {
+    // Google Maps-läge: dela på tomma rader → ett block per plats
+    const blocks = raw.split(/\n[ \t]*\n/).map(b => b.trim()).filter(Boolean);
+    if (!blocks.length) return;
+    const toAdd = blocks.map(block => {
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+      let name = null, lat = null, lng = null;
+      for (const line of lines) {
+        const coords = extractMapCoords(line);
+        if (coords && lat == null) { lat = coords.lat; lng = coords.lng; }
+        if (!name && !line.match(/^https?:\/\//)) {
+          name = line
+            .replace(/^(\d+[.)]\s+|[-*•]\s*)/u, '')
+            .replace(/\s*[·•|]\s*(⭐|★|\d+\.\d+|Open|Stängt|Öppet).*$/u, '')
+            .trim();
+        }
+      }
+      if (!name) return null;
+      const item = { id: uid(), text: name, done: false, createdAt: Date.now(), doneAt: null };
+      if (lat != null) { item.lat = lat; item.lng = lng; }
+      return item;
+    }).filter(Boolean);
+    if (!toAdd.length) return;
+    src.items.unshift(...toAdd);
+    save(); closeSheet();
+    // Om kartan är öppen, uppdatera pins; annars rendera listan
+    if (document.getElementById('map-overlay').style.display !== 'none') renderMapPins();
+    else renderList();
+  } else {
+    // Vanligt läge: en rad = ett objekt
+    const lines = raw.split('\n')
+      .map(l => l.replace(/^(\d+[.)]\s+|[-*•]\s*(\[[ xXvV✓]\]\s*)?)/u, '').trim())
+      .filter(Boolean);
+    if (!lines.length) return;
+    const toAdd = lines.map(text => ({ id: uid(), text, done: false, createdAt: Date.now(), doneAt: null }));
+    src.items.unshift(...toAdd);
+    save(); closeSheet(); renderList();
+  }
 });
 
 // ════════════════════════════════════════
@@ -3411,8 +4060,11 @@ document.getElementById('overlay').addEventListener('click', closeSheet);
 document.getElementById('g-back').addEventListener('click', goBack);
 document.getElementById('g-opts-btn').addEventListener('click', showGroupOpts);
 document.getElementById('l-back').addEventListener('click', goBack);
-document.getElementById('fab').addEventListener('click', showAdd);
-document.getElementById('fab-paste').addEventListener('click', showBulkAdd);
+document.getElementById('fab').addEventListener('click', () => {
+  if (S.view === 'group') showAddSublist();
+  else showAdd();
+});
+document.getElementById('add-paste-link').addEventListener('click', () => { closeSheet(); setTimeout(showBulkAdd, 260); });
 document.getElementById('l-opts-btn').addEventListener('click', showListOpts);
 
 // List opts — rename + bulk add
@@ -3444,10 +4096,575 @@ document.addEventListener('keydown', e => {
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ════════════════════════════════════════
+// DRAG TO REORDER
+// ════════════════════════════════════════
+let _drag = null;
+
+function beginDrag(e, itemId, row) {
+  e.preventDefault();
+  e.stopPropagation();
+  navigator.vibrate?.(18);
+
+  const touch  = e.touches[0];
+  const rect   = row.getBoundingClientRect();
+  const wrap   = document.getElementById('items-wrap');
+
+  // Ghost
+  const ghost = row.cloneNode(true);
+  ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;
+    width:${rect.width}px;background:var(--surf2);border-radius:8px;
+    box-shadow:0 8px 28px rgba(0,0,0,0.22);opacity:0.97;pointer-events:none;z-index:600;
+    display:flex;align-items:flex-start;gap:14px;padding:15px 0;box-sizing:border-box;`;
+  document.body.appendChild(ghost);
+
+  row.classList.add('dragging');
+
+  _drag = { itemId, row, ghost, wrap,
+    offsetY: touch.clientY - rect.top,
+    targetId: null };
+}
+
+document.addEventListener('touchmove', e => {
+  if (!_drag) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  _drag.ghost.style.top = (touch.clientY - _drag.offsetY) + 'px';
+
+  // Detect drop target
+  const rows = [..._drag.wrap.querySelectorAll('.item-row:not(.dragging):not(.done)')];
+  const cy = touch.clientY;
+  let found = null;
+  rows.forEach(r => {
+    const rb = r.getBoundingClientRect();
+    if (cy >= rb.top && cy <= rb.bottom) found = r;
+  });
+  _drag.wrap.querySelectorAll('.item-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+  if (found) { found.classList.add('drag-over'); _drag.targetId = found.dataset.id; }
+  else _drag.targetId = null;
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+  if (!_drag) return;
+  _drag.ghost.remove();
+  _drag.row.classList.remove('dragging');
+  _drag.wrap.querySelectorAll('.item-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+
+  if (_drag.targetId && _drag.targetId !== _drag.itemId) {
+    const src = getSource();
+    if (src) {
+      const fi = src.items.findIndex(i => i.id === _drag.itemId);
+      const ti = src.items.findIndex(i => i.id === _drag.targetId);
+      if (fi >= 0 && ti >= 0 && fi !== ti) {
+        const [item] = src.items.splice(fi, 1);
+        src.items.splice(ti > fi ? ti - 1 : ti, 0, item);
+        save(); renderList();
+      }
+    }
+  }
+  _drag = null;
+});
+
+// ════════════════════════════════════════
+// RUTINER (återkommande uppgifter)
+// ════════════════════════════════════════
+const DAY_NAMES = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+const DAY_NAMES_FULL = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+
+function checkRoutines() {
+  if (!S.routines?.length) return;
+  const today   = new Date();
+  const dow     = today.getDay();
+  const dayKey  = getTodayStr();
+  const weekKey = getWeekKey();
+  const monKey  = getMonthKey();
+  let changed   = false;
+
+  S.routines.forEach(r => {
+    if (!r.days?.includes(dow)) return;
+    const target = getList(r.targetList); if (!target) return;
+    const gKey = r.targetList === 'todo-day' ? dayKey
+               : r.targetList === 'todo-week' ? weekKey : monKey;
+    if (r.lastAdded?.[gKey]) return;
+    // Only add if not already present (undone, same text)
+    if (!target.items.some(i => !i.done && i.text === r.text)) {
+      target.items.unshift({ id: uid(), text: r.text, done: false, createdAt: Date.now(), doneAt: null, isRoutine: r.id });
+      changed = true;
+    }
+    if (!r.lastAdded) r.lastAdded = {};
+    // Keep only last 14 keys to prevent unbounded growth
+    const keys = Object.keys(r.lastAdded);
+    if (keys.length > 14) delete r.lastAdded[keys[0]];
+    r.lastAdded[gKey] = true;
+    changed = true;
+  });
+  if (changed) save();
+}
+
+function showRoutines() {
+  const list = document.getElementById('routines-list');
+  list.innerHTML = '';
+  if (!S.routines.length) {
+    list.innerHTML = `<p style="color:var(--tx3);font-size:13px;padding:16px 8px;line-height:1.6">
+      Inga rutiner ännu.<br>Lägg till saker du gör regelbundet — de dyker upp automatiskt i rätt lista.</p>`;
+  }
+  S.routines.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'routine-row';
+    const targetName = r.targetList === 'todo-day' ? 'Idag'
+      : r.targetList === 'todo-week' ? 'Denna vecka' : 'Denna månad';
+    const dayChips = r.days.map(d => `<span class="routine-day-chip">${DAY_NAMES[d]}</span>`).join('');
+    row.innerHTML = `
+      <div style="flex:1">
+        <div style="font-size:15px;color:var(--tx)">${esc(r.text)}</div>
+        <div class="routine-days">${dayChips}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:3px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase">→ ${targetName}</div>
+      </div>
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="flex-shrink:0;opacity:0.3">
+        <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`;
+    row.addEventListener('click', () => { closeSheet(); setTimeout(() => showEditRoutine(r.id), 320); });
+    list.appendChild(row);
+  });
+  openSheet('sh-routines');
+}
+
+document.getElementById('add-routine-row').addEventListener('click', () => {
+  closeSheet();
+  setTimeout(() => showAddRoutine(), 320);
+});
+
+function showAddRoutine() {
+  S.editRoutineId = null;
+  document.getElementById('add-routine-title').textContent = 'Ny rutin';
+  document.getElementById('routine-text-inp').value = '';
+  document.getElementById('del-routine-btn').style.display = 'none';
+  document.getElementById('save-routine-btn').style.background = '#A8D4C8';
+  buildDaySelGrid([]);
+  // Reset list ctrl
+  document.querySelectorAll('#routine-list-ctrl .seg-btn').forEach(b =>
+    b.classList.toggle('sel', b.dataset.list === 'todo-day'));
+  openSheet('sh-add-routine');
+  setTimeout(() => document.getElementById('routine-text-inp').focus(), 360);
+}
+
+function showEditRoutine(id) {
+  const r = S.routines.find(x => x.id === id); if (!r) return;
+  S.editRoutineId = id;
+  document.getElementById('add-routine-title').textContent = 'Redigera rutin';
+  document.getElementById('routine-text-inp').value = r.text;
+  document.getElementById('del-routine-btn').style.display = 'block';
+  document.getElementById('save-routine-btn').style.background = '#A8D4C8';
+  buildDaySelGrid(r.days);
+  document.querySelectorAll('#routine-list-ctrl .seg-btn').forEach(b =>
+    b.classList.toggle('sel', b.dataset.list === r.targetList));
+  openSheet('sh-add-routine');
+  setTimeout(() => document.getElementById('routine-text-inp').focus(), 360);
+}
+
+function buildDaySelGrid(selectedDays) {
+  const grid = document.getElementById('day-sel-grid');
+  grid.innerHTML = '';
+  DAY_NAMES.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = `day-sel-btn${selectedDays.includes(i) ? ' sel' : ''}`;
+    btn.dataset.day = i;
+    btn.textContent = name;
+    btn.addEventListener('click', () => btn.classList.toggle('sel'));
+    grid.appendChild(btn);
+  });
+}
+
+document.getElementById('routine-list-ctrl').addEventListener('click', e => {
+  const btn = e.target.closest('.seg-btn'); if (!btn) return;
+  document.querySelectorAll('#routine-list-ctrl .seg-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+});
+
+document.getElementById('save-routine-btn').addEventListener('click', () => {
+  const text = document.getElementById('routine-text-inp').value.trim(); if (!text) return;
+  const days = [...document.querySelectorAll('#day-sel-grid .day-sel-btn.sel')].map(b => +b.dataset.day);
+  if (!days.length) { alert('Välj minst en dag.'); return; }
+  const targetList = document.querySelector('#routine-list-ctrl .seg-btn.sel')?.dataset.list ?? 'todo-day';
+
+  if (S.editRoutineId) {
+    const r = S.routines.find(x => x.id === S.editRoutineId);
+    if (r) { r.text = text; r.days = days; r.targetList = targetList; r.lastAdded = {}; }
+  } else {
+    S.routines.push({ id: uid(), text, days, targetList, lastAdded: {} });
+  }
+  save();
+  checkRoutines(); // Generate immediately if today matches
+  closeSheet();
+  setTimeout(() => showRoutines(), 320);
+});
+
+document.getElementById('del-routine-btn').addEventListener('click', () => {
+  S.routines = S.routines.filter(r => r.id !== S.editRoutineId);
+  save(); closeSheet();
+  setTimeout(() => showRoutines(), 320);
+});
+
+// ════════════════════════════════════════
+// VECKOREVIEW
+// ════════════════════════════════════════
+function getPrevWeekStartMs() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dow = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+  return monday.getTime() - 7 * 86400000; // previous Monday 00:00
+}
+
+function checkWeekReview() {
+  const weekKey = getWeekKey();
+  if (!S.lastReviewWeek) { S.lastReviewWeek = weekKey; save(); return; }
+  if (S.lastReviewWeek === weekKey) return;
+
+  // Count items completed in the previous week
+  const prevStart = getPrevWeekStartMs();
+  const prevEnd   = prevStart + 7 * 86400000;
+  let doneCount = 0;
+  ['todo-day','todo-week','todo-month'].forEach(id => {
+    (getList(id)?.items ?? []).forEach(i => {
+      if (i.done && i.doneAt && i.doneAt >= prevStart && i.doneAt < prevEnd) doneCount++;
+    });
+  });
+
+  const incompleteItems = (getList('todo-week')?.items ?? []).filter(i => !i.done);
+
+  if (doneCount === 0 && incompleteItems.length === 0) {
+    S.lastReviewWeek = weekKey; save(); return;
+  }
+
+  setTimeout(() => showWeekReview(doneCount, incompleteItems, weekKey), 900);
+}
+
+function showWeekReview(doneCount, incompleteItems, newWeekKey) {
+  document.getElementById('review-done-count').textContent = doneCount;
+  const leftWrap = document.getElementById('review-leftover-wrap');
+  const list     = document.getElementById('review-items-list');
+  list.innerHTML = '';
+
+  if (incompleteItems.length) {
+    leftWrap.style.display = 'block';
+    document.getElementById('review-clear-btn').style.display = 'block';
+    incompleteItems.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'review-item-row';
+      row.innerHTML = `<span style="flex:1">${esc(item.text)}</span>
+        <button class="review-del-btn" data-id="${item.id}">×</button>`;
+      row.querySelector('.review-del-btn').addEventListener('click', e => {
+        const weekList = getList('todo-week');
+        if (weekList) weekList.items = weekList.items.filter(i => i.id !== item.id);
+        save(); row.remove();
+        if (!list.children.length) { leftWrap.style.display = 'none'; document.getElementById('review-clear-btn').style.display = 'none'; }
+      });
+      list.appendChild(row);
+    });
+  } else {
+    leftWrap.style.display = 'none';
+    document.getElementById('review-clear-btn').style.display = 'none';
+  }
+
+  openSheet('sh-review');
+  S.lastReviewWeek = newWeekKey; save();
+}
+
+document.getElementById('review-ok-btn').addEventListener('click', closeSheet);
+document.getElementById('review-clear-btn').addEventListener('click', () => {
+  const weekList = getList('todo-week');
+  if (weekList) { weekList.items = weekList.items.filter(i => i.done); save(); }
+  closeSheet();
+  if (S.view === 'list' && S.listId === 'todo-week') renderList();
+});
+
+// ════════════════════════════════════════
+// FOTON PÅ MÅL
+// ════════════════════════════════════════
+async function compressImage(file, maxW = 800, quality = 0.65) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const scale  = Math.min(maxW / img.width, maxW / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width  = img.width  * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('act-photo').addEventListener('click', () => {
+  closeSheet();
+  setTimeout(() => document.getElementById('goal-photo-input').click(), 320);
+});
+
+document.getElementById('goal-photo-input').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const item = activeItem(); if (!item) return;
+  item.photo = await compressImage(file);
+  save(); renderList();
+  e.target.value = '';
+});
+
+// ════════════════════════════════════════
+// MALLAR (templates)
+// ════════════════════════════════════════
+const TEMPLATES = [
+  {
+    icon: '🎄', name: 'Julklappar', color: '#CBA8D4',
+    desc: 'Presentidéer per person med budget',
+    type: 'group', noCheck: false,
+    sublists: [
+      { name: 'Mamma', items: [] }, { name: 'Pappa', items: [] },
+      { name: 'Syskon', items: [] }, { name: 'Partner', items: [] },
+    ],
+  },
+  {
+    icon: '✈️', name: 'Semesterplanering', color: '#92BCE0',
+    desc: 'Packlista, att boka, att göra på plats',
+    type: 'group', noCheck: false,
+    sublists: [
+      { name: 'Packlista', items: ['Pass & ID','Laddare','Mediciner','Kläder'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+      { name: 'Att boka', items: ['Hotell','Flyg','Aktiviteter'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+      { name: 'På plats', items: [] },
+    ],
+  },
+  {
+    icon: '🍽️', name: 'Middagsplanering', color: '#EBBFA4',
+    desc: 'Veckans måltider och inköp',
+    type: 'group', noCheck: false,
+    sublists: [
+      { name: 'Måndag', items: [] }, { name: 'Tisdag', items: [] },
+      { name: 'Onsdag', items: [] }, { name: 'Torsdag', items: [] },
+      { name: 'Fredag', items: [] }, { name: 'Helg', items: [] },
+    ],
+  },
+  {
+    icon: '🏠', name: 'Städlista', color: '#A8D4C8',
+    desc: 'Rum för rum, enkla krysslådor',
+    type: 'group', noCheck: false,
+    sublists: [
+      { name: 'Kök', items: ['Diska','Torka bänkar','Ugn','Kyl'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+      { name: 'Badrum', items: ['Toalett','Dusch/badkar','Spegel','Golv'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+      { name: 'Vardagsrum', items: ['Dammsuga','Damma','Fönster'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+    ],
+  },
+  {
+    icon: '💪', name: 'Träningsvecka', color: '#98C99C',
+    desc: 'Träningspass som rutiner',
+    type: 'todo', noCheck: false,
+    items: ['Träning','Rörlighet / stretching','Vila'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})),
+  },
+  {
+    icon: '📦', name: 'Flytt-checklista', color: '#E8D47C',
+    desc: 'Allt från packning till inflyttning',
+    type: 'group', noCheck: false,
+    sublists: [
+      { name: 'Att packa', items: ['Kök','Kläder','Böcker & dekoration','Elektronik'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+      { name: 'Att kontakta', items: ['Hyresvärd','Försäkring','Bank','Post (adressändring)'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+      { name: 'Inflyttning', items: ['Städa ny bostad','Möbler på plats','Kontrollera el & vatten'].map(t=>({id:null,text:t,done:false,createdAt:Date.now(),doneAt:null})) },
+    ],
+  },
+  {
+    icon: '❤️', name: 'Favoritlista', color: '#E8A4B8',
+    desc: 'Anteckningar med ♡ — t.ex. favoritfilmer, böcker, restauranger',
+    type: 'group', noCheck: true,
+    sublists: [{ name: 'Min lista', items: [] }],
+  },
+];
+
+function showTemplates() {
+  const list = document.getElementById('templates-list');
+  list.innerHTML = '';
+  TEMPLATES.forEach(tpl => {
+    const row = document.createElement('div');
+    row.className = 'template-row';
+    row.innerHTML = `
+      <div class="template-icon">${tpl.icon}</div>
+      <div class="template-info">
+        <div class="template-name">${tpl.name}</div>
+        <div class="template-desc">${tpl.desc}</div>
+      </div>
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="flex-shrink:0;opacity:0.3">
+        <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`;
+    row.addEventListener('click', () => applyTemplate(tpl));
+    list.appendChild(row);
+  });
+  closeSheet();
+  setTimeout(() => openSheet('sh-templates'), 320);
+}
+
+function applyTemplate(tpl) {
+  // Give every item a proper uid
+  function stampItems(items) {
+    return (items ?? []).map(i => ({ ...i, id: i.id ?? uid() }));
+  }
+  let newList;
+  if (tpl.type === 'group') {
+    newList = {
+      id: uid(), name: tpl.name, icon: tpl.icon, color: tpl.color,
+      type: 'group', sublists: tpl.sublists.map(sl => ({
+        id: uid(), name: sl.name, items: stampItems(sl.items),
+      })),
+    };
+    if (tpl.noCheck) newList.noCheck = true;
+  } else {
+    newList = {
+      id: uid(), name: tpl.name, icon: tpl.icon, color: tpl.color,
+      type: tpl.type, items: stampItems(tpl.items),
+    };
+    if (tpl.noCheck) newList.noCheck = true;
+  }
+  S.lists.push(newList);
+  save(); closeSheet(); renderHome();
+}
+
+document.getElementById('show-templates-btn').addEventListener('click', showTemplates);
+
+// ════════════════════════════════════════
+// DELAD LISTA (WebSocket relay via serve.py)
+// ════════════════════════════════════════
+// (_shareWs, _shareListId, _shareCode, _shareRole declared near save() above)
+
+function generateShareCode() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+function showShareSheet(listId) {
+  _shareListId = listId;
+  const list = getList(listId);
+  document.getElementById('share-sheet-title').textContent = `Dela — ${list?.name ?? 'Lista'}`;
+  document.getElementById('join-code-wrap').style.display = 'none';
+  document.getElementById('share-join-section').style.display = 'flex';
+
+  if (_shareWs?.readyState === WebSocket.OPEN && _shareCode) {
+    // Already connected
+    document.getElementById('share-code-display').textContent = _shareCode;
+    setShareStatus(true, 'Ansluten');
+  } else {
+    _shareCode = generateShareCode();
+    document.getElementById('share-code-display').textContent = _shareCode;
+    setShareStatus(false, 'Ansluter…');
+    connectShareWs('host', _shareCode, listId);
+  }
+  document.getElementById('share-stop-btn').style.display = _shareWs ? 'block' : 'none';
+  openSheet('sh-share');
+}
+
+function setShareStatus(live, txt) {
+  document.getElementById('share-status-dot').classList.toggle('live', live);
+  document.getElementById('share-status-txt').textContent = txt;
+}
+
+function connectShareWs(role, code, listId) {
+  _shareRole = role;
+  const wsUrl = `ws://${location.host}/share?code=${code}&role=${role}`;
+  try {
+    const ws = new WebSocket(wsUrl);
+    _shareWs = ws;
+
+    ws.onopen = () => {
+      setShareStatus(true, role === 'host' ? `Värd · väntar på partner…` : 'Ansluten som gäst');
+      document.getElementById('share-stop-btn').style.display = 'block';
+      if (role === 'host') {
+        // Send current list data
+        const list = getList(listId);
+        if (list) ws.send(JSON.stringify({ type: 'init', list: deepCopy(list) }));
+      }
+    };
+
+    ws.onmessage = e => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'init' && role === 'guest') {
+          // Replace local list with received
+          const idx = S.lists.findIndex(l => l.id === listId);
+          if (idx >= 0) S.lists[idx] = { ...msg.list, id: listId };
+          else S.lists.push({ ...msg.list, id: listId });
+          save();
+          if (S.view === 'list' && S.listId === listId) renderList();
+          else if (S.view === 'group' && S.groupId === listId) renderGroup();
+          else renderHome();
+          setShareStatus(true, 'Ansluten · synkar i realtid');
+        } else if (msg.type === 'update') {
+          const list = getList(listId);
+          if (list) {
+            if (msg.list.sublists) list.sublists = msg.list.sublists;
+            if (msg.list.items)    list.items    = msg.list.items;
+            save();
+            if (S.view === 'list' && (S.listId === listId || S.groupId === listId)) renderList();
+            if (S.view === 'group' && S.groupId === listId) renderGroup();
+          }
+        } else if (msg.type === 'peer_joined') {
+          setShareStatus(true, 'Partner ansluten · synkar i realtid ✓');
+        }
+      } catch {}
+    };
+
+    ws.onclose = () => {
+      _shareWs = null;
+      setShareStatus(false, 'Bortkopplad');
+    };
+
+    ws.onerror = () => {
+      setShareStatus(false, 'Kunde inte ansluta — se till att köra senaste serve.py');
+    };
+  } catch {
+    setShareStatus(false, 'WebSocket stöds ej i denna miljö');
+  }
+}
+
+// Call this whenever list data changes while sharing
+function broadcastShareUpdate(listId) {
+  if (!_shareWs || _shareWs.readyState !== WebSocket.OPEN) return;
+  if (listId !== _shareListId) return;
+  const list = getList(listId);
+  if (list) _shareWs.send(JSON.stringify({ type: 'update', list: deepCopy(list) }));
+}
+
+document.getElementById('gopt-share').addEventListener('click', () => {
+  closeSheet();
+  setTimeout(() => showShareSheet(S.groupId), 320);
+});
+
+document.getElementById('share-join-section').addEventListener('click', () => {
+  const wrap = document.getElementById('join-code-wrap');
+  const btn  = document.getElementById('share-join-section');
+  const show = wrap.style.display === 'none';
+  wrap.style.display  = show ? 'block' : 'none';
+  btn.style.display   = show ? 'none'  : 'flex';
+  if (show) setTimeout(() => document.getElementById('join-code-inp').focus(), 100);
+});
+
+document.getElementById('join-code-btn').addEventListener('click', () => {
+  const code = document.getElementById('join-code-inp').value.trim();
+  if (!code) return;
+  _shareCode = code;
+  setShareStatus(false, 'Ansluter…');
+  connectShareWs('guest', code, _shareListId);
+});
+
+document.getElementById('share-stop-btn').addEventListener('click', () => {
+  if (_shareWs) { _shareWs.close(); _shareWs = null; }
+  _shareCode = null; _shareListId = null;
+  closeSheet();
+});
+
+// ════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════
 load();
 runMigration();
+checkRoutines();
+checkWeekReview();
 renderHome();
 initPin();
 </script>
