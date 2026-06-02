@@ -4538,10 +4538,27 @@ document.getElementById('lang-ctrl').addEventListener('click', e => {
 // ════════════════════════════════════════
 // IMPORT / EXPORT
 // ════════════════════════════════════════
-document.getElementById('export-btn').addEventListener('click', () => {
-  const data = localStorage.getItem('listig_v4') ?? '[]';
-  const date = new Date().toISOString().slice(0, 10);
-  const fileName = `listig-backup-${date}.json`;
+document.getElementById('export-btn').addEventListener('click', async () => {
+  const data     = localStorage.getItem('listig_v4') ?? '[]';
+  const fileName = 'listig-backup.json';
+
+  // File System Access API — låter användaren välja/skriva över befintlig fil
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{ description: 'JSON-fil', accept: { 'application/json': ['.json'] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(data);
+      await writable.close();
+      closeSheet();
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return; // användaren avbröt — gör inget
+      // Annat fel → fall igenom till share/download
+    }
+  }
 
   if (navigator.share) {
     // iOS / mobile: use native share sheet
@@ -4551,7 +4568,7 @@ document.getElementById('export-btn').addEventListener('click', () => {
       : { title: 'Listig backup', text: data };
     navigator.share(shareData).catch(() => {}).finally(() => closeSheet());
   } else {
-    // Desktop: trigger file download
+    // Fallback: vanlig nedladdning
     const blob = new Blob([data], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
