@@ -6736,7 +6736,7 @@ const BUDGET_COLOR = '#7AA89A';
 
 const BUDGET_PRESET = [
   { id:'boende',        catType:'fixed',    name:'Boende & Hushåll',  color:'#92BCE0', items:[
-    { id:'hyra',         name:'Månadavgift bostad (hyra/avgift/bolån)', amount:0, actual:0, fixed:true  },
+    { id:'hyra',         name:'Månadsavgift bostad (hyra/avgift/bolån)', amount:0, actual:0, fixed:true  },
     { id:'el',           name:'El',                  amount:0, actual:0, fixed:false },
     { id:'bredband',     name:'Bredband',             amount:0, actual:0, fixed:true  },
     { id:'hemforsakring',name:'Hemförsäkring',        amount:0, actual:0, fixed:true  },
@@ -6752,7 +6752,7 @@ const BUDGET_PRESET = [
   { id:'sparande',      catType:'savings',  name:'Sparande',          color:'#CBA8D4', items:[
     { id:'buffert',      name:'Buffert',              amount:0, actual:0, fixed:true  },
     { id:'pension',      name:'Pensionsspar',         amount:0, actual:0, fixed:true  },
-    { id:'fonder',       name:'Aktier/Fonder',        amount:0, actual:0, fixed:false },
+    { id:'fonder',       name:'Aktier/fonder',        amount:0, actual:0, fixed:false },
   ]},
   { id:'transport',     catType:'variable', name:'Transport',         color:'#F2C490', items:[
     { id:'sl',           name:'Kollektivtrafik',      amount:0, actual:0, fixed:false },
@@ -6834,6 +6834,21 @@ function loadBudget() {
         if (cat) cat.items = cat.items.filter(i => !stale.includes(i.id));
       });
       _budgetData._migrStream2 = true;
+    }
+    // Migration: uppdatera omdöpta poster
+    if (!_budgetData._migrNames1) {
+      const nameMap = {
+        'hyra':   'Månadsavgift bostad (hyra/avgift/bolån)',
+        'fonder': 'Aktier/fonder',
+      };
+      Object.values(_budgetData.months).forEach(md => {
+        md.categories?.forEach(cat => {
+          cat.items?.forEach(item => {
+            if (nameMap[item.id]) item.name = nameMap[item.id];
+          });
+        });
+      });
+      _budgetData._migrNames1 = true;
     }
     // Säkerställ note/rating på alla månader
     Object.values(_budgetData.months).forEach(md => {
