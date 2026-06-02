@@ -764,6 +764,309 @@
     .onboard-pin-wrap  { width: 100%; margin-bottom: 20px; }
     .onboard-skip { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tx3); padding: 12px; font-family: inherit; }
 
+    /* ── Budget overlay ── */
+    #budget-overlay {
+      position: fixed; inset: 0; z-index: 150;
+      background: var(--bg);
+      display: none; flex-direction: column;
+    }
+    #budget-overlay.active { display: flex; }
+    .budget-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: calc(var(--safe-top) + 14px) 16px 14px;
+      background: #7AA89A; flex-shrink: 0;
+    }
+    .budget-hd-title {
+      font-size: 12px; font-weight: 200; letter-spacing: 0.18em;
+      text-transform: uppercase; color: rgba(28,24,20,0.78);
+    }
+    .budget-month-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 6px 10px; background: var(--bg); flex-shrink: 0;
+      border-bottom: 1px solid rgba(28,24,20,0.08);
+    }
+    .budget-month-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .budget-month-btn {
+      border: none; background: none; cursor: pointer; padding: 4px 14px;
+      font-size: 26px; line-height: 1; color: var(--tx2); font-family: inherit;
+      transition: color 0.15s;
+    }
+    .budget-month-btn:disabled { opacity: 0.2; cursor: default; }
+    .budget-month-lbl { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--tx); }
+    .budget-month-note-btn {
+      border: none; background: none; cursor: pointer; font-size: 13px; padding: 0;
+      opacity: 0.4; transition: opacity 0.15s; line-height: 1;
+    }
+    .budget-month-note-btn:active { opacity: 0.8; }
+    .budget-month-note-btn.has-note { opacity: 0.85; }
+    .budget-tabs {
+      display: flex; border-bottom: 1px solid rgba(28,24,20,0.12);
+      background: var(--bg); flex-shrink: 0;
+    }
+    .budget-tab {
+      flex: 1; padding: 12px; border: none; background: none; cursor: pointer;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--tx3); font-family: inherit; transition: color 0.15s;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .budget-tab.sel { color: var(--tx); border-bottom-color: var(--tx); }
+    #budget-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px calc(var(--safe-bot) + 80px); }
+    .budget-income-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; margin: 16px 0 8px;
+      border: 1.5px solid rgba(28,24,20,0.18); border-radius: var(--r);
+      cursor: pointer;
+    }
+    .budget-income-lbl { font-size: 14px; color: var(--tx); }
+    .budget-income-val { font-size: 14px; font-weight: 600; color: var(--tx); }
+    .budget-income-val.empty { color: var(--tx3); font-weight: 400; font-style: italic; }
+    .budget-section-hd {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--tx3); padding: 22px 0 6px; border-top: 1px solid rgba(28,24,20,0.08); margin-top: 6px;
+    }
+    .budget-section-hd:first-of-type { border-top: none; margin-top: 0; }
+    .budget-cat-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0 8px;
+    }
+    .budget-cat-name { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tx3); display: flex; align-items: center; gap: 8px; }
+    .budget-cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .budget-cat-total { font-size: 12px; font-weight: 600; color: var(--tx2); }
+    .budget-item-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 11px 14px; margin-bottom: 6px;
+      border: 1.5px solid rgba(28,24,20,0.13); border-radius: var(--r);
+      cursor: pointer; transition: background 0.14s; gap: 8px;
+    }
+    .budget-item-row:active { background: rgba(28,24,20,0.04); }
+    .budget-item-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+    .budget-item-name { font-size: 14px; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .budget-fixed-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tx3); }
+    .budget-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .budget-item-actual { font-size: 15px; font-weight: 600; color: var(--tx); }
+    .budget-item-actual.zero { font-size: 13px; font-weight: 400; color: var(--tx3); font-style: italic; }
+    .budget-item-meta { display: flex; gap: 6px; align-items: center; }
+    .budget-item-budget-sm { font-size: 11px; color: var(--tx3); }
+    .budget-item-dev { font-size: 11px; font-weight: 700; }
+    .budget-item-dev.over  { color: #C0392B; }
+    .budget-item-dev.under { color: #4A8C6A; }
+    /* Edit sheet */
+    .budget-edit-field { margin-bottom: 18px; }
+    .budget-edit-lbl { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tx3); margin-bottom: 8px; }
+    .budget-edit-inp-row { display: flex; align-items: center; gap: 10px; }
+    .budget-edit-num-inp { flex: 1; font-size: 26px; font-weight: 300; border: none; border-bottom: 2px solid var(--gold); background: transparent; outline: none; padding: 6px 0; color: var(--tx); font-family: inherit; text-align: right; }
+    .budget-edit-unit { font-size: 16px; color: var(--tx2); font-weight: 300; flex-shrink: 0; }
+    .budget-edit-fixed-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; margin-bottom: 4px; border-top: 1px solid rgba(28,24,20,0.08); }
+    .budget-edit-fixed-lbl { font-size: 14px; color: var(--tx); }
+    .budget-fixed-toggle { border: 1.5px solid rgba(28,24,20,0.2); background: transparent; border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--tx2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .budget-fixed-toggle.on { background: var(--tx); color: #fff; border-color: var(--tx); }
+    .budget-add-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; margin-bottom: 6px;
+      border: 1.5px dashed rgba(28,24,20,0.15); border-radius: var(--r);
+      cursor: pointer; color: rgba(28,24,20,0.35);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .budget-cat-hd-right { display: flex; align-items: center; gap: 10px; }
+    .budget-cat-hide {
+      border: none; background: none; cursor: pointer; padding: 2px 4px;
+      font-size: 18px; line-height: 1; color: rgba(28,24,20,0.25); font-family: inherit;
+      transition: color 0.15s;
+    }
+    .budget-cat-hide:active { color: rgba(28,24,20,0.6); }
+    .budget-item-x {
+      border: none; background: none; cursor: pointer;
+      font-size: 17px; line-height: 1; color: rgba(28,24,20,0.18);
+      padding: 0; flex-shrink: 0; align-self: flex-start; padding-top: 2px;
+      font-family: inherit; transition: color 0.15s;
+    }
+    .budget-item-x:active { color: rgba(28,24,20,0.6); }
+    .budget-item-hidden-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px; margin-bottom: 6px;
+      border: 1.5px dashed rgba(28,24,20,0.1); border-radius: var(--r); opacity: 0.55;
+    }
+    .budget-hidden-hd {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--tx3); padding: 24px 0 10px;
+    }
+    .budget-hidden-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; margin-bottom: 6px;
+      border: 1.5px dashed rgba(28,24,20,0.13); border-radius: var(--r);
+      opacity: 0.55;
+    }
+    .budget-cat-restore {
+      border: none; background: none; cursor: pointer; padding: 2px 6px;
+      font-size: 20px; line-height: 1; color: rgba(28,24,20,0.5); font-family: inherit;
+    }
+    .budget-summary {
+      margin-top: 24px; border-top: 1px solid rgba(28,24,20,0.12); padding-top: 16px;
+    }
+    .budget-sum-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; font-size: 13px; color: var(--tx2);
+      border-bottom: 1px solid rgba(28,24,20,0.08);
+    }
+    .budget-sum-row:last-child { border-bottom: none; }
+    .budget-sum-row.highlight { font-size: 15px; font-weight: 700; color: var(--tx); padding-top: 14px; }
+    .budget-sum-row.highlight .budget-sum-pos { color: #4A8C6A; }
+    .budget-sum-row.highlight .budget-sum-neg { color: #C0392B; }
+    /* Category actual totals */
+    .budget-cat-actual-sm { font-size: 11px; color: var(--tx3); font-weight: 400; }
+    .budget-cat-actual-sm.over  { color: #C0392B; }
+    .budget-cat-actual-sm.under { color: #4A8C6A; }
+    /* Streaming picker */
+    .service-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid rgba(28,24,20,0.08);
+    }
+    .service-row:last-child { border-bottom: none; }
+    .service-toggle {
+      width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(28,24,20,0.25);
+      background: transparent; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; font-size: 12px;
+    }
+    .service-toggle.on { background: var(--tx); border-color: var(--tx); color: #fff; }
+    .service-name { flex: 1; font-size: 14px; color: var(--tx); }
+    .service-amt-inp {
+      width: 90px; font-size: 14px; font-weight: 600; border: none;
+      border-bottom: 1.5px solid rgba(28,24,20,0.2); background: transparent;
+      outline: none; padding: 2px 0; text-align: right; color: var(--tx);
+      font-family: inherit; display: none;
+    }
+    .service-amt-inp.vis { display: block; }
+    .service-unit { font-size: 12px; color: var(--tx3); display: none; }
+    .service-unit.vis { display: block; }
+    /* Quick-log FAB */
+    .budget-quicklog-fab {
+      position: absolute; bottom: calc(var(--safe-bot) + 24px); right: 20px;
+      width: 52px; height: 52px; border-radius: 50%; border: none;
+      background: var(--tx); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 14px rgba(28,24,20,0.3); z-index: 10;
+    }
+    /* Quick-log sheet */
+    .bql-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .bql-chip {
+      padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 600; font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .bql-chip:active { opacity: 0.7; }
+    .bql-chip.sel { outline: 2px solid var(--tx); outline-offset: 2px; }
+    .bql-s2-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    /* Daily budget */
+    .budget-daily-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; margin: 10px 0 0;
+      background: rgba(28,24,20,0.04); border-radius: var(--r);
+    }
+    .budget-daily-left { display: flex; flex-direction: column; gap: 2px; }
+    .budget-daily-main { font-size: 15px; font-weight: 700; color: var(--tx); }
+    .budget-daily-sub { font-size: 12px; color: var(--tx3); }
+    .budget-daily-kvar { font-size: 22px; font-weight: 700; }
+    /* Abonnemang */
+    .budget-abo-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0 8px; cursor: pointer;
+    }
+    .budget-abo-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tx3); display: flex; align-items: center; gap: 8px; }
+    .budget-abo-total { font-size: 13px; font-weight: 600; color: var(--tx2); }
+    .budget-abo-list { margin-bottom: 4px; }
+    .budget-abo-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(28,24,20,0.07); font-size: 13px; color: var(--tx2); }
+    /* Goals */
+    .budget-goal-card {
+      border: 1.5px solid rgba(28,24,20,0.13); border-radius: var(--r);
+      padding: 16px; margin-bottom: 10px; cursor: pointer; transition: background 0.14s;
+    }
+    .budget-goal-card:active { background: rgba(28,24,20,0.04); }
+    .budget-goal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .budget-goal-name { font-size: 15px; font-weight: 600; color: var(--tx); display: flex; align-items: center; gap: 8px; }
+    .budget-goal-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .budget-goal-amounts { font-size: 12px; color: var(--tx3); }
+    .budget-goal-bar-bg { height: 8px; background: rgba(28,24,20,0.08); border-radius: 4px; overflow: hidden; }
+    .budget-goal-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .budget-goal-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .budget-goal-pct { font-size: 12px; font-weight: 700; color: var(--tx); }
+    .budget-goal-hint { font-size: 11px; color: var(--tx3); }
+    .budget-goal-done { font-size: 11px; font-weight: 700; color: #4A8C6A; }
+    .budget-goal-contrib-btn {
+      border: 1.5px solid rgba(28,24,20,0.2); background: transparent; border-radius: 20px;
+      padding: 4px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      color: var(--tx2); cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .budget-goal-contrib-btn:active { background: rgba(28,24,20,0.06); }
+    .budget-new-goal-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px; margin-top: 4px;
+      border: 1.5px dashed rgba(28,24,20,0.2); border-radius: var(--r);
+      cursor: pointer; color: rgba(28,24,20,0.4);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .goal-color-wrap { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .goal-color-dot {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+      transition: transform 0.15s;
+    }
+    .goal-color-dot.sel { border-color: var(--tx); transform: scale(1.15); }
+    /* Item progress bar */
+    .budget-item-bar-wrap { height: 3px; background: rgba(28,24,20,0.07); border-radius: 2px; overflow: hidden; }
+    .budget-item-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+    /* Quick-log flat category label */
+    .bql-cat-lbl { width: 100%; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tx3); padding-top: 14px; padding-bottom: 2px; }
+    .bql-cat-lbl:first-child { padding-top: 0; }
+    /* Income CTA (empty state) */
+    .budget-income-cta {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px; margin: 16px 0 10px;
+      background: rgba(184,152,106,0.1); border: 1.5px solid rgba(184,152,106,0.45);
+      border-radius: var(--r); cursor: pointer;
+    }
+    .budget-income-cta-body { flex: 1; }
+    .budget-income-cta-title { font-size: 14px; font-weight: 700; color: var(--tx); }
+    .budget-income-cta-sub { font-size: 12px; color: var(--tx3); margin-top: 2px; }
+    /* Note / reactions */
+    .note-reactions { display: flex; gap: 8px; margin-top: 4px; }
+    .note-react-btn {
+      flex: 1; padding: 9px 6px; border-radius: 8px; border: 1.5px solid rgba(28,24,20,0.15);
+      background: transparent; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600;
+      transition: all 0.15s; color: var(--tx);
+    }
+    .note-react-btn.sel { background: var(--tx); color: #fff; border-color: var(--tx); }
+    /* Trend note */
+    .budget-trend-note { font-size: 11px; color: var(--tx3); padding: 3px 0 8px 78px; font-style: italic; }
+    .budget-trend-rating { margin-right: 4px; }
+    /* Trend view */
+    #budget-trend-view { padding: 20px 0; }
+    .budget-trend-empty { text-align: center; color: var(--tx3); padding: 60px 24px; font-size: 14px; }
+    .budget-trend-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .budget-trend-lbl { font-size: 11px; font-weight: 600; color: var(--tx2); width: 68px; flex-shrink: 0; text-align: right; }
+    .budget-trend-bar-wrap { flex: 1; height: 28px; background: rgba(28,24,20,0.06); border-radius: 4px; overflow: hidden; }
+    .budget-trend-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; min-width: 2px; }
+    .budget-trend-bar.pos { background: #98C99C; }
+    .budget-trend-bar.neg { background: #EDAAA4; }
+    .budget-trend-amt { font-size: 12px; font-weight: 600; color: var(--tx); width: 80px; flex-shrink: 0; }
+    .budget-trend-amt.neg { color: #C0392B; }
+    .budget-trend-current .budget-trend-lbl { color: var(--tx); font-weight: 700; }
+    /* Chart view */
+    #budget-chart-view { display: flex; flex-direction: column; align-items: center; padding-top: 24px; }
+    .budget-donut-wrap { position: relative; width: 200px; height: 200px; margin-bottom: 24px; }
+    .budget-donut-center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; pointer-events: none;
+    }
+    .budget-donut-total { font-size: 22px; font-weight: 700; color: var(--tx); }
+    .budget-donut-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tx3); margin-top: 2px; }
+    .budget-legend { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .budget-legend-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: var(--tx);
+    }
+    .budget-legend-left { display: flex; align-items: center; gap: 10px; }
+    .budget-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .budget-legend-amt { font-weight: 600; color: var(--tx2); }
+
     /* ── Calendar overlay ── */
     #cal-overlay {
       position: fixed; inset: 0; z-index: 300;
@@ -1294,6 +1597,177 @@
 
 <!-- ══ PIN OVERLAY ══ -->
 <!-- ── ONBOARDING ── -->
+<!-- ── BUDGET OVERLAY ── -->
+<div id="budget-overlay">
+  <div class="budget-hd">
+    <button class="ghost-btn" id="budget-back-btn">
+      <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+        <path d="M8 2L2 8L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="budget-hd-title">Budget</span>
+    <div style="width:36px"></div>
+  </div>
+  <div class="budget-month-nav">
+    <button class="budget-month-btn" id="budget-prev-month">&#8249;</button>
+    <div class="budget-month-mid">
+      <span class="budget-month-lbl" id="budget-month-lbl"></span>
+      <button class="budget-month-note-btn" id="budget-note-btn" title="Notera månaden">📝</button>
+    </div>
+    <button class="budget-month-btn" id="budget-next-month">&#8250;</button>
+  </div>
+  <div class="budget-tabs">
+    <button class="budget-tab sel" id="btab-list">Lista</button>
+    <button class="budget-tab" id="btab-goal">Sparmål</button>
+    <button class="budget-tab" id="btab-trend">Trend</button>
+    <button class="budget-tab" id="btab-chart">Diagram</button>
+  </div>
+  <div id="budget-content">
+    <div id="budget-list-view"></div>
+    <div id="budget-goal-view" style="display:none"></div>
+    <div id="budget-trend-view" style="display:none"></div>
+    <div id="budget-chart-view" style="display:none"></div>
+  </div>
+  <button id="budget-quicklog-btn" class="budget-quicklog-fab" style="display:none">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M9 2v14M2 9h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Budget edit sheet -->
+<div id="sh-budget-edit" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="budget-edit-title">Redigera</div>
+  <!-- Inkomst-läge -->
+  <div id="budget-edit-income-sec">
+    <div class="budget-edit-field">
+      <label class="budget-edit-lbl">Nettolön per månad</label>
+      <div class="budget-edit-inp-row">
+        <input type="number" id="budget-edit-income-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+        <span class="budget-edit-unit">kr</span>
+      </div>
+    </div>
+  </div>
+  <!-- Post-läge -->
+  <div id="budget-edit-item-sec" style="display:none">
+    <div class="budget-edit-field">
+      <label class="budget-edit-lbl">Utfall denna månad</label>
+      <div class="budget-edit-inp-row">
+        <input type="number" id="budget-edit-actual-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+        <span class="budget-edit-unit">kr</span>
+      </div>
+    </div>
+    <div class="budget-edit-field">
+      <label class="budget-edit-lbl">Budget (kr/mån)</label>
+      <div class="budget-edit-inp-row">
+        <input type="number" id="budget-edit-budget-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+        <span class="budget-edit-unit">kr</span>
+      </div>
+    </div>
+    <div class="budget-edit-fixed-row">
+      <span class="budget-edit-fixed-lbl">Typ av kostnad</span>
+      <button class="budget-fixed-toggle" id="budget-fixed-toggle" type="button">Rörlig</button>
+    </div>
+  </div>
+  <button class="btn" id="budget-edit-save" style="background:var(--lc);margin-top:8px">Spara</button>
+  <button class="btn btn-ghost" id="budget-edit-delete" style="display:none;color:#C0392B;margin-top:8px">Ta bort post</button>
+</div>
+
+<!-- Budget add custom item sheet -->
+<div id="sh-budget-add" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="budget-add-title">Lägg till post</div>
+  <input type="text" id="budget-add-name-inp" placeholder="Namn (t.ex. Gym)"
+    style="width:100%;font-size:16px;border:none;border-bottom:1.5px solid var(--gold);
+    background:transparent;outline:none;padding:10px 0 8px;color:var(--tx);font-family:inherit;margin-bottom:16px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <input type="number" id="budget-add-amt-inp" placeholder="0" inputmode="numeric"
+      style="flex:1;font-size:24px;font-weight:300;border:none;border-bottom:1.5px solid var(--bdr);
+      background:transparent;outline:none;padding:8px 0;color:var(--tx);font-family:inherit;text-align:right;">
+    <span style="font-size:16px;color:var(--tx2);font-weight:300">kr/mån</span>
+  </div>
+  <button class="btn" id="budget-add-save" style="background:var(--lc)">Lägg till</button>
+</div>
+
+<!-- Streaming-tjänster picker -->
+<div id="sh-budget-services" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Streaming & Appar</div>
+  <div id="services-list"></div>
+  <button class="btn btn-ghost" id="services-save-btn" style="margin-top:16px">Stäng</button>
+</div>
+
+<!-- Snabbloggning -->
+<div id="sh-budget-quicklog" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Logga utgift</div>
+  <div id="bql-cats" class="bql-grid" style="max-height:42vh;overflow-y:auto;padding-right:4px"></div>
+  <div id="bql-sel-lbl" style="font-size:12px;color:var(--tx3);min-height:16px;margin:10px 0 0;font-style:italic"></div>
+  <div class="budget-edit-inp-row" style="margin-top:8px">
+    <input type="number" id="bql-amt" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+    <span class="budget-edit-unit">kr</span>
+  </div>
+  <button class="btn" id="bql-save" style="margin-top:16px;background:var(--lc)">Lägg till utfall</button>
+</div>
+
+<!-- Sparmål redigera -->
+<div id="sh-budget-goal" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="goal-sh-title">Nytt sparmål</div>
+  <div class="budget-edit-field">
+    <label class="budget-edit-lbl">Namn</label>
+    <input type="text" id="goal-name-inp" placeholder="t.ex. Semester"
+      style="width:100%;font-size:18px;border:none;border-bottom:1.5px solid var(--gold);background:transparent;outline:none;padding:8px 0;color:var(--tx);font-family:inherit;margin-bottom:4px">
+  </div>
+  <div class="budget-edit-field">
+    <label class="budget-edit-lbl">Målbelopp</label>
+    <div class="budget-edit-inp-row">
+      <input type="number" id="goal-target-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+      <span class="budget-edit-unit">kr</span>
+    </div>
+  </div>
+  <div class="budget-edit-field">
+    <label class="budget-edit-lbl">Totalt sparat hittills</label>
+    <div class="budget-edit-inp-row">
+      <input type="number" id="goal-saved-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+      <span class="budget-edit-unit">kr</span>
+    </div>
+  </div>
+  <div class="budget-edit-field">
+    <label class="budget-edit-lbl">Färg</label>
+    <div id="goal-color-wrap" class="goal-color-wrap"></div>
+  </div>
+  <button class="btn" id="goal-save-btn">Spara</button>
+  <button class="btn btn-ghost" id="goal-del-btn" style="display:none;color:#C0392B;margin-top:8px">Ta bort mål</button>
+</div>
+
+<!-- Bidra till sparmål -->
+<div id="sh-goal-contrib" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="gc-goal-title">Bidra till mål</div>
+  <p id="gc-goal-desc" style="font-size:13px;color:var(--tx3);margin:0 0 20px"></p>
+  <div class="budget-edit-inp-row">
+    <input type="number" id="gc-amt" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+    <span class="budget-edit-unit">kr</span>
+  </div>
+  <button class="btn" id="gc-save" style="margin-top:16px;background:var(--lc)">Lägg till sparat</button>
+</div>
+
+<!-- Månadsnot -->
+<div id="sh-budget-note" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title" id="note-sh-title">Notera månaden</div>
+  <div class="note-reactions" id="note-reactions">
+    <button class="note-react-btn" data-r="good">💚 Bra månad</button>
+    <button class="note-react-btn" data-r="spend">💸 Dyr månad</button>
+    <button class="note-react-btn" data-r="tight">😬 Tight</button>
+  </div>
+  <textarea id="note-text" placeholder="Något att notera om denna månad..."
+    style="width:100%;box-sizing:border-box;font-size:14px;border:1.5px solid rgba(28,24,20,0.15);border-radius:8px;background:transparent;outline:none;padding:12px;color:var(--tx);font-family:inherit;resize:none;min-height:80px;margin-top:14px;margin-bottom:16px"></textarea>
+  <button class="btn" id="note-save-btn">Spara</button>
+</div>
+
 <div id="onboard-overlay">
   <div class="onboard-inner">
     <!-- Steg 0: välj språk -->
@@ -1323,7 +1797,7 @@
         <div class="onboard-dot"></div><div class="onboard-dot"></div><div class="onboard-dot on"></div>
       </div>
       <div style="font-size:36px;line-height:1;margin-bottom:18px">🔑</div>
-      <h2 class="onboard-title" id="ob-title-2" style="font-size:16px;letter-spacing:0.14em;margin-bottom:10px">Skydda med pinkod</h2>
+      <h2 class="onboard-title" id="ob-title-2" style="font-size:11px;font-weight:700;letter-spacing:0.13em;margin-bottom:10px">Skydda med pinkod</h2>
       <p class="onboard-sub" id="ob-sub-2" style="margin-bottom:28px">Valfritt - du kan alltid lägga till en pinkod senare under ⚙️</p>
       <button class="onboard-cta-btn" id="ob-pin-btn">Skapa pinkod</button>
       <button class="onboard-skip" id="ob-skip">Hoppa över</button>
@@ -1763,8 +2237,13 @@
 <!-- ── GUIDE / HJÄLP ── -->
 <div id="sh-help" class="sheet">
   <div class="handle" id="help-handle"></div>
-  <div style="font-size:22px;margin-bottom:4px">👋</div>
-  <div class="sh-title" id="help-title" style="margin-bottom:6px">Välkommen till Listig</div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div style="font-size:22px;margin-bottom:4px">👋</div>
+      <div class="sh-title" id="help-title" style="margin-bottom:6px">Välkommen till Listig</div>
+    </div>
+    <button onclick="closeSheet()" style="border:none;background:none;font-size:26px;cursor:pointer;color:var(--tx3);padding:4px 0 0;line-height:1;font-weight:300">×</button>
+  </div>
   <p style="font-size:14px;color:var(--tx2);margin-bottom:28px;line-height:1.5" id="help-subtitle">Här är allt du kan göra:</p>
   <div id="help-sections"></div>
   <button class="btn btn-ghost" id="help-close-btn" style="margin-top:24px">Stäng</button>
@@ -2643,6 +3122,14 @@ function renderHome() {
 
     grid.appendChild(card);
   });
+
+  // Budget card
+  const bc = document.createElement('div');
+  bc.className = 'list-card';
+  bc.style.cssText = `background:${BUDGET_COLOR};`;
+  bc.innerHTML = `<div class="card-info"><div class="card-name">BUDGET</div></div>`;
+  bc.addEventListener('click', openBudget);
+  grid.appendChild(bc);
 
   // New list card
   const nc = document.createElement('div');
@@ -6243,6 +6730,899 @@ function initOnboarding() {
 }
 
 // ════════════════════════════════════════
+// BUDGET
+// ════════════════════════════════════════
+const BUDGET_COLOR = '#7AA89A';
+
+const BUDGET_PRESET = [
+  { id:'boende',        catType:'fixed',    name:'Boende & Hushåll',  color:'#92BCE0', items:[
+    { id:'hyra',         name:'Månadavgift bostad (hyra/avgift/bolån)', amount:0, actual:0, fixed:true  },
+    { id:'el',           name:'El',                  amount:0, actual:0, fixed:false },
+    { id:'bredband',     name:'Bredband',             amount:0, actual:0, fixed:true  },
+    { id:'hemforsakring',name:'Hemförsäkring',        amount:0, actual:0, fixed:true  },
+  ]},
+  { id:'kommunikation', catType:'fixed',    name:'Kommunikation',     color:'#98C99C', items:[
+    { id:'telefon',      name:'Telefon',              amount:0, actual:0, fixed:true  },
+  ]},
+  { id:'streaming',     catType:'fixed',    name:'Streaming & Appar', color:'#E8D47C', items:[] },
+  { id:'lan',           catType:'fixed',    name:'Lån',               color:'#EDAAA4', items:[
+    { id:'studielan',    name:'Studielån',            amount:0, actual:0, fixed:true  },
+    { id:'privatlån',    name:'Privatlån / Billån',   amount:0, actual:0, fixed:true  },
+  ]},
+  { id:'sparande',      catType:'savings',  name:'Sparande',          color:'#CBA8D4', items:[
+    { id:'buffert',      name:'Buffert',              amount:0, actual:0, fixed:true  },
+    { id:'pension',      name:'Pensionsspar',         amount:0, actual:0, fixed:true  },
+    { id:'fonder',       name:'Aktier/Fonder',        amount:0, actual:0, fixed:false },
+  ]},
+  { id:'transport',     catType:'variable', name:'Transport',         color:'#F2C490', items:[
+    { id:'sl',           name:'Kollektivtrafik',      amount:0, actual:0, fixed:false },
+    { id:'bensin',       name:'Bensin',               amount:0, actual:0, fixed:false },
+  ]},
+  { id:'ovrigt',        catType:'variable', name:'Övrigt',            color:'#A8D4C8', items:[
+    { id:'gymkort',      name:'Gymkort',              amount:0, actual:0, fixed:true  },
+  ]},
+];
+
+let _budgetData = { months: {} };
+let _budgetMonth = '';
+let _budget = null; // pekar alltid på _budgetData.months[_budgetMonth]
+let _budgetEditTarget = null;
+
+const MONTHS_SV = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+
+function budgetCurrentKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function budgetMonthLabel(key) {
+  const [y, m] = key.split('-');
+  return `${MONTHS_SV[parseInt(m,10)-1]} ${y}`;
+}
+
+function budgetMergePresets(md) {
+  BUDGET_PRESET.forEach(pc => {
+    let cat = md.categories.find(c => c.id === pc.id);
+    if (!cat) { md.categories.push(deepCopy(pc)); cat = md.categories[md.categories.length-1]; }
+    if (!cat.catType) cat.catType = pc.catType;
+    pc.items.forEach(pi => { if (!cat.items.find(i => i.id === pi.id)) cat.items.push(deepCopy(pi)); });
+  });
+  md.categories.forEach(cat => {
+    if (!cat.catType) cat.catType = 'variable';
+    cat.items.forEach(item => {
+      if (item.actual  === undefined) item.actual  = 0;
+      if (item.fixed   === undefined) item.fixed   = true;   // default fast
+      if (item.custom  === undefined) item.custom  = false;
+      if (item.hidden  === undefined) item.hidden  = false;
+    });
+  });
+}
+
+function budgetEnsureMonth(key) {
+  if (_budgetData.months[key]) return;
+  const keys = Object.keys(_budgetData.months).sort();
+  if (keys.length > 0) {
+    const copy = deepCopy(_budgetData.months[keys[keys.length-1]]);
+    // Nollställ utfall för ny månad - budgetbelopp kopieras
+    copy.categories.forEach(cat => cat.items.forEach(item => { item.actual = 0; }));
+    _budgetData.months[key] = copy;
+  } else {
+    _budgetData.months[key] = { income: 0, categories: deepCopy(BUDGET_PRESET) };
+  }
+  budgetMergePresets(_budgetData.months[key]);
+}
+
+function loadBudget() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('listig_budget'));
+    if (raw && raw.months) {
+      _budgetData = raw;
+      Object.values(_budgetData.months).forEach(budgetMergePresets);
+    } else if (raw && raw.categories) {
+      const key = budgetCurrentKey();
+      _budgetData = { months: { [key]: raw } };
+      budgetMergePresets(_budgetData.months[key]);
+    } else {
+      _budgetData = { months: {} };
+    }
+    if (!_budgetData.goals) _budgetData.goals = [];
+    // Migration: rensa gamla och duplicerade streaming-poster
+    if (!_budgetData._migrStream2) {
+      const stale = ['netflix','spotify','hbo','video','ljud'];
+      Object.values(_budgetData.months).forEach(md => {
+        const cat = md.categories?.find(c => c.id === 'streaming');
+        if (cat) cat.items = cat.items.filter(i => !stale.includes(i.id));
+      });
+      _budgetData._migrStream2 = true;
+    }
+    // Säkerställ note/rating på alla månader
+    Object.values(_budgetData.months).forEach(md => {
+      if (md.note   === undefined) md.note   = '';
+      if (md.rating === undefined) md.rating = '';
+    });
+  } catch { _budgetData = { months: {}, goals: [] }; }
+}
+
+function saveBudget() { localStorage.setItem('listig_budget', JSON.stringify(_budgetData)); }
+
+function renderBudgetNav() {
+  document.getElementById('budget-month-lbl').textContent = budgetMonthLabel(_budgetMonth);
+  const isLatest = _budgetMonth >= budgetCurrentKey();
+  document.getElementById('budget-next-month').disabled = isLatest;
+  const hasNote = _budget && (_budget.note || _budget.rating);
+  document.getElementById('budget-note-btn').classList.toggle('has-note', !!hasNote);
+  document.getElementById('budget-note-btn').textContent = _budget?.rating === 'good' ? '💚' : _budget?.rating === 'spend' ? '💸' : _budget?.rating === 'tight' ? '😬' : '📝';
+}
+
+function setBudgetMonth(key) {
+  budgetEnsureMonth(key);
+  if (!key) return;
+  // Ensure note/rating exists
+  if (_budgetData.months[key].note   === undefined) _budgetData.months[key].note   = '';
+  if (_budgetData.months[key].rating === undefined) _budgetData.months[key].rating = '';
+  _budgetMonth = key;
+  _budget = _budgetData.months[key];
+  renderBudgetNav();
+  const active = ['list','goal','trend','chart'].find(t => document.getElementById('btab-'+t).classList.contains('sel')) || 'list';
+  budgetSetTab(active);
+}
+
+function openBudget() {
+  document.getElementById('budget-overlay').classList.add('active');
+  setBudgetMonth(budgetCurrentKey());
+}
+function closeBudget() { document.getElementById('budget-overlay').classList.remove('active'); }
+
+document.getElementById('budget-back-btn').addEventListener('click', closeBudget);
+
+document.getElementById('budget-prev-month').addEventListener('click', () => {
+  const [y, m] = _budgetMonth.split('-').map(Number);
+  const prev = m === 1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,'0')}`;
+  setBudgetMonth(prev);
+});
+document.getElementById('budget-next-month').addEventListener('click', () => {
+  if (_budgetMonth >= budgetCurrentKey()) return;
+  const [y, m] = _budgetMonth.split('-').map(Number);
+  const next = m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2,'0')}`;
+  setBudgetMonth(next);
+});
+
+function budgetSetTab(tab) {
+  ['list','goal','trend','chart'].forEach(t => {
+    document.getElementById('btab-'+t).classList.toggle('sel', t===tab);
+    document.getElementById('budget-'+t+'-view').style.display = t===tab ? '' : 'none';
+  });
+  document.getElementById('budget-quicklog-btn').style.display = tab === 'list' ? '' : 'none';
+  if (tab==='list')  renderBudgetList();
+  if (tab==='goal')  renderBudgetGoals();
+  if (tab==='trend') renderBudgetTrend();
+  if (tab==='chart') renderBudgetChart();
+}
+
+// Tabs
+document.getElementById('btab-list').addEventListener('click',  () => budgetSetTab('list'));
+document.getElementById('btab-goal').addEventListener('click',  () => budgetSetTab('goal'));
+document.getElementById('btab-trend').addEventListener('click', () => budgetSetTab('trend'));
+document.getElementById('btab-chart').addEventListener('click', () => budgetSetTab('chart'));
+
+function renderBudgetTrend() {
+  const wrap = document.getElementById('budget-trend-view');
+  wrap.innerHTML = '';
+
+  const months = Object.keys(_budgetData.months).sort();
+  const curKey  = budgetCurrentKey();
+
+  // Räkna ut överskott per månad
+  const rows = months.map(key => {
+    const md = _budgetData.months[key];
+    const inc  = md.income || 0;
+    const visCats = md.categories.filter(c => !c.hidden);
+    const anyActual = visCats.some(c => c.items.some(i => (i.actual||0) > 0));
+    const totalExp  = anyActual
+      ? visCats.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.actual||0), 0), 0)
+      : visCats.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.amount||0), 0), 0);
+    const leftover  = inc - totalExp;
+    const hasData   = inc > 0 || totalExp > 0;
+    return { key, leftover, hasData, isCurrent: key===curKey, anyActual };
+  }).filter(r => r.hasData);
+
+  if (rows.length === 0) {
+    wrap.innerHTML = '<p class="budget-trend-empty">Fyll i budget för minst en månad för att se trenden.</p>';
+    return;
+  }
+
+  const maxAbs = Math.max(...rows.map(r => Math.abs(r.leftover)), 1);
+
+  rows.slice().reverse().forEach(r => {
+    const [y, m] = r.key.split('-');
+    const lbl = MONTHS_SV[parseInt(m,10)-1].substring(0,3) + ' ' + y;
+    const pct  = Math.round(Math.abs(r.leftover) / maxAbs * 100);
+    const isPos = r.leftover >= 0;
+
+    const md = _budgetData.months[r.key];
+    const ratingEmoji = md?.rating === 'good' ? '💚' : md?.rating === 'spend' ? '💸' : md?.rating === 'tight' ? '😬' : '';
+    const noteText = md?.note ? md.note : '';
+
+    const rowEl = document.createElement('div');
+    rowEl.className = 'budget-trend-row' + (r.isCurrent ? ' budget-trend-current' : '');
+    rowEl.innerHTML = `
+      <span class="budget-trend-lbl">${lbl}</span>
+      <div class="budget-trend-bar-wrap">
+        <div class="budget-trend-bar ${isPos?'pos':'neg'}" style="width:${pct}%"></div>
+      </div>
+      <span class="budget-trend-amt${isPos?'':' neg'}">${isPos?'+':''}${r.leftover.toLocaleString('sv-SE')} kr</span>`;
+    wrap.appendChild(rowEl);
+    if (ratingEmoji || noteText) {
+      const noteEl = document.createElement('div');
+      noteEl.className = 'budget-trend-note';
+      noteEl.innerHTML = `${ratingEmoji ? `<span class="budget-trend-rating">${ratingEmoji}</span>` : ''}${esc(noteText)}`;
+      wrap.appendChild(noteEl);
+    }
+  });
+}
+
+function budgetFmt(n) { return n > 0 ? n.toLocaleString('sv-SE') + ' kr' : '-'; }
+
+function renderBudgetList() {
+  const wrap = document.getElementById('budget-list-view');
+  wrap.innerHTML = '';
+  const inc = _budget.income || 0;
+
+  // Inkomst
+  const incRow = document.createElement('div');
+  const hasInc = inc > 0;
+  if (hasInc) {
+    incRow.className = 'budget-income-row';
+    incRow.innerHTML = `<span class="budget-income-lbl">Månadsinkomst (netto)</span>
+      <span class="budget-income-val">${inc.toLocaleString('sv-SE')} kr</span>`;
+  } else {
+    incRow.className = 'budget-income-cta';
+    incRow.innerHTML = `<span style="font-size:22px">💰</span>
+      <div class="budget-income-cta-body">
+        <div class="budget-income-cta-title">Ange din månadslön</div>
+      </div>
+      <span style="font-size:18px;color:var(--gold)">›</span>`;
+  }
+  incRow.addEventListener('click', () => {
+    _budgetEditTarget = { type:'income' };
+    document.getElementById('budget-edit-title').textContent = 'Månadsinkomst';
+    document.getElementById('budget-edit-income-inp').value = inc || '';
+    document.getElementById('budget-edit-income-sec').style.display = '';
+    document.getElementById('budget-edit-item-sec').style.display  = 'none';
+    document.getElementById('budget-edit-delete').style.display    = 'none';
+    openSheet('sh-budget-edit');
+    setTimeout(() => document.getElementById('budget-edit-income-inp').focus(), 320);
+  });
+  wrap.appendChild(incRow);
+
+  // Daglig disponibel budget (bara för aktuell månad och om inkomst finns)
+  if (inc > 0 && _budgetMonth === budgetCurrentKey()) {
+    const visCatsD = _budget.categories.filter(c => !c.hidden);
+    const anyActD  = visCatsD.some(c => c.items.some(i => (i.actual||0) > 0));
+    const totalExpD = anyActD
+      ? visCatsD.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.actual||0), 0), 0)
+      : visCatsD.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.amount||0), 0), 0);
+    const leftD  = inc - totalExpD;
+    const today  = new Date();
+    const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+    const daysLeft = lastDay - today.getDate() + 1;
+    const perDay = daysLeft > 0 ? Math.round(leftD / daysLeft) : leftD;
+    const col = leftD >= 0 ? '#4A8C6A' : '#C0392B';
+    const dailyRow = document.createElement('div');
+    dailyRow.className = 'budget-daily-row';
+    dailyRow.innerHTML = `
+      <div class="budget-daily-left">
+        <span class="budget-daily-main">${leftD.toLocaleString('sv-SE')} kr kvar</span>
+        <span class="budget-daily-sub">${daysLeft} dagar kvar i månaden</span>
+      </div>
+      <span class="budget-daily-kvar" style="color:${col}">${perDay.toLocaleString('sv-SE')} kr/dag</span>`;
+    wrap.appendChild(dailyRow);
+  }
+
+  // Kategorier - grupperade i tre sektioner
+  const sections = [
+    { key:'fixed',    label:'Fasta kostnader'   },
+    { key:'savings',  label:'Sparande'           },
+    { key:'variable', label:'Rörliga kostnader'  },
+  ];
+
+  sections.forEach(sec => {
+    const visCats    = _budget.categories.filter(c => !c.hidden && (c.catType||'variable') === sec.key);
+    const hiddenCats = _budget.categories.filter(c =>  c.hidden && (c.catType||'variable') === sec.key);
+    if (visCats.length === 0 && hiddenCats.length === 0) return;
+
+    const secHd = document.createElement('div');
+    secHd.className = 'budget-section-hd';
+    secHd.textContent = sec.label;
+    wrap.appendChild(secHd);
+
+    visCats.forEach(cat => {
+    const catBudget = cat.items.reduce((s, i) => s + (i.amount||0), 0);
+    const catActual = cat.items.reduce((s, i) => s + (i.actual||0), 0);
+    const hasActual = catActual > 0;
+    const pct = (inc > 0 && catBudget > 0) ? Math.round(catBudget / inc * 100) : 0;
+
+    const catDevHtml = hasActual && catBudget > 0
+      ? `<span class="budget-cat-actual-sm ${catActual > catBudget ? 'over':'under'}">utfall ${catActual.toLocaleString('sv-SE')} kr</span>`
+      : '';
+
+    const hd = document.createElement('div');
+    hd.className = 'budget-cat-hd';
+    hd.innerHTML = `
+      <span class="budget-cat-name">
+        <span class="budget-cat-dot" style="background:${cat.color}"></span>${esc(cat.name)}
+      </span>
+      <span class="budget-cat-hd-right">
+        <span style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+          <span class="budget-cat-total">${catBudget > 0 ? catBudget.toLocaleString('sv-SE')+' kr'+(pct?' ('+pct+'%)':'') : ''}</span>
+          ${catDevHtml}
+        </span>
+        <button class="budget-cat-hide" aria-label="Dölj kategori">×</button>
+      </span>`;
+    hd.querySelector('.budget-cat-hide').addEventListener('click', () => {
+      cat.hidden = true; saveBudget(); renderBudgetList();
+    });
+    wrap.appendChild(hd);
+
+    // Alla poster (streaming + övriga) som enskilda rader
+    { cat.items.filter(i => !i.hidden).forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'budget-item-row';
+      const isFixed   = cat.catType === 'fixed' || !!item.fixed;
+      const hasAmt    = (item.amount||0) > 0;
+      const hasActual = (item.actual||0) > 0;
+      // Fasta kostnader: utfall = budgetbelopp (behöver ej loggas)
+      const showActual = !isFixed;
+      const dev       = (!isFixed && hasActual && hasAmt) ? (item.actual||0) - (item.amount||0) : 0;
+      const devHtml   = (!isFixed && hasActual && hasAmt)
+        ? `<span class="budget-item-dev ${dev > 0 ? 'over':'under'}">${dev > 0 ? '+':''}${dev.toLocaleString('sv-SE')} kr</span>`
+        : '';
+      const budgetSmall = (!isFixed && hasAmt) ? `<span class="budget-item-budget-sm">budget ${item.amount.toLocaleString('sv-SE')} kr</span>` : '';
+      // Progressbar: för fasta = alltid full (100%), för rörliga = utfall/budget
+      const barPct = hasAmt
+        ? (isFixed ? 100 : Math.min(100, Math.round(((item.actual||0)/item.amount)*100)))
+        : 0;
+      const barCol = (!isFixed && (item.actual||0) > item.amount) ? '#C0392B' : '#7AA89A';
+      const barHtml = (hasAmt && !isFixed)
+        ? `<div class="budget-item-bar-wrap"><div class="budget-item-bar-fill" style="width:${barPct}%;background:${barCol}"></div></div>`
+        : '';
+
+      // Vad som visas till höger:
+      // Fast: visar beloppet direkt (ingen utfall-loggning)
+      // Rörlig: visar utfall om finns, annars "Logga utfall" / "Ange belopp"
+      const rightVal = isFixed
+        ? (hasAmt ? `<span class="budget-item-actual">${item.amount.toLocaleString('sv-SE')} kr</span>` : `<span class="budget-item-actual zero">Ange belopp</span>`)
+        : `<span class="budget-item-actual${hasActual?'':' zero'}">${hasActual ? (item.actual).toLocaleString('sv-SE')+' kr' : (hasAmt ? 'Logga utfall' : 'Ange belopp')}</span>`;
+
+      row.innerHTML = `
+        <div class="budget-item-left">
+          <span class="budget-item-name">${esc(item.name)}</span>
+          ${barHtml}
+        </div>
+        <div class="budget-item-right">
+          ${rightVal}
+          <div class="budget-item-meta">${budgetSmall}${devHtml}</div>
+        </div>
+        <button class="budget-item-x" aria-label="Ta bort">×</button>`;
+
+      row.querySelector('.budget-item-x').addEventListener('click', e => {
+        e.stopPropagation();
+        if (cat.id === 'streaming' || item.custom) {
+          cat.items = cat.items.filter(i => i.id !== item.id);
+        } else {
+          item.hidden = true;
+        }
+        saveBudget(); renderBudgetList();
+      });
+
+      row.addEventListener('click', () => {
+        _budgetEditTarget = { type:'item', catId:cat.id, itemId:item.id };
+        document.getElementById('budget-edit-title').textContent = item.name;
+        document.getElementById('budget-edit-budget-inp').value  = item.amount || '';
+        document.getElementById('budget-edit-actual-inp').value  = item.actual || '';
+        document.getElementById('budget-fixed-toggle').textContent = isFixed ? 'Fast' : 'Rörlig';
+        document.getElementById('budget-fixed-toggle').classList.toggle('on', isFixed);
+        document.getElementById('budget-edit-income-sec').style.display = 'none';
+        document.getElementById('budget-edit-item-sec').style.display   = '';
+        // Dölj utfall-fältet för fasta kostnader
+        document.getElementById('budget-edit-actual-inp').closest('.budget-edit-field').style.display = isFixed ? 'none' : '';
+        // Streaming-tjänster kan tas bort direkt (trots custom:false)
+        document.getElementById('budget-edit-delete').style.display = (item.custom || cat.id === 'streaming') ? '' : 'none';
+        openSheet('sh-budget-edit');
+        const focusEl = isFixed
+          ? document.getElementById('budget-edit-budget-inp')
+          : document.getElementById('budget-edit-actual-inp');
+        setTimeout(() => focusEl.focus(), 320);
+      });
+      wrap.appendChild(row);
+    });
+
+    // Dolda enskilda poster — restore direkt i kategorin
+    cat.items.filter(i => i.hidden).forEach(item => {
+      const hidRow = document.createElement('div');
+      hidRow.className = 'budget-item-hidden-row';
+      hidRow.innerHTML = `<span style="font-size:13px;color:var(--tx3)">${esc(item.name)}</span>
+        <button class="budget-cat-restore" aria-label="Återlägg">+</button>`;
+      hidRow.querySelector('.budget-cat-restore').addEventListener('click', () => {
+        item.hidden = false; saveBudget(); renderBudgetList();
+      });
+      wrap.appendChild(hidRow);
+    }); }
+
+    // Lägg till poster
+    const addRow = document.createElement('div');
+    addRow.className = 'budget-add-row';
+    if (cat.id === 'streaming') {
+      addRow.innerHTML = `<span style="font-size:14px;opacity:0.4">✓</span> Välj tjänster`;
+      addRow.addEventListener('click', () => openServicesSheet(cat));
+    } else {
+      addRow.innerHTML = `<span style="font-size:16px;opacity:0.4">+</span> Lägg till post`;
+      addRow.addEventListener('click', () => {
+        _budgetEditTarget = { type:'add', catId:cat.id };
+        document.getElementById('budget-add-title').textContent = 'Lägg till i ' + cat.name;
+        document.getElementById('budget-add-name-inp').value = '';
+        document.getElementById('budget-add-amt-inp').value = '';
+        openSheet('sh-budget-add');
+        setTimeout(() => document.getElementById('budget-add-name-inp').focus(), 320);
+      });
+    }
+    wrap.appendChild(addRow);
+    }); // end visCats.forEach
+
+    // Dolda kategorier i denna sektion — syns direkt på rätt ställe
+    hiddenCats.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = 'budget-hidden-row';
+      row.innerHTML = `<span class="budget-cat-name"><span class="budget-cat-dot" style="background:${cat.color}"></span>${esc(cat.name)}</span>
+        <button class="budget-cat-restore" aria-label="Återlägg">+</button>`;
+      row.querySelector('.budget-cat-restore').addEventListener('click', () => {
+        cat.hidden = false; saveBudget(); renderBudgetList();
+      });
+      wrap.appendChild(row);
+    });
+  }); // end sections.forEach
+
+  // Summering
+  const visCats  = _budget.categories.filter(c => !c.hidden);
+  const totalBudget = visCats.reduce((s, c) => s + c.items.reduce((ss, i) => ss + (i.amount||0), 0), 0);
+  const totalActual = visCats.reduce((s, c) => s + c.items.reduce((ss, i) => ss + (i.actual||0), 0), 0);
+  const sparBudget  = (_budget.categories.find(c=>c.id==='sparande'&&!c.hidden)?.items??[]).reduce((s,i)=>s+(i.amount||0),0);
+  const anyActual   = totalActual > 0;
+
+  const leftBudget = inc - totalBudget;
+  const leftActual = inc - totalActual;
+  const posBudget  = leftBudget >= 0;
+  const posActual  = leftActual >= 0;
+
+  const leftKvar = anyActual ? leftActual : leftBudget;
+  const posKvar  = leftKvar >= 0;
+  const budgetHint = (anyActual && leftActual !== leftBudget)
+    ? ` <span style="font-size:11px;font-weight:400;color:var(--tx3)">(plan: ${leftBudget.toLocaleString('sv-SE')} kr)</span>`
+    : '';
+
+  let sumRows = `<div class="budget-sum-row">
+      <span>Totalt budgeterat</span>
+      <span>${totalBudget.toLocaleString('sv-SE')} kr</span>
+    </div>`;
+  if (sparBudget > 0) {
+    sumRows += `<div class="budget-sum-row">
+      <span>varav sparande</span>
+      <span>${sparBudget.toLocaleString('sv-SE')} kr</span>
+    </div>`;
+  }
+  if (anyActual) {
+    sumRows += `<div class="budget-sum-row">
+      <span>Faktiskt utfall</span>
+      <span class="${totalActual > totalBudget ? 'budget-sum-neg':'budget-sum-pos'}">${totalActual.toLocaleString('sv-SE')} kr</span>
+    </div>`;
+  }
+  if (inc > 0) {
+    sumRows += `<div class="budget-sum-row highlight">
+      <span>Kvar denna månad</span>
+      <span class="${posKvar?'budget-sum-pos':'budget-sum-neg'}">${leftKvar.toLocaleString('sv-SE')} kr${budgetHint}</span>
+    </div>`;
+  } else {
+    sumRows += `<div class="budget-sum-row highlight"><span>Kvar denna månad</span><span style="color:var(--tx3);font-weight:400;font-size:13px">Ange lön ovan</span></div>`;
+  }
+
+  const sumEl = document.createElement('div');
+  sumEl.className = 'budget-summary';
+  sumEl.innerHTML = sumRows;
+  wrap.appendChild(sumEl);
+}
+
+function renderBudgetChart() {
+  const wrap = document.getElementById('budget-chart-view');
+  wrap.innerHTML = '';
+
+  const cats = _budget.categories.filter(c => !c.hidden && c.items.some(i => i.amount > 0));
+  const total = cats.reduce((s, c) => s + c.items.reduce((ss,i)=>ss+(i.amount||0),0), 0);
+
+  if (total === 0) {
+    wrap.innerHTML = '<p style="text-align:center;color:var(--tx3);padding:60px 24px;font-size:14px">Ange belopp i lista-vyn för att se diagrammet.</p>';
+    return;
+  }
+
+  // SVG donut (r=70, center=100,100, circumference≈439.82)
+  const R = 70, CX = 100, CY = 100;
+  const CIRC = 2 * Math.PI * R;
+  let offset = 0;
+  let segments = '';
+
+  cats.forEach(cat => {
+    const catAmt = cat.items.reduce((s,i)=>s+(i.amount||0),0);
+    if (catAmt <= 0) return;
+    const pct = catAmt / total;
+    const dash = pct * CIRC;
+    const rot = (offset / total) * 360 - 90;
+    segments += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none"
+      stroke="${cat.color}" stroke-width="28"
+      stroke-dasharray="${dash.toFixed(2)} ${(CIRC-dash).toFixed(2)}"
+      transform="rotate(${rot.toFixed(2)} ${CX} ${CY})"
+      stroke-linecap="butt"/>`;
+    offset += catAmt;
+  });
+
+  const donutWrap = document.createElement('div');
+  donutWrap.className = 'budget-donut-wrap';
+  donutWrap.innerHTML = `
+    <svg viewBox="0 0 200 200" width="200" height="200">
+      <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="rgba(28,24,20,0.07)" stroke-width="28"/>
+      ${segments}
+    </svg>
+    <div class="budget-donut-center">
+      <span class="budget-donut-total">${total.toLocaleString('sv-SE')} kr</span>
+      <span class="budget-donut-lbl">per månad</span>
+    </div>`;
+  wrap.appendChild(donutWrap);
+
+  // Legend
+  const legend = document.createElement('div');
+  legend.className = 'budget-legend';
+  cats.forEach(cat => {
+    const catAmt = cat.items.reduce((s,i)=>s+(i.amount||0),0);
+    if (catAmt <= 0) return;
+    const row = document.createElement('div');
+    row.className = 'budget-legend-row';
+    row.innerHTML = `<div class="budget-legend-left"><span class="budget-legend-dot" style="background:${cat.color}"></span><span>${esc(cat.name)}</span></div>
+      <span class="budget-legend-amt">${catAmt.toLocaleString('sv-SE')} kr</span>`;
+    legend.appendChild(row);
+  });
+  wrap.appendChild(legend);
+}
+
+// Fixed-toggle
+document.getElementById('budget-fixed-toggle').addEventListener('click', function() {
+  const isOn = this.classList.toggle('on');
+  this.textContent = isOn ? 'Fast' : 'Rörlig';
+});
+
+// Spara redigerat värde
+document.getElementById('budget-edit-save').addEventListener('click', () => {
+  const t = _budgetEditTarget;
+  if (!t) return;
+  if (t.type === 'income') {
+    _budget.income = parseFloat(document.getElementById('budget-edit-income-inp').value) || 0;
+  } else if (t.type === 'item') {
+    const cat = _budget.categories.find(c => c.id === t.catId);
+    const item = cat?.items.find(i => i.id === t.itemId);
+    if (item) {
+      item.amount = parseFloat(document.getElementById('budget-edit-budget-inp').value) || 0;
+      item.actual = parseFloat(document.getElementById('budget-edit-actual-inp').value) || 0;
+      item.fixed  = document.getElementById('budget-fixed-toggle').classList.contains('on');
+    }
+  }
+  saveBudget(); closeSheet(); renderBudgetList(); renderHome();
+});
+
+// Ta bort egen post
+document.getElementById('budget-edit-delete').addEventListener('click', () => {
+  const t = _budgetEditTarget;
+  if (!t || t.type !== 'item') return;
+  const cat = _budget.categories.find(c => c.id === t.catId);
+  if (!cat) return;
+  cat.items = cat.items.filter(i => i.id !== t.itemId);
+  saveBudget(); closeSheet(); renderBudgetList();
+});
+
+// Lägg till egen post
+document.getElementById('budget-add-save').addEventListener('click', () => {
+  const name = document.getElementById('budget-add-name-inp').value.trim();
+  if (!name) return;
+  const amt = parseFloat(document.getElementById('budget-add-amt-inp').value) || 0;
+  const t = _budgetEditTarget;
+  if (!t || t.type !== 'add') return;
+  const cat = _budget.categories.find(c => c.id === t.catId);
+  if (!cat) return;
+  cat.items.push({ id: uid(), name, amount: amt, actual: 0, fixed: true, custom: true });
+  saveBudget(); closeSheet(); renderBudgetList();
+});
+
+// ── Streaming-tjänster ───────────────────
+const STREAMING_SERVICES = [
+  { id:'s_netflix',    name:'Netflix'          },
+  { id:'s_hbo',        name:'HBO Max'          },
+  { id:'s_disney',     name:'Disney+'          },
+  { id:'s_viaplay',    name:'Viaplay'          },
+  { id:'s_appletv',    name:'Apple TV+'        },
+  { id:'s_paramount',  name:'Paramount+'       },
+  { id:'s_dplay',      name:'Discovery+'       },
+  { id:'s_sfanytime',  name:'SF Anytime'       },
+  { id:'s_spotify',    name:'Spotify'          },
+  { id:'s_applemusic', name:'Apple Music'      },
+  { id:'s_ytpremium',  name:'YouTube Premium'  },
+  { id:'s_storytel',   name:'Storytel'         },
+  { id:'s_bookbeat',   name:'Bookbeat'         },
+  { id:'s_nextory',    name:'Nextory'          },
+  { id:'s_readly',     name:'Readly'           },
+];
+
+function openServicesSheet(streamingCat) {
+  const wrap = document.getElementById('services-list');
+  wrap.innerHTML = '';
+
+  function syncService(id, isOn, amt) {
+    const svc = STREAMING_SERVICES.find(s => s.id === id);
+    const existing = streamingCat.items.find(i => i.id === id);
+    if (isOn && !existing) {
+      streamingCat.items.push({ id, name: svc.name, amount: amt, actual: 0, fixed: true, custom: false });
+    } else if (isOn && existing) {
+      existing.amount = amt;
+    } else if (!isOn && existing) {
+      streamingCat.items = streamingCat.items.filter(i => i.id !== id);
+    }
+    saveBudget();
+    renderBudgetList();
+  }
+
+  STREAMING_SERVICES.forEach(svc => {
+    const existing = streamingCat.items.find(i => i.id === svc.id);
+    const isOn = !!existing;
+    const row = document.createElement('div');
+    row.className = 'service-row';
+    row.innerHTML = `
+      <button class="service-toggle${isOn?' on':''}" data-id="${svc.id}">${isOn?'✓':''}</button>
+      <span class="service-name">${esc(svc.name)}</span>
+      <input type="number" class="service-amt-inp${isOn?' vis':''}" data-id="${svc.id}"
+        placeholder="0" inputmode="numeric" value="${existing?.amount||''}" >
+      <span class="service-unit${isOn?' vis':''}">kr</span>`;
+    const toggle = row.querySelector('.service-toggle');
+    const inp    = row.querySelector('.service-amt-inp');
+    const unit   = row.querySelector('.service-unit');
+
+    toggle.addEventListener('click', () => {
+      const on = toggle.classList.toggle('on');
+      toggle.textContent = on ? '✓' : '';
+      inp.classList.toggle('vis', on);
+      unit.classList.toggle('vis', on);
+      if (on) setTimeout(() => inp.focus(), 50);
+      syncService(svc.id, on, parseFloat(inp.value) || 0);
+    });
+
+    inp.addEventListener('blur', () => {
+      if (toggle.classList.contains('on')) {
+        syncService(svc.id, true, parseFloat(inp.value) || 0);
+      }
+    });
+
+    wrap.appendChild(row);
+  });
+  openSheet('sh-budget-services');
+}
+
+// "Klar" stänger bara sheetet – sparning sker redan direkt vid varje ändring
+document.getElementById('services-save-btn').addEventListener('click', () => closeSheet());
+
+// ── Sparmål ──────────────────────────────
+const GOAL_COLORS = ['#EDAAA4','#98C99C','#92BCE0','#E8D47C','#EBBFA4','#CBA8D4','#F2C490','#A8D4C8'];
+let _goalEditId = null;
+
+function renderBudgetGoals() {
+  const wrap = document.getElementById('budget-goal-view');
+  wrap.innerHTML = '';
+  const goals = _budgetData.goals || [];
+
+  if (goals.length === 0) {
+    const empty = document.createElement('p');
+    empty.style.cssText = 'text-align:center;color:var(--tx3);padding:40px 24px 16px;font-size:14px';
+    empty.textContent = 'Inga sparmål ännu. Lägg till ett nedan.';
+    wrap.appendChild(empty);
+  }
+
+  goals.forEach(goal => {
+    const pct = goal.target > 0 ? Math.min(100, Math.round(goal.saved / goal.target * 100)) : 0;
+    const done = goal.saved >= goal.target && goal.target > 0;
+    const remaining = Math.max(0, (goal.target||0) - (goal.saved||0));
+    // Monthly suggestion based on sparande budget
+    const sparBudget = (_budget.categories.find(c=>c.id==='sparande'&&!c.hidden)?.items??[]).reduce((s,i)=>s+(i.amount||0),0);
+    const monthsLeft = (sparBudget > 0 && remaining > 0) ? Math.ceil(remaining / sparBudget) : null;
+
+    const card = document.createElement('div');
+    card.className = 'budget-goal-card';
+    card.innerHTML = `
+      <div class="budget-goal-header">
+        <span class="budget-goal-name"><span class="budget-goal-dot" style="background:${goal.color||'#98C99C'}"></span>${esc(goal.name)}</span>
+        <span class="budget-goal-amounts">${(goal.saved||0).toLocaleString('sv-SE')} / ${(goal.target||0).toLocaleString('sv-SE')} kr</span>
+      </div>
+      <div class="budget-goal-bar-bg">
+        <div class="budget-goal-bar-fill" style="width:${pct}%;background:${goal.color||'#98C99C'}"></div>
+      </div>
+      <div class="budget-goal-footer">
+        <span class="budget-goal-pct">${pct}%</span>
+        ${done
+          ? '<span class="budget-goal-done">✓ Mål uppnått!</span>'
+          : monthsLeft
+            ? `<span class="budget-goal-hint">ca ${monthsLeft} mån kvar</span>`
+            : `<span class="budget-goal-hint">${remaining.toLocaleString('sv-SE')} kr kvar</span>`}
+      </div>`;
+    // Bidra-knapp (snabb insättning utan att öppna full redigering)
+    if (!done) {
+      const contribBtn = document.createElement('button');
+      contribBtn.className = 'budget-goal-contrib-btn';
+      contribBtn.textContent = '+ Bidra';
+      contribBtn.style.cssText = 'display:block;width:100%;margin-top:12px';
+      contribBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        _gcGoalId = goal.id;
+        document.getElementById('gc-goal-title').textContent = goal.name;
+        document.getElementById('gc-goal-desc').textContent =
+          `${(goal.saved||0).toLocaleString('sv-SE')} kr sparat av ${(goal.target||0).toLocaleString('sv-SE')} kr`;
+        document.getElementById('gc-amt').value = '';
+        openSheet('sh-goal-contrib');
+        setTimeout(() => document.getElementById('gc-amt').focus(), 320);
+      });
+      card.appendChild(contribBtn);
+    }
+    card.addEventListener('click', () => openGoalSheet(goal.id));
+    wrap.appendChild(card);
+  });
+
+  const addBtn = document.createElement('div');
+  addBtn.className = 'budget-new-goal-btn';
+  addBtn.innerHTML = '<span style="font-size:16px;opacity:0.5">+</span> Nytt sparmål';
+  addBtn.addEventListener('click', () => openGoalSheet(null));
+  wrap.appendChild(addBtn);
+}
+
+function openGoalSheet(goalId) {
+  _goalEditId = goalId;
+  const goal = goalId ? _budgetData.goals.find(g => g.id === goalId) : null;
+  document.getElementById('goal-sh-title').textContent = goal ? 'Redigera mål' : 'Nytt sparmål';
+  document.getElementById('goal-name-inp').value   = goal?.name   || '';
+  document.getElementById('goal-target-inp').value = goal?.target || '';
+  document.getElementById('goal-saved-inp').value  = goal?.saved  || '';
+  document.getElementById('goal-del-btn').style.display = goal ? '' : 'none';
+
+  const selColor = goal?.color || GOAL_COLORS[0];
+  const cpWrap = document.getElementById('goal-color-wrap');
+  cpWrap.innerHTML = GOAL_COLORS.map(c =>
+    `<div class="goal-color-dot${c===selColor?' sel':''}" data-c="${c}" style="background:${c}"></div>`
+  ).join('');
+  cpWrap.querySelectorAll('.goal-color-dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      cpWrap.querySelectorAll('.goal-color-dot').forEach(d => d.classList.remove('sel'));
+      dot.classList.add('sel');
+    });
+  });
+
+  openSheet('sh-budget-goal');
+  setTimeout(() => document.getElementById('goal-name-inp').focus(), 320);
+}
+
+document.getElementById('goal-save-btn').addEventListener('click', () => {
+  const name   = document.getElementById('goal-name-inp').value.trim();
+  if (!name) return;
+  const target = parseFloat(document.getElementById('goal-target-inp').value) || 0;
+  const saved  = parseFloat(document.getElementById('goal-saved-inp').value)  || 0;
+  const color  = document.querySelector('#goal-color-wrap .goal-color-dot.sel')?.dataset.c || GOAL_COLORS[0];
+  if (_goalEditId) {
+    const g = _budgetData.goals.find(g => g.id === _goalEditId);
+    if (g) { g.name = name; g.target = target; g.saved = saved; g.color = color; }
+  } else {
+    _budgetData.goals.push({ id: uid(), name, target, saved, color });
+  }
+  saveBudget(); closeSheet(); renderBudgetGoals();
+});
+
+document.getElementById('goal-del-btn').addEventListener('click', () => {
+  if (!_goalEditId) return;
+  _budgetData.goals = _budgetData.goals.filter(g => g.id !== _goalEditId);
+  saveBudget(); closeSheet(); renderBudgetGoals();
+});
+
+// ── Sparmål - snabbidraga ─────────────────
+let _gcGoalId = null;
+document.getElementById('gc-save').addEventListener('click', () => {
+  const goal = _budgetData.goals.find(g => g.id === _gcGoalId);
+  if (!goal) return;
+  const amt = parseFloat(document.getElementById('gc-amt').value) || 0;
+  if (!amt) return;
+  goal.saved = (goal.saved || 0) + amt;
+  saveBudget(); closeSheet(); renderBudgetGoals();
+});
+
+// ── Snabbloggning ────────────────────────
+
+document.getElementById('budget-quicklog-btn').addEventListener('click', () => {
+  document.getElementById('bql-amt').value = '';
+  document.getElementById('bql-sel-lbl').textContent = '';
+
+  const grid = document.getElementById('bql-cats');
+  grid.innerHTML = '';
+
+  _budget.categories.filter(c => !c.hidden && c.items.length > 0 && c.catType !== 'fixed').forEach(cat => {
+    const catLbl = document.createElement('div');
+    catLbl.className = 'bql-cat-lbl';
+    catLbl.textContent = cat.name;
+    grid.appendChild(catLbl);
+
+    cat.items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'bql-chip';
+      btn.textContent = item.name;
+      btn.style.background = cat.color;
+      btn.style.color = 'rgba(28,24,20,0.85)';
+      btn.dataset.catId  = cat.id;
+      btn.dataset.itemId = item.id;
+      btn.addEventListener('click', () => {
+        grid.querySelectorAll('.bql-chip').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        const hint = (item.actual||0) > 0
+          ? `${item.name} · ${(item.actual).toLocaleString('sv-SE')} kr inloggat`
+          : item.name;
+        document.getElementById('bql-sel-lbl').textContent = hint;
+        document.getElementById('bql-amt').focus();
+      });
+      grid.appendChild(btn);
+    });
+  });
+
+  openSheet('sh-budget-quicklog');
+});
+
+document.getElementById('bql-save').addEventListener('click', () => {
+  const selChip = document.querySelector('#bql-cats .bql-chip.sel');
+  if (!selChip) return;
+  const amt = parseFloat(document.getElementById('bql-amt').value) || 0;
+  if (!amt) return;
+  const cat  = _budget.categories.find(c => c.id === selChip.dataset.catId);
+  const item = cat?.items.find(i => i.id === selChip.dataset.itemId);
+  if (item) { item.actual = (item.actual||0) + amt; }
+  saveBudget(); closeSheet(); renderBudgetList(); renderHome();
+});
+
+// ── Månadsnot ────────────────────────────
+document.getElementById('budget-note-btn').addEventListener('click', () => {
+  document.getElementById('note-sh-title').textContent = 'Notera - ' + budgetMonthLabel(_budgetMonth);
+  document.getElementById('note-text').value = _budget.note || '';
+  const cur = _budget.rating || '';
+  document.querySelectorAll('.note-react-btn').forEach(b => {
+    b.classList.toggle('sel', b.dataset.r === cur);
+  });
+  openSheet('sh-budget-note');
+  setTimeout(() => document.getElementById('note-text').focus(), 320);
+});
+
+document.querySelectorAll('.note-react-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    const already = b.classList.contains('sel');
+    document.querySelectorAll('.note-react-btn').forEach(x => x.classList.remove('sel'));
+    if (!already) b.classList.add('sel');
+  });
+});
+
+document.getElementById('note-save-btn').addEventListener('click', () => {
+  _budget.note   = document.getElementById('note-text').value.trim();
+  _budget.rating = document.querySelector('.note-react-btn.sel')?.dataset.r || '';
+  saveBudget(); closeSheet(); renderBudgetNav();
+  if (document.getElementById('btab-trend').classList.contains('sel')) renderBudgetTrend();
+});
+
+function initBudget() {
+  loadBudget();
+}
+
+// ════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════
 load();
@@ -6250,6 +7630,7 @@ runMigration();
 applyLang();
 checkRoutines();
 checkWeekReview();
+initBudget();
 renderHome();
 initPin();
 initWeekSummSettings();
