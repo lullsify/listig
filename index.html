@@ -156,7 +156,7 @@
     .card-count {
       font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
       text-transform: uppercase; color: rgba(28,24,20,0.42);
-      margin-bottom: 4px;
+      margin-top: 4px;
     }
     .card-name {
       font-size: 14px; font-weight: 200; color: rgba(28,24,20,0.82);
@@ -212,16 +212,17 @@
       color: rgba(28,24,20,0.75); text-align: center;
     }
 
-    .sublists-wrap { padding: 0 16px calc(var(--safe-bot) + 36px); }
+    .sublists-wrap { padding: 16px 16px calc(var(--safe-bot) + 36px); }
 
     .sublist-row {
       display: flex; align-items: center; gap: 14px;
-      padding: 18px 16px;
-      background: rgba(28,24,20,0.06);
+      padding: 16px;
+      background: transparent;
+      border: 1.5px solid rgba(28,24,20,0.18);
       border-radius: var(--r); margin-bottom: 8px;
       cursor: pointer; transition: background 0.15s;
     }
-    .sublist-row:active { background: rgba(28,24,20,0.12); }
+    .sublist-row:active { background: rgba(28,24,20,0.06); }
     .sl-name { flex: 1; font-size: 15px; font-weight: 200; letter-spacing: 0.08em; color: rgba(28,24,20,0.82); }
     .sl-count { font-size: 11px; color: rgba(28,24,20,0.4); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
     .sl-arrow { color: rgba(28,24,20,0.3); }
@@ -283,14 +284,14 @@
     /* ── ITEMS ── */
     .items-wrap {
       padding: 8px 22px calc(var(--safe-bot) + 110px);
-      background: var(--surf2);
+      background: transparent;
       min-height: calc(100vh - 130px);
     }
 
     .item-row {
       display: flex; align-items: flex-start; gap: 14px;
       padding: 15px 0;
-      border-bottom: 1px solid var(--bdr);
+      border-bottom: 1px solid rgba(28,24,20,0.12);
       flex-wrap: wrap;
       transition: opacity 0.3s ease;
     }
@@ -338,7 +339,7 @@
     .ring-ck   { position: relative; z-index: 1; }
     .qty-tag {
       font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--tx3); background: var(--surf); padding: 3px 8px; border-radius: 3px;
+      color: rgba(28,24,20,0.55); background: rgba(28,24,20,0.08); padding: 3px 8px; border-radius: 3px;
       flex-shrink: 0; margin-top: 3px; align-self: flex-start;
     }
     .price-tag {
@@ -348,9 +349,9 @@
     .total-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 18px 0 6px; margin-top: 6px;
-      border-top: 1px solid var(--bdr);
+      border-top: 1px solid rgba(28,24,20,0.12);
       font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-      color: var(--tx2);
+      color: rgba(28,24,20,0.6);
     }
     .menu-btn {
       width: 28px; height: 28px; border: none; background: none; cursor: pointer;
@@ -363,11 +364,11 @@
     .subgoals {
       flex-basis: 100%; margin-left: 36px; margin-top: 10px;
       display: flex; flex-direction: column; gap: 0;
-      border-top: 1px solid var(--bdr); padding-top: 8px;
+      border-top: 1px solid rgba(28,24,20,0.12); padding-top: 8px;
     }
     .sg-row {
       display: flex; align-items: center; gap: 12px;
-      padding: 9px 0; border-bottom: 1px solid var(--bdr);
+      padding: 9px 0; border-bottom: 1px solid rgba(28,24,20,0.12);
     }
     .sg-row:last-child { border-bottom: none; }
     .sg-text { font-size: 14px; color: var(--tx); flex: 1; }
@@ -380,10 +381,10 @@
 
     .section-lbl {
       font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-      color: var(--tx3); padding: 20px 0 10px;
+      color: rgba(28,24,20,0.45); padding: 20px 0 10px;
     }
     .section-achieved {
-      color: var(--gold);
+      color: rgba(28,24,20,0.6);
       padding-top: 28px;
     }
 
@@ -661,8 +662,8 @@
     .settings-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
     .settings-hd .sh-title { margin-bottom: 0; }
     /* No dividers inside settings rows */
-    #sh-pin-settings .act-row { border-bottom: none; padding: 12px 4px; font-size: 14px; }
-    #sh-pin-settings .act-icon { font-size: 16px; }
+    #sh-pin-settings .act-row { border-bottom: none; padding: 12px 4px; font-size: 14px; align-items: flex-start; gap: 14px; }
+    #sh-pin-settings .act-icon { font-size: 16px; line-height: 1; width: 22px; display: flex; align-items: flex-start; justify-content: center; padding-top: 1px; flex-shrink: 0; }
     #sh-pin-settings .grid-lbl { margin-top: 20px; margin-bottom: 4px; }
     #sh-pin-settings .settings-hd + .grid-lbl { margin-top: 0; }
 
@@ -727,28 +728,36 @@
       padding: calc(var(--safe-top) + 48px) 28px calc(var(--safe-bot) + 32px);
     }
     #onboard-overlay.active { display: flex; }
-    .onboard-inner { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; max-width: 380px; flex: 1; }
-    .onboard-logo  { font-size: 48px; margin-bottom: 18px; }
-    .onboard-title { font-size: 30px; font-weight: 200; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 10px; }
-    .onboard-sub   { font-size: 15px; color: var(--tx2); line-height: 1.6; margin-bottom: 32px; }
+    .onboard-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; max-width: 380px; flex: 1; }
+    #ob-step-0, #ob-step-1, #ob-step-2 { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .onboard-title { font-size: 46px; font-weight: 200; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 28px; color: var(--tx); }
+    .onboard-sub   { font-size: 13px; color: var(--tx3); line-height: 1.55; margin-bottom: 28px; letter-spacing: 0.01em; text-align: center; font-style: italic; }
     .onboard-prog  { display: flex; gap: 7px; margin-bottom: 30px; }
     .onboard-dot   { width: 6px; height: 6px; border-radius: 50%; background: var(--bdr); transition: background 0.2s; }
     .onboard-dot.on { background: var(--tx); }
-    .onboard-lang  { display: flex; gap: 12px; margin-bottom: 36px; }
+    .onboard-btn-group { display: inline-flex; flex-direction: column; gap: 10px; }
+    .onboard-lang  { display: flex; gap: 10px; }
     .onboard-lang-btn {
-      padding: 14px 36px; border-radius: 8px; border: 1.5px solid var(--bdr);
-      font-size: 15px; font-weight: 700; letter-spacing: 0.1em;
-      background: var(--surf); color: var(--tx2); cursor: pointer; font-family: inherit;
+      padding: 9px 22px; border-radius: 7px; border: 1.5px solid var(--bdr);
+      font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+      background: transparent; color: var(--tx2); cursor: pointer; font-family: inherit;
       transition: all 0.15s;
     }
     .onboard-lang-btn.sel { background: var(--tx); color: #fff; border-color: var(--tx); }
+    .onboard-cta-btn {
+      width: 100%; padding: 11px 22px; border-radius: 7px; border: none;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+      background: var(--lc); color: #fff; cursor: pointer; font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .onboard-cta-btn:active { opacity: 0.78; }
     .onboard-features { text-align: left; width: 100%; margin-bottom: 20px; }
     .onboard-feat-row {
       display: flex; align-items: flex-start; gap: 14px;
       padding: 12px 0; border-bottom: 1px solid var(--bdr);
     }
     .onboard-feat-row:last-child { border-bottom: none; }
-    .onboard-feat-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .onboard-feat-icon { font-size: 18px; line-height: 1; width: 28px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 2px; }
     .onboard-feat-text { flex: 1; }
     .onboard-feat-name { font-size: 14px; font-weight: 600; color: var(--tx); }
     .onboard-feat-desc { font-size: 12px; color: var(--tx3); margin-top: 2px; line-height: 1.4; }
@@ -1289,33 +1298,34 @@
   <div class="onboard-inner">
     <!-- Steg 0: välj språk -->
     <div id="ob-step-0">
-      <div class="onboard-logo">✨</div>
       <h1 class="onboard-title">Listig</h1>
-      <p class="onboard-sub" id="ob-sub-0">Din smarta planeringsapp.<br>Välj språk för att komma igång.</p>
-      <div class="onboard-lang">
-        <button class="onboard-lang-btn sel" data-lang="sv" id="ob-lang-sv">Svenska</button>
-        <button class="onboard-lang-btn" data-lang="en" id="ob-lang-en">English</button>
+      <p class="onboard-sub" id="ob-sub-0">Din smarta planeringsapp. Välj språk för att komma igång.</p>
+      <div class="onboard-btn-group">
+        <div class="onboard-lang">
+          <button class="onboard-lang-btn sel" data-lang="sv" id="ob-lang-sv">Svenska</button>
+          <button class="onboard-lang-btn" data-lang="en" id="ob-lang-en">English</button>
+        </div>
+        <button class="onboard-cta-btn" id="ob-next-0">Fortsätt →</button>
       </div>
-      <button class="btn" id="ob-next-0" style="background:var(--lc);margin-top:0">Fortsätt →</button>
     </div>
     <!-- Steg 1: funktioner -->
     <div id="ob-step-1" style="display:none">
       <div class="onboard-prog">
         <div class="onboard-dot"></div><div class="onboard-dot on"></div><div class="onboard-dot"></div>
       </div>
-      <h2 class="onboard-title" id="ob-title-1" style="font-size:22px;margin-bottom:18px">Allt du kan göra</h2>
+      <h2 class="onboard-title" id="ob-title-1" style="font-size:11px;font-weight:700;letter-spacing:0.13em;margin-bottom:22px">Allt du kan göra</h2>
       <div class="onboard-features" id="ob-features"></div>
-      <button class="btn" id="ob-next-1" style="background:var(--lc);margin-top:16px">Nästa →</button>
+      <button class="onboard-cta-btn" id="ob-next-1" style="margin-top:20px">Nästa →</button>
     </div>
     <!-- Steg 2: pinkod -->
     <div id="ob-step-2" style="display:none">
       <div class="onboard-prog">
         <div class="onboard-dot"></div><div class="onboard-dot"></div><div class="onboard-dot on"></div>
       </div>
-      <div class="onboard-logo" style="font-size:36px;margin-bottom:14px">🔑</div>
-      <h2 class="onboard-title" id="ob-title-2" style="font-size:22px;margin-bottom:8px">Skydda med pinkod</h2>
-      <p class="onboard-sub" id="ob-sub-2">Valfritt - du kan alltid lägga till en pinkod senare under ⚙️</p>
-      <button class="btn" id="ob-pin-btn" style="background:var(--lc)">Skapa pinkod</button>
+      <div style="font-size:36px;line-height:1;margin-bottom:18px">🔑</div>
+      <h2 class="onboard-title" id="ob-title-2" style="font-size:16px;letter-spacing:0.14em;margin-bottom:10px">Skydda med pinkod</h2>
+      <p class="onboard-sub" id="ob-sub-2" style="margin-bottom:28px">Valfritt - du kan alltid lägga till en pinkod senare under ⚙️</p>
+      <button class="onboard-cta-btn" id="ob-pin-btn">Skapa pinkod</button>
       <button class="onboard-skip" id="ob-skip">Hoppa över</button>
     </div>
   </div>
@@ -1591,6 +1601,7 @@
     <div class="act-row" id="act-progress" style="display:none">
       <span class="act-icon">◑</span><span id="act-progress-label">Markera som påbörjad</span>
     </div>
+    <div class="act-row" id="act-tomorrow" style="display:none"><span class="act-icon">➜</span><span id="act-tomorrow-lbl">Flytta till imorgon</span></div>
     <div class="act-row" id="act-schedule" style="display:none"><span class="act-icon">📅</span><span id="act-schedule-lbl">Schemalägg dag</span></div>
     <div class="act-row" id="act-move"><span class="act-icon">↗</span><span id="act-move-lbl">Flytta till…</span></div>
     <div class="act-row" id="act-date" style="display:none"><span class="act-icon">📅</span><span id="act-date-lbl">Ändra datum</span></div>
@@ -1656,10 +1667,10 @@
     <button class="seg-btn" data-val="group">Med underkategorier</button>
   </div>
   <div id="create-check-wrap">
-    <div class="grid-lbl" style="margin-top:14px">Punkter</div>
+    <div class="grid-lbl" style="margin-top:14px">Listtyp</div>
     <div class="seg-ctrl" id="create-check-ctrl">
       <button class="seg-btn sel" data-val="check">Bocka av</button>
-      <button class="seg-btn" data-val="bullet">Anteckningar</button>
+      <button class="seg-btn" data-val="bullet">Punkter</button>
     </div>
   </div>
   <button class="btn" id="create-btn">Skapa lista</button>
@@ -1751,11 +1762,12 @@
 
 <!-- ── GUIDE / HJÄLP ── -->
 <div id="sh-help" class="sheet">
-  <div class="handle"></div>
+  <div class="handle" id="help-handle"></div>
   <div style="font-size:22px;margin-bottom:4px">👋</div>
   <div class="sh-title" id="help-title" style="margin-bottom:6px">Välkommen till Listig</div>
   <p style="font-size:14px;color:var(--tx2);margin-bottom:28px;line-height:1.5" id="help-subtitle">Här är allt du kan göra:</p>
   <div id="help-sections"></div>
+  <button class="btn btn-ghost" id="help-close-btn" style="margin-top:24px">Stäng</button>
 </div>
 
 <!-- ── RUTINER – hantera återkommande uppgifter ── -->
@@ -2043,7 +2055,7 @@ const LANG_DATA = {
     groupEmptyGeneric:'Inga listor ännu.<br>Tryck + för att skapa en.',
     showAllOnMap:'Visa alla platser på karta',
     places:'platser', noPlaces:'Inga platser', remaining:'kvar', doneLbl:'Klart', emptyLbl:'Tom',
-    newSubcategory:'Ny underkategori', newGiftCategory:'Ny presentkategori', newFavlistBtn:'Ny favoritlista',
+    newSubcategory:'Ny underkategori', newGiftCategory:'Ny presentlista', newFavlistBtn:'Ny favoritlista', newShoppingList:'Ny inköpslista', newPlaceCategory:'Ny platslista',
     totalRemaining:'Totalt kvar',
     ofGoals:'av', subgoals:'delmål', addSubgoal:'Lägg till delmål', describeSubgoal:'Beskriv delmålet',
     badgeWeek:'Vecka', badgeMonth:'Månad',
@@ -2059,6 +2071,7 @@ const LANG_DATA = {
     savePin:'Spara pin', saveToList:'Spara i lista',
     pasteList:'Klistra in lista', pasteListDesc:'Klistra in text - varje rad blir en egen punkt.',
     bulkPlaceholder:'Rad 1\nRad 2\nRad 3...',
+    moveToTomorrow:'Flytta till imorgon',
     scheduleDay:'Schemalägg dag', scheduleTitle:'Välj dag',
     moveTo:'Flytta till', moveToEllipsis:'Flytta till…',
     changeDate:'Ändra datum', editText:'Ändra text',
@@ -2141,7 +2154,7 @@ const LANG_DATA = {
     groupEmptyGeneric:'No lists yet.<br>Tap + to create one.',
     showAllOnMap:'Show all places on map',
     places:'places', noPlaces:'No places', remaining:'left', doneLbl:'Done', emptyLbl:'Empty',
-    newSubcategory:'New subcategory', newGiftCategory:'New gift category', newFavlistBtn:'New favorites list',
+    newSubcategory:'New subcategory', newGiftCategory:'New gift category', newFavlistBtn:'New favorites list', newShoppingList:'New shopping list', newPlaceCategory:'New place category',
     totalRemaining:'Total remaining',
     ofGoals:'of', subgoals:'sub-goals', addSubgoal:'Add sub-goal', describeSubgoal:'Describe the sub-goal',
     badgeWeek:'Week', badgeMonth:'Month',
@@ -2157,6 +2170,7 @@ const LANG_DATA = {
     savePin:'Save pin', saveToList:'Save to list',
     pasteList:'Paste list', pasteListDesc:'Paste text - each line becomes its own item.',
     bulkPlaceholder:'Line 1\nLine 2\nLine 3...',
+    moveToTomorrow:'Move to tomorrow',
     scheduleDay:'Schedule day', scheduleTitle:'Choose day',
     moveTo:'Move to', moveToEllipsis:'Move to…',
     changeDate:'Change date', editText:'Edit text',
@@ -2261,6 +2275,7 @@ function applyLang() {
   document.getElementById('edit-btn').textContent      = D.save;
 
   // ── Item actions ──
+  document.getElementById('act-tomorrow-lbl').textContent = D.moveToTomorrow;
   document.getElementById('act-schedule-lbl').textContent = D.scheduleDay;
   document.getElementById('act-move-lbl').textContent     = D.moveToEllipsis;
   document.getElementById('act-date-lbl').textContent     = D.changeDate;
@@ -2423,6 +2438,34 @@ function localDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function getTodayStr() { return localDateStr(new Date()); }
+function getTomorrowStr() { const d = new Date(); d.setDate(d.getDate() + 1); return localDateStr(d); }
+
+// Returns true if item was completed within the period for the given list id.
+// Items with no doneAt timestamp (legacy) are always shown.
+function isDoneInPeriod(item, listId) {
+  if (!item.done) return false;
+  if (!item.doneAt) return true; // legacy items without timestamp - always show
+  const ts = item.doneAt;
+  if (listId === 'todo-day') {
+    const s = new Date(getTodayStr() + 'T00:00:00').getTime();
+    return ts >= s && ts < s + 86400000;
+  }
+  if (listId === 'todo-week') {
+    // Mon 00:00 – Sun 23:59:59
+    const today = new Date();
+    const dow = today.getDay();
+    const mon = new Date(today); mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1)); mon.setHours(0,0,0,0);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999);
+    return ts >= mon.getTime() && ts <= sun.getTime();
+  }
+  if (listId === 'todo-month') {
+    const now = new Date();
+    const s = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const e = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+    return ts >= s && ts <= e;
+  }
+  return true;
+}
 
 function getWeekKey(d = new Date()) {
   // Returns 'YYYY-Www' using ISO week number
@@ -2579,8 +2622,8 @@ function renderHome() {
     card.innerHTML = `
       ${streakBadge}
       <div class="card-info">
-        ${cardCount}
         <div class="card-name">${esc(getListDisplayName(list))}</div>
+        ${cardCount}
       </div>`;
     card.addEventListener('click', () => {
       if (list.type === 'group') openGroup(list.id);
@@ -2616,7 +2659,7 @@ function renderGroup() {
   const group = getList(S.groupId); if (!group) return;
   const hd = document.getElementById('group-hd');
   setViewColor(hd, group.color);
-  document.getElementById('v-group').style.background = group.color;
+  document.getElementById('v-group').style.background = 'var(--bg)';
   document.getElementById('g-name').textContent = getListDisplayName(group);
   document.getElementById('group-opts-title').textContent = getListDisplayName(group);
   document.getElementById('gopt-map').style.display = group.id === 'favorites' ? 'flex' : 'none';
@@ -2683,8 +2726,10 @@ function renderGroup() {
   // Add new sublist button
   const addRow = document.createElement('div');
   addRow.className = 'sl-add-row';
-  const addRowLabel = group.id === 'gifts' ? t('newGiftCategory')
-    : group.id === 'favlist' ? t('newFavlistBtn')
+  const addRowLabel = group.id === 'gifts'     ? t('newGiftCategory')
+    : group.id === 'favlist'    ? t('newFavlistBtn')
+    : group.id === 'shopping'   ? t('newShoppingList')
+    : group.id === 'favorites'  ? t('newPlaceCategory')
     : t('newSubcategory');
   addRow.innerHTML = `<span style="font-size:18px;opacity:0.5">+</span> ${addRowLabel}`;
   // Also update the group opts sheet button label
@@ -2707,6 +2752,7 @@ function renderList() {
   // Header
   const hd = document.getElementById('list-hd');
   setViewColor(hd, color);
+  document.getElementById('v-list').style.background = 'var(--bg)';
   document.getElementById('l-crumb').textContent = group ? getListDisplayName(group) : '';
   document.getElementById('l-crumb').style.display = group ? 'block' : 'none';
   document.getElementById('l-name').textContent  = getListDisplayName(src);
@@ -2718,9 +2764,29 @@ function renderList() {
   const isWeek  = !S.groupId && S.listId === 'todo-week';
   const isMonth = !S.groupId && S.listId === 'todo-month';
   const isTimeTodo = isToday || isWeek || isMonth;
-  const inProg  = src.items.filter(i => !i.done && i.inProgress);
-  const active  = src.items.filter(i => !i.done && !i.inProgress);
-  const done    = src.items.filter(i => i.done);
+
+  // Compute Mon-Sun window for the current week
+  const _wr  = getWeekRange();
+  const _sun = new Date(_wr.end + 'T00:00:00'); _sun.setDate(_sun.getDate() + 1);
+  const wStart = _wr.start;             // Monday
+  const wEnd   = localDateStr(_sun);    // Sunday (inclusive)
+
+  // Compute first-last day of current month
+  const _now = new Date();
+  const mStart = localDateStr(new Date(_now.getFullYear(), _now.getMonth(), 1));
+  const mEnd   = localDateStr(new Date(_now.getFullYear(), _now.getMonth() + 1, 0));
+
+  const inProg = src.items.filter(i => !i.done && i.inProgress);
+  const active = src.items.filter(i => {
+    if (i.done || i.inProgress) return false;
+    // Denna vecka: only show items scheduled within Mon-Sun (unscheduled items always visible)
+    if (isWeek  && i.scheduledDay && (i.scheduledDay < wStart || i.scheduledDay > wEnd)) return false;
+    // Denna månad: only show items with dueDate within this month (no dueDate → always visible)
+    if (isMonth && i.dueDate      && (i.dueDate < mStart || i.dueDate > mEnd)) return false;
+    return true;
+  });
+  // For time-based lists: only show items completed within the current period
+  const done = src.items.filter(i => isTimeTodo ? isDoneInPeriod(i, S.listId) : i.done);
 
   // Scheduled items from weekly list (only visible in Idag)
   let scheduled = [];
@@ -2737,9 +2803,9 @@ function renderList() {
   }
 
   if (isWeek) {
-    const { start, end } = getWeekRange();
     const monthList = getList('todo-month');
-    dueThisWeek = (monthList?.items ?? []).filter(i => i.dueDate && i.dueDate >= start && i.dueDate <= end && !i.done);
+    // Mon-Sun cascade from monthly list (includes Sunday)
+    dueThisWeek = (monthList?.items ?? []).filter(i => i.dueDate && i.dueDate >= wStart && i.dueDate <= wEnd && !i.done);
   }
 
   const hasAnything = src.items.length || scheduled.length || dueFromWeek.length || dueFromMonth.length || dueThisWeek.length;
@@ -2748,7 +2814,7 @@ function renderList() {
     const EMPTY = {
       'todo-day':   { icon:'☀️', title: getLang()==='en' ? "Today's slate is clear!" : 'Dagen är din!',          sub: getLang()==='en' ? 'Tap + to add your first task for today.' : 'Tryck + för att lägga till dagens första uppgift.' },
       'todo-week':  { icon:'📅', title: getLang()==='en' ? 'Nothing planned yet'     : 'Inget planerat ännu',    sub: getLang()==='en' ? 'Tap + to add a task for this week.'      : 'Tryck + för att planera veckans uppgifter.' },
-      'todo-month': { icon:'🗓️', title: getLang()==='en' ? 'Month is wide open'      : 'Månaden är öppen',      sub: getLang()==='en' ? 'Tap + to add goals for the month.'       : 'Tryck + för att sätta upp månadens mål.' },
+      'todo-month': { icon:'🗓️', title: getLang()==='en' ? 'Month is wide open'      : 'Månadens To do:s',      sub: getLang()==='en' ? 'Tap + to add goals for the month.'       : 'Tryck + för att sätta upp månadens mål.' },
       'goals':      { icon:'🎯', title: getLang()==='en' ? 'No goals yet'            : 'Inga mål ännu',         sub: getLang()==='en' ? 'Tap + to add your first goal - break it into sub-goals to make it real.' : 'Tryck + för att lägga till ditt första mål och bryt ner det i delmål.' },
       'gifts':      { icon:'🎁', title: getLang()==='en' ? 'No gift ideas yet'       : 'Inga presentidéer ännu', sub: t('emptyGiftsAdd') },
       'favlist':    { icon:'♡', title:  t('emptyFavlist'), sub: t('emptyFavAdd') },
@@ -2914,6 +2980,8 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
   });
   row.querySelector('.menu-btn').addEventListener('click', () => {
     S.itemId = item.id;
+    document.getElementById('act-tomorrow').style.display =
+      (S.listId === 'todo-day' && !S.groupId && !item.done) ? 'flex' : 'none';
     document.getElementById('act-schedule').style.display =
       (S.listId === 'todo-week' && !S.groupId) ? 'flex' : 'none';
     // Visa "Ändra datum" för vecka/månad-listor (inte Idag)
@@ -2931,10 +2999,24 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     openSheet('sh-item-actions');
   });
 
+  // Click item text to edit directly
+  const itemTextEl = row.querySelector('.item-text');
+  if (itemTextEl && !item.done && !sourceListId) {
+    itemTextEl.addEventListener('click', () => {
+      S.itemId = item.id;
+      document.getElementById('edit-inp').value = item.text;
+      document.getElementById('edit-btn').style.background = getActiveColor();
+      openSheet('sh-edit');
+      setTimeout(() => document.getElementById('edit-inp').focus(), 320);
+    });
+    itemTextEl.style.cursor = 'text';
+  }
+
   // Drag handle
   const dragHandle = row.querySelector('.drag-handle');
   if (dragHandle && !item.done && !sourceListId && !isFavNote) {
     dragHandle.addEventListener('touchstart', e => beginDrag(e, item.id, row), { passive: false });
+    dragHandle.addEventListener('mousedown',  e => beginMouseDrag(e, item.id, row));
   }
 
   if (isGoals) {
@@ -3046,6 +3128,19 @@ function toggleSubGoal(parentId, subId, cx, cy) {
 // ════════════════════════════════════════
 // ITEM ACTIONS
 // ════════════════════════════════════════
+document.getElementById('act-tomorrow').addEventListener('click', () => {
+  const dayList = getList('todo-day'); if (!dayList) return;
+  const idx = dayList.items.findIndex(i => i.id === S.itemId);
+  if (idx === -1) return;
+  const [item] = dayList.items.splice(idx, 1);
+  item.scheduledDay = getTomorrowStr();
+  item.done  = false;
+  item.doneAt = null;
+  const weekList = getList('todo-week');
+  if (weekList) weekList.items.push(item);
+  save(); closeSheet(); renderList();
+});
+
 document.getElementById('act-schedule').addEventListener('click', () => {
   const item = activeItem(); if (!item) return;
   const days = getWeekDays();
@@ -3272,8 +3367,10 @@ function submitSubGoal() {
 function showAddSublist() {
   const group = getList(S.groupId); if (!group) return;
   const ph = t('slPlaceholder');
-  const slTitle = group.id === 'gifts' ? t('newGiftCategory')
-    : group.id === 'favlist' ? t('newFavlistBtn')
+  const slTitle = group.id === 'gifts'     ? t('newGiftCategory')
+    : group.id === 'favlist'    ? t('newFavlistBtn')
+    : group.id === 'shopping'   ? t('newShoppingList')
+    : group.id === 'favorites'  ? t('newPlaceCategory')
     : t('newSubcategory');
   document.getElementById('add-sl-title').textContent = slTitle;
   document.getElementById('add-sl-inp').value = '';
@@ -3509,50 +3606,85 @@ function showReorderSheet() {
     container.appendChild(row);
   });
 
-  initReorderDrag(container);
+  // Only wire drag once (avoids duplicate listeners if sheet reopened)
+  if (!container._dragInit) {
+    initReorderDrag(container);
+    container._dragInit = true;
+  }
   openSheet('sh-reorder');
 }
 
 function initReorderDrag(container) {
-  let dragging = null, startY = 0, startIdx = 0, curIdx = 0;
+  let dragging = null, curIdx = 0;
+  const sheet = document.getElementById('sh-reorder');
 
-  container.addEventListener('touchstart', e => {
-    if (!e.target.closest('.reorder-handle')) return;
-    const row = e.target.closest('.reorder-row'); if (!row) return;
-    e.preventDefault();
-    dragging  = row;
-    startY    = e.touches[0].clientY;
-    startIdx  = Array.from(container.children).indexOf(row);
-    curIdx    = startIdx;
-    row.style.opacity = '0.45';
-  }, { passive: false });
-
-  container.addEventListener('touchmove', e => {
-    if (!dragging) return;
-    e.preventDefault();
-    const dy   = e.touches[0].clientY - startY;
+  function pickRow(clientY) {
     const rows = Array.from(container.children);
-    const rowH = rows[0]?.offsetHeight || 52;
-    const newIdx = Math.max(0, Math.min(rows.length - 1, startIdx + Math.round(dy / rowH)));
-    if (newIdx !== curIdx) {
-      const el  = rows[curIdx];
-      const ref = rows[newIdx];
-      container.insertBefore(el, newIdx < curIdx ? ref : ref.nextSibling);
-      // mirror swap in _reorderOrder
-      const tmp = _reorderOrder[curIdx];
-      _reorderOrder[curIdx] = _reorderOrder[newIdx];
-      _reorderOrder[newIdx] = tmp;
-      curIdx = newIdx;
+    let overIdx = curIdx;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] === dragging) continue;
+      const r = rows[i].getBoundingClientRect();
+      if (clientY >= r.top && clientY <= r.bottom) { overIdx = i; break; }
     }
+    if (overIdx !== curIdx) {
+      const el  = rows[curIdx];
+      const ref = rows[overIdx];
+      container.insertBefore(el, overIdx < curIdx ? ref : ref.nextSibling);
+      const tmp = _reorderOrder[curIdx];
+      _reorderOrder[curIdx] = _reorderOrder[overIdx];
+      _reorderOrder[overIdx] = tmp;
+      curIdx = overIdx;
+    }
+  }
+
+  // document-level touchmove: the ONLY reliable way to cancel iOS scroll
+  // when the draggable container lives inside an overflow:auto sheet
+  function onDocMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    pickRow(e.touches[0].clientY);
+  }
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging.style.opacity   = '';
+    dragging.style.boxShadow = '';
+    dragging = null;
+    document.removeEventListener('touchmove', onDocMove);
+    document.removeEventListener('mouseup',   endDrag);
+    document.removeEventListener('mousemove', onDocMouseMove);
+    if (sheet) sheet.style.overflowY = '';
+  }
+
+  function onDocMouseMove(e) { if (dragging) pickRow(e.clientY); }
+
+  // ── Touch: start on the SHEET so passive=false reaches iOS scroll machinery ──
+  sheet.addEventListener('touchstart', e => {
+    const handle = e.target.closest('.reorder-handle'); if (!handle) return;
+    const row    = handle.closest('.reorder-row');       if (!row)    return;
+    e.preventDefault(); // must cancel BEFORE iOS claims the scroll gesture
+    dragging = row;
+    curIdx   = Array.from(container.children).indexOf(row);
+    row.style.opacity   = '0.4';
+    row.style.boxShadow = '0 4px 14px rgba(0,0,0,0.14)';
+    if (sheet) sheet.style.overflowY = 'hidden'; // lock sheet scroll while dragging
+    document.addEventListener('touchmove', onDocMove, { passive: false });
   }, { passive: false });
 
-  const endDrag = () => {
-    if (!dragging) return;
-    dragging.style.opacity = '';
-    dragging = null;
-  };
-  container.addEventListener('touchend',   endDrag);
-  container.addEventListener('touchcancel', endDrag);
+  sheet.addEventListener('touchend',    endDrag);
+  sheet.addEventListener('touchcancel', endDrag);
+
+  // ── Mouse (desktop / Simulator) ──
+  container.addEventListener('mousedown', e => {
+    const handle = e.target.closest('.reorder-handle'); if (!handle) return;
+    const row    = handle.closest('.reorder-row');       if (!row)    return;
+    dragging = row;
+    curIdx   = Array.from(container.children).indexOf(row);
+    row.style.opacity   = '0.4';
+    row.style.boxShadow = '0 4px 14px rgba(0,0,0,0.14)';
+    document.addEventListener('mousemove', onDocMouseMove);
+    document.addEventListener('mouseup',   endDrag);
+  });
 }
 
 document.getElementById('reorder-done').addEventListener('click', () => {
@@ -3877,6 +4009,8 @@ document.getElementById('pin-cancel-btn').addEventListener('touchstart', e => {
 }, { passive: false });
 
 document.getElementById('help-btn').addEventListener('click', () => openSheet('sh-help'));
+document.getElementById('help-close-btn').addEventListener('click', closeSheet);
+document.getElementById('help-handle').addEventListener('click', closeSheet);
 
 // PIN settings sheet
 document.getElementById('pin-settings-btn').addEventListener('click', () => {
@@ -5124,16 +5258,17 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 // ════════════════════════════════════════
 let _drag = null;
 
-function beginDrag(e, itemId, row) {
-  e.preventDefault();
-  e.stopPropagation();
+// iOS WebKit scroll-container fix: preventDefault måste anropas på scroll-containern
+// själv (inte bara på drag-handtaget) annars hinner iOS klassificera gestryet som scroll.
+document.getElementById('v-list').addEventListener('touchstart', e => {
+  if (e.target.closest('.drag-handle')) e.preventDefault();
+}, { passive: false });
+
+function _startDrag(clientY, itemId, row) {
   navigator.vibrate?.(18);
+  const rect = row.getBoundingClientRect();
+  const wrap = document.getElementById('items-wrap');
 
-  const touch = e.touches[0];
-  const rect  = row.getBoundingClientRect();
-  const wrap  = document.getElementById('items-wrap');
-
-  // Ghost — lightweight clone for visual feedback
   const ghost = row.cloneNode(true);
   ghost.style.cssText = `
     position:fixed;left:${rect.left}px;top:${rect.top}px;
@@ -5144,28 +5279,17 @@ function beginDrag(e, itemId, row) {
     transition:none;box-sizing:border-box;`;
   document.body.appendChild(ghost);
 
-  // Insertion indicator line (moved into DOM between rows during drag)
   const line = document.createElement('div');
   line.className = 'drag-insert-line';
-
   row.classList.add('is-dragging-src');
 
-  _drag = {
-    itemId, row, ghost, wrap, line,
-    offsetY: touch.clientY - rect.top,
-    insertBeforeId: undefined,  // undefined = not yet determined
-  };
+  _drag = { itemId, row, ghost, wrap, line, offsetY: clientY - rect.top, insertBeforeId: undefined };
 }
 
-document.addEventListener('touchmove', e => {
+function _moveDrag(cy) {
   if (!_drag) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  const cy = touch.clientY;
-
   _drag.ghost.style.top = (cy - _drag.offsetY) + 'px';
 
-  // Active (non-done, non-dragging) rows
   const rows = [..._drag.wrap.querySelectorAll('.item-row:not(.is-dragging-src):not(.done)')];
   if (!rows.length) return;
 
@@ -5173,10 +5297,7 @@ document.addEventListener('touchmove', e => {
   for (let i = 0; i < rows.length; i++) {
     const rb = rows[i].getBoundingClientRect();
     if (cy < rb.top + rb.height / 2) {
-      // Insert before rows[i]
-      if (_drag.line.nextSibling !== rows[i]) {
-        rows[i].parentNode.insertBefore(_drag.line, rows[i]);
-      }
+      if (_drag.line.nextSibling !== rows[i]) rows[i].parentNode.insertBefore(_drag.line, rows[i]);
       _drag.line.style.display = 'block';
       _drag.insertBeforeId = rows[i].dataset.id;
       placed = true;
@@ -5184,17 +5305,14 @@ document.addEventListener('touchmove', e => {
     }
   }
   if (!placed) {
-    // Insert after the last active row
     const last = rows[rows.length - 1];
-    if (_drag.line.previousSibling !== last) {
-      last.after(_drag.line);
-    }
+    if (_drag.line.previousSibling !== last) last.after(_drag.line);
     _drag.line.style.display = 'block';
-    _drag.insertBeforeId = null;  // null = end of active items
+    _drag.insertBeforeId = null;
   }
-}, { passive: false });
+}
 
-document.addEventListener('touchend', () => {
+function _endDrag() {
   if (!_drag) return;
   const { itemId, insertBeforeId, ghost, row, line } = _drag;
   _drag = null;
@@ -5203,7 +5321,6 @@ document.addEventListener('touchend', () => {
   if (line.parentNode) line.remove();
   row.classList.remove('is-dragging-src');
 
-  // insertBeforeId === undefined means finger never moved — no reorder
   if (insertBeforeId === undefined) return;
 
   const src = getSource();
@@ -5212,20 +5329,32 @@ document.addEventListener('touchend', () => {
   if (fi < 0) return;
 
   const [item] = src.items.splice(fi, 1);
-
   if (insertBeforeId) {
-    // Insert before the target item
     const ti = src.items.findIndex(i => i.id === insertBeforeId);
     src.items.splice(ti >= 0 ? ti : src.items.length, 0, item);
   } else {
-    // Insert after last non-done item
     let lastActive = -1;
     src.items.forEach((it, idx) => { if (!it.done) lastActive = idx; });
     src.items.splice(lastActive + 1, 0, item);
   }
   save();
   renderList();
-});
+}
+
+function beginDrag(e, itemId, row) {
+  e.preventDefault(); e.stopPropagation();
+  _startDrag(e.touches[0].clientY, itemId, row);
+}
+
+function beginMouseDrag(e, itemId, row) {
+  e.preventDefault();
+  _startDrag(e.clientY, itemId, row);
+}
+
+document.addEventListener('touchmove', e => { if (_drag) { e.preventDefault(); _moveDrag(e.touches[0].clientY); } }, { passive: false });
+document.addEventListener('touchend',  () => _endDrag());
+document.addEventListener('mousemove', e => { if (_drag) _moveDrag(e.clientY); });
+document.addEventListener('mouseup',   () => _endDrag());
 
 // ════════════════════════════════════════
 // RUTINER (återkommande uppgifter)
@@ -5933,7 +6062,10 @@ function renderCalDay(dateStr, tasks, D) {
   }
 
   // Add-task input row
-  const isFuture = dateStr > getTodayStr();
+  // Compute current week's Sunday for routing
+  const _cwr  = getWeekRange();
+  const _csun = new Date(_cwr.end + 'T00:00:00'); _csun.setDate(_csun.getDate() + 1);
+  const calWeekEnd = localDateStr(_csun); // Sunday this week
 
   const addRow = document.createElement('div');
   addRow.className = 'cal-add-row';
@@ -5945,14 +6077,21 @@ function renderCalDay(dateStr, tasks, D) {
 
   const doAdd = () => {
     const text = inp.value.trim(); if (!text) return;
-    // Route: future dates -> todo-week with scheduledDay; today/past -> todo-day
+    // Smart routing based on which period the date belongs to:
+    //  today / past        → todo-day  (no date)
+    //  this week Mon-Sun   → todo-week + scheduledDay  (appears in Idag on the right day)
+    //  beyond this week    → todo-month + dueDate       (cascades to Denna vecka / Idag when due)
     let targetListId, newItem;
-    if (isFuture) {
+    const todayStr = getTodayStr();
+    if (dateStr <= todayStr) {
+      targetListId = 'todo-day';
+      newItem = { id: uid(), text, done: false, createdAt: Date.now() };
+    } else if (dateStr <= calWeekEnd) {
       targetListId = 'todo-week';
       newItem = { id: uid(), text, done: false, createdAt: Date.now(), scheduledDay: dateStr };
     } else {
-      targetListId = 'todo-day';
-      newItem = { id: uid(), text, done: false, createdAt: Date.now() };
+      targetListId = 'todo-month';
+      newItem = { id: uid(), text, done: false, createdAt: Date.now(), dueDate: dateStr };
     }
     const tgt = getList(targetListId);
     if (tgt) {
@@ -6044,7 +6183,7 @@ function initOnboarding() {
     const D = LANG_DATA[lang];
     document.getElementById('ob-next-0').textContent = lang==='sv'?'Fortsätt →':'Continue →';
     document.getElementById('ob-sub-0').textContent  = lang==='sv'?'Din smarta planeringsapp.\nVälj språk för att komma igång.':'Your smart planning app.\nChoose a language to get started.';
-    document.getElementById('ob-title-1').textContent = lang==='sv'?'Allt du kan göra':'Everything you can do';
+    document.getElementById('ob-title-1').textContent = lang==='sv'?'Exempel på vad Listig kan hjälpa dig med:':'Everything you can do';
     document.getElementById('ob-next-1').textContent  = lang==='sv'?'Nästa →':'Next →';
     document.getElementById('ob-title-2').textContent = lang==='sv'?'Skydda med pinkod':'Protect with PIN';
     document.getElementById('ob-sub-2').textContent   = lang==='sv'?'Valfritt - du kan alltid lägga till en pinkod senare under ⚙️':'Optional - you can always add a PIN later under ⚙️';
@@ -6055,19 +6194,19 @@ function initOnboarding() {
 
   function buildObFeatures(lang) {
     const feats = lang === 'en' ? [
-      {icon:'☀️', name:'TO DO',         desc:'Daily, weekly and monthly tasks with smart scheduling.'},
-      {icon:'🎯', name:'Goals',          desc:'Break big goals into sub-goals with photos for inspiration.'},
-      {icon:'📍', name:'Places',         desc:'Save places on a map. Search any address like Google Maps.'},
-      {icon:'🛒', name:'Shopping',       desc:'Separate lists per store or trip. Track prices.'},
-      {icon:'🎁', name:'Gift ideas',     desc:'One list per person - always ready when it counts.'},
-      {icon:'🔄', name:'Routines',       desc:'Daily habits that appear automatically in your list.'},
+      {icon:'☀️', name:'TO DO',         desc:'Collects everything you need to do today, this week and this month in one place, so nothing gets forgotten.'},
+      {icon:'🔄', name:'Routines',       desc:'Add things you do regularly, choose which days they apply, and they appear automatically in your list when it is time.'},
+      {icon:'🎯', name:'Goals',          desc:'Big goals are easier to tackle when you break them into concrete sub-goals. Add an inspiration photo and check off one step at a time.'},
+      {icon:'📍', name:'Places',         desc:'Save places you want to visit on a map, rate them once you have been there and document what you thought - so you know for next time (and can share tips easily with the sharing feature!!)'},
+      {icon:'🛒', name:'Shopping',       desc:'Create separate lists for different purposes - the grocery store, the trip, the project.'},
+      {icon:'🎁', name:'Gift ideas',     desc:'Collect ideas per person throughout the year, so you always have something concrete when it counts instead of scrambling for a last-minute solution!'},
     ] : [
-      {icon:'☀️', name:'TO DO',         desc:'Dagliga, vecko- och månatliga uppgifter med smart schemaläggning.'},
-      {icon:'🎯', name:'Mål',           desc:'Bryt ner stora mål i delmål med inspirationsfoton.'},
-      {icon:'📍', name:'Platser',       desc:'Spara platser på karta. Sök vilken adress som helst.'},
-      {icon:'🛒', name:'Inköpslistor',  desc:'Separata listor per butik eller resa. Håll koll på priser.'},
-      {icon:'🎁', name:'Presenter',     desc:'En lista per person - alltid redo när det gäller.'},
-      {icon:'🔄', name:'Rutiner',       desc:'Dagliga vanor som dyker upp automatiskt i rätt lista.'},
+      {icon:'☀️', name:'TO DO',         desc:'Samlar allt du behöver göra idag, den här veckan och den här månaden på ett ställe, så att inget glöms bort.'},
+      {icon:'🔄', name:'Rutiner',       desc:'Lägg in saker du gör regelbundet, välj vilka dagar de ska gälla, och de dyker upp automatiskt i din lista när det är dags.'},
+      {icon:'🎯', name:'Mål',           desc:'Stora mål är lättare att ta sig an om du delar upp dem i konkreta delmål. Lägg till ett inspirationsfoto och bocka av ett steg i taget.'},
+      {icon:'📍', name:'Platser',       desc:'Spara ställen du vill besöka på en karta, ratea dem när du varit där och dokumentera vad du tyckte så att du vet till nästa gång.'},
+      {icon:'🛒', name:'Inköpslistor',  desc:'Skapa separata listor för olika ändamål - mataffären, resan, projektet.'},
+      {icon:'🎁', name:'Presenter',     desc:'Samla idéer per person löpande under året, så att du alltid har något konkret när det gäller istället för att komma med en sista minuten-lösning!'},
     ];
     const wrap = document.getElementById('ob-features');
     wrap.innerHTML = feats.map(f=>`<div class="onboard-feat-row">
