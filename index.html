@@ -3329,32 +3329,10 @@ function renderList() {
     inProg.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
   }
 
-  if (isTimeTodo && active.length) {
-    const lbl = document.createElement('div');
-    lbl.className = 'section-lbl';
-    lbl.textContent = t('active');
-    wrap.appendChild(lbl);
-  }
   active.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
-
-  if (scheduled.length) {
-    const lbl = document.createElement('div');
-    lbl.className = 'section-lbl';
-    lbl.textContent = t('scheduledToday');
-    wrap.appendChild(lbl);
-    scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-  }
-
-  // Due today: from weekly or monthly
-  const allDueToday = [...dueFromWeek, ...dueFromMonth];
-  if (allDueToday.length) {
-    const lbl = document.createElement('div');
-    lbl.className = 'section-lbl';
-    lbl.textContent = t('dueToday');
-    wrap.appendChild(lbl);
-    dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-    dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
-  }
+  scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+  dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+  dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
 
   // Due this week: from monthly
   if (dueThisWeek.length) {
