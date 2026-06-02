@@ -4517,7 +4517,13 @@ document.getElementById('lang-ctrl').addEventListener('click', e => {
 // IMPORT / EXPORT
 // ════════════════════════════════════════
 document.getElementById('export-btn').addEventListener('click', async () => {
-  const data     = localStorage.getItem('listig_v4') ?? '[]';
+  const data = JSON.stringify({
+    listig_v4:          JSON.parse(localStorage.getItem('listig_v4')          ?? '[]'),
+    listig_budget:      JSON.parse(localStorage.getItem('listig_budget')      ?? 'null'),
+    listig_streak:      JSON.parse(localStorage.getItem('listig_streak')      ?? 'null'),
+    listig_routine_pts: parseInt(localStorage.getItem('listig_routine_pts')   ?? '0'),
+    listig_lang:        localStorage.getItem('listig_lang') ?? 'sv',
+  });
   const fileName = 'listig-backup.json';
 
   // File System Access API — låter användaren välja/skriva över befintlig fil
@@ -4559,21 +4565,32 @@ document.getElementById('export-btn').addEventListener('click', async () => {
 
 function doImport(jsonText) {
   const parsed = JSON.parse(jsonText);
-  let data;
+  let listsData, budgetData;
+
   if (Array.isArray(parsed)) {
     // Gammalt format: bara en array av listor
-    data = { lists: parsed, routines: [], lastMonthStr: null, lastReviewWeek: null };
+    listsData = { lists: parsed, routines: [], lastMonthStr: null, lastReviewWeek: null };
+  } else if (parsed && parsed.listig_v4 !== undefined) {
+    // Nytt format: { listig_v4: ..., listig_budget: ... }
+    listsData  = parsed.listig_v4;
+    budgetData = parsed.listig_budget;
   } else if (parsed && Array.isArray(parsed.lists)) {
-    // Nytt format: fullt state-objekt { lists, routines, ... }
-    data = parsed;
+    // Mellanformat: fullt state-objekt utan budget
+    listsData = parsed;
   } else {
     throw new Error('Ogiltigt format');
   }
-  localStorage.setItem('listig_v4', JSON.stringify(data));
-  load(); runMigration(); renderHome();
+
+  localStorage.setItem('listig_v4', JSON.stringify(listsData));
+  if (budgetData   != null) localStorage.setItem('listig_budget',      JSON.stringify(budgetData));
+  if (parsed.listig_streak      != null) localStorage.setItem('listig_streak',      JSON.stringify(parsed.listig_streak));
+  if (parsed.listig_routine_pts != null) localStorage.setItem('listig_routine_pts', String(parsed.listig_routine_pts));
+  if (parsed.listig_lang)                localStorage.setItem('listig_lang',         parsed.listig_lang);
+
+  load(); runMigration(); loadBudget(); renderHome();
   if (S.view === 'list') { goHome(); }
   closeSheet();
-  setTimeout(() => alert('✅ Data importerad! Alla dina listor är återställda.'), 200);
+  setTimeout(() => alert('✅ Data importerad! Alla dina listor och din budget är återställda.'), 200);
 }
 
 // ── Import zone: file picker + drag-and-drop ──
@@ -4591,7 +4608,7 @@ function resetImportZone() {
 function previewImportFile(file, text) {
   try {
     const parsed = JSON.parse(text);
-    if (!parsed || (!Array.isArray(parsed) && !Array.isArray(parsed.lists))) throw new Error();
+    if (!parsed || (!Array.isArray(parsed) && !Array.isArray(parsed.lists) && parsed.listig_v4 === undefined)) throw new Error();
     _importPending = text;
     const kb = (file.size / 1024).toFixed(0);
     document.getElementById('import-zone-icon').textContent  = '✅';
