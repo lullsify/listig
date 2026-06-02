@@ -774,7 +774,7 @@
     .budget-hd {
       display: flex; align-items: center; justify-content: space-between;
       padding: calc(var(--safe-top) + 14px) 16px 14px;
-      background: #7AA89A; flex-shrink: 0;
+      background: #98C99C; flex-shrink: 0;
     }
     .budget-hd-title {
       font-size: 12px; font-weight: 200; letter-spacing: 0.18em;
@@ -1681,11 +1681,15 @@
   <input type="text" id="budget-add-name-inp" placeholder="Namn (t.ex. Gym)"
     style="width:100%;font-size:16px;border:none;border-bottom:1.5px solid var(--gold);
     background:transparent;outline:none;padding:10px 0 8px;color:var(--tx);font-family:inherit;margin-bottom:16px;">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
     <input type="number" id="budget-add-amt-inp" placeholder="0" inputmode="numeric"
       style="flex:1;font-size:24px;font-weight:300;border:none;border-bottom:1.5px solid var(--bdr);
       background:transparent;outline:none;padding:8px 0;color:var(--tx);font-family:inherit;text-align:right;">
     <span style="font-size:16px;color:var(--tx2);font-weight:300">kr/mån</span>
+  </div>
+  <div class="budget-edit-fixed-row" style="margin-bottom:20px">
+    <span class="budget-edit-fixed-lbl">Typ av kostnad</span>
+    <button class="budget-fixed-toggle on" id="budget-add-fixed-toggle" type="button">Fast</button>
   </div>
   <button class="btn" id="budget-add-save" style="background:var(--lc)">Lägg till</button>
 </div>
@@ -6490,10 +6494,13 @@ function renderCalendar() {
   const todayStr = getTodayStr();
   document.getElementById('cal-title').textContent = `${D.months[calMonth]} ${calYear}`;
 
-  // Weekdays header
+  // Weekdays header — Mån first
   const wdWrap = document.getElementById('cal-weekdays');
   wdWrap.innerHTML = '';
-  D.dayNamesShort.forEach(d => { const el=document.createElement('div'); el.className='cal-wd'; el.textContent=d; wdWrap.appendChild(el); });
+  const monFirstNames = getLang()==='en'
+    ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    : ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
+  monFirstNames.forEach(d => { const el=document.createElement('div'); el.className='cal-wd'; el.textContent=d; wdWrap.appendChild(el); });
 
   // Collect all tasks with a date
   const allTasks = [];
@@ -6505,10 +6512,10 @@ function renderCalendar() {
     });
   });
 
-  // Build grid
+  // Build grid — week starts on Monday (getDay: 0=Sun,1=Mon,...,6=Sat → offset (d+6)%7)
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const firstDay = (new Date(calYear, calMonth, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
   for (let i = 0; i < firstDay; i++) {
@@ -6732,7 +6739,7 @@ function initOnboarding() {
 // ════════════════════════════════════════
 // BUDGET
 // ════════════════════════════════════════
-const BUDGET_COLOR = '#7AA89A';
+const BUDGET_COLOR = '#98C99C';
 
 const BUDGET_PRESET = [
   { id:'boende',        catType:'fixed',    name:'Boende & Hushåll',  color:'#92BCE0', items:[
@@ -6758,20 +6765,28 @@ const BUDGET_PRESET = [
     { id:'sl',           name:'Kollektivtrafik',      amount:0, actual:0, fixed:false },
     { id:'bensin',       name:'Bensin',               amount:0, actual:0, fixed:false },
   ]},
-  { id:'ovrigt',        catType:'variable', name:'Övrigt',            color:'#A8D4C8', items:[
+  { id:'ovrigt_fast',   catType:'fixed',    name:'Övrigt',            color:'#A8D4C8', items:[
     { id:'gymkort',      name:'Gymkort',              amount:0, actual:0, fixed:true  },
   ]},
+  { id:'ovrigt',        catType:'variable', name:'Övrigt',            color:'#A8D4C8', items:[] },
 ];
 
 let _budgetData = { months: {} };
 let _budgetMonth = '';
 let _budget = null; // pekar alltid på _budgetData.months[_budgetMonth]
 let _budgetEditTarget = null;
+let _budgetEditOrigFixed = false;
 
 const MONTHS_SV = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
 
 function budgetCurrentKey() {
   const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function budgetMaxKey() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 6);
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
@@ -6850,6 +6865,41 @@ function loadBudget() {
       });
       _budgetData._migrNames1 = true;
     }
+    // Migration: flytta gymkort från ovrigt (rörlig) till ovrigt_fast (fast)
+    if (!_budgetData._migrGymkort) {
+      Object.values(_budgetData.months).forEach(md => {
+        const src  = md.categories?.find(c => c.id === 'ovrigt');
+        const dest = md.categories?.find(c => c.id === 'ovrigt_fast');
+        if (src && dest) {
+          const gym = src.items?.find(i => i.id === 'gymkort');
+          if (gym) {
+            src.items = src.items.filter(i => i.id !== 'gymkort');
+            if (!dest.items.find(i => i.id === 'gymkort')) dest.items.push(gym);
+          }
+        }
+      });
+      _budgetData._migrGymkort = true;
+    }
+    // Migration: flytta felparkerade poster från fasta kategorier till ovrigt_fast
+    if (!_budgetData._migrOvrigtFast) {
+      const presetIds = {
+        'boende':        ['hyra','el','bredband','hemforsakring'],
+        'kommunikation': ['telefon'],
+        'lan':           ['studielan','privatlån'],
+      };
+      Object.values(_budgetData.months).forEach(md => {
+        const dest = md.categories?.find(c => c.id === 'ovrigt_fast');
+        if (!dest) return;
+        Object.entries(presetIds).forEach(([catId, ids]) => {
+          const cat = md.categories?.find(c => c.id === catId);
+          if (!cat) return;
+          const misplaced = cat.items.filter(i => !ids.includes(i.id) && !i.custom);
+          cat.items = cat.items.filter(i => ids.includes(i.id) || i.custom);
+          misplaced.forEach(i => { if (!dest.items.find(d => d.id === i.id)) dest.items.push(i); });
+        });
+      });
+      _budgetData._migrOvrigtFast = true;
+    }
     // Säkerställ note/rating på alla månader
     Object.values(_budgetData.months).forEach(md => {
       if (md.note   === undefined) md.note   = '';
@@ -6862,7 +6912,7 @@ function saveBudget() { localStorage.setItem('listig_budget', JSON.stringify(_bu
 
 function renderBudgetNav() {
   document.getElementById('budget-month-lbl').textContent = budgetMonthLabel(_budgetMonth);
-  const isLatest = _budgetMonth >= budgetCurrentKey();
+  const isLatest = _budgetMonth >= budgetMaxKey();
   document.getElementById('budget-next-month').disabled = isLatest;
   const hasNote = _budget && (_budget.note || _budget.rating);
   document.getElementById('budget-note-btn').classList.toggle('has-note', !!hasNote);
@@ -6896,7 +6946,7 @@ document.getElementById('budget-prev-month').addEventListener('click', () => {
   setBudgetMonth(prev);
 });
 document.getElementById('budget-next-month').addEventListener('click', () => {
-  if (_budgetMonth >= budgetCurrentKey()) return;
+  if (_budgetMonth >= budgetMaxKey()) return;
   const [y, m] = _budgetMonth.split('-').map(Number);
   const next = m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2,'0')}`;
   setBudgetMonth(next);
@@ -7097,7 +7147,7 @@ function renderBudgetList() {
       const barPct = hasAmt
         ? (isFixed ? 100 : Math.min(100, Math.round(((item.actual||0)/item.amount)*100)))
         : 0;
-      const barCol = (!isFixed && (item.actual||0) > item.amount) ? '#C0392B' : '#7AA89A';
+      const barCol = (!isFixed && (item.actual||0) > item.amount) ? '#C0392B' : '#98C99C';
       const barHtml = (hasAmt && !isFixed)
         ? `<div class="budget-item-bar-wrap"><div class="budget-item-bar-fill" style="width:${barPct}%;background:${barCol}"></div></div>`
         : '';
@@ -7132,6 +7182,7 @@ function renderBudgetList() {
 
       row.addEventListener('click', () => {
         _budgetEditTarget = { type:'item', catId:cat.id, itemId:item.id };
+        _budgetEditOrigFixed = isFixed;
         document.getElementById('budget-edit-title').textContent = item.name;
         document.getElementById('budget-edit-budget-inp').value  = item.amount || '';
         document.getElementById('budget-edit-actual-inp').value  = item.actual || '';
@@ -7174,9 +7225,13 @@ function renderBudgetList() {
       addRow.innerHTML = `<span style="font-size:16px;opacity:0.4">+</span> Lägg till post`;
       addRow.addEventListener('click', () => {
         _budgetEditTarget = { type:'add', catId:cat.id };
-        document.getElementById('budget-add-title').textContent = 'Lägg till i ' + cat.name;
+        document.getElementById('budget-add-title').textContent = 'Lägg till post';
         document.getElementById('budget-add-name-inp').value = '';
         document.getElementById('budget-add-amt-inp').value = '';
+        const addDefFixed = cat.catType === 'fixed';
+        const addToggle = document.getElementById('budget-add-fixed-toggle');
+        addToggle.classList.toggle('on', addDefFixed);
+        addToggle.textContent = addDefFixed ? 'Fast' : 'Rörlig';
         openSheet('sh-budget-add');
         setTimeout(() => document.getElementById('budget-add-name-inp').focus(), 320);
       });
@@ -7325,6 +7380,19 @@ document.getElementById('budget-edit-save').addEventListener('click', () => {
       item.amount = parseFloat(document.getElementById('budget-edit-budget-inp').value) || 0;
       item.actual = parseFloat(document.getElementById('budget-edit-actual-inp').value) || 0;
       item.fixed  = document.getElementById('budget-fixed-toggle').classList.contains('on');
+
+      // Flytta post till rätt sektion om fast/rörlig faktiskt ändrades
+      if (item.fixed !== _budgetEditOrigFixed) {
+        const mismatch = (item.fixed && cat.catType !== 'fixed' && cat.catType !== 'savings') ||
+                         (!item.fixed && cat.catType === 'fixed');
+        if (mismatch) {
+          cat.items = cat.items.filter(i => i.id !== item.id);
+          const dest = item.fixed
+            ? (_budget.categories.find(c => c.id === 'ovrigt_fast') || _budget.categories.find(c => c.catType === 'fixed'))
+            : (_budget.categories.find(c => c.id === 'ovrigt')      || _budget.categories.find(c => c.catType === 'variable'));
+          if (dest) dest.items.push(item);
+        }
+      }
     }
   }
   saveBudget(); closeSheet(); renderBudgetList(); renderHome();
@@ -7340,16 +7408,32 @@ document.getElementById('budget-edit-delete').addEventListener('click', () => {
   saveBudget(); closeSheet(); renderBudgetList();
 });
 
+// Toggle i lägg-till-sheet
+document.getElementById('budget-add-fixed-toggle').addEventListener('click', function() {
+  const on = this.classList.toggle('on');
+  this.textContent = on ? 'Fast' : 'Rörlig';
+});
+
 // Lägg till egen post
 document.getElementById('budget-add-save').addEventListener('click', () => {
   const name = document.getElementById('budget-add-name-inp').value.trim();
   if (!name) return;
-  const amt = parseFloat(document.getElementById('budget-add-amt-inp').value) || 0;
+  const amt    = parseFloat(document.getElementById('budget-add-amt-inp').value) || 0;
+  const isFixed = document.getElementById('budget-add-fixed-toggle').classList.contains('on');
   const t = _budgetEditTarget;
   if (!t || t.type !== 'add') return;
-  const cat = _budget.categories.find(c => c.id === t.catId);
-  if (!cat) return;
-  cat.items.push({ id: uid(), name, amount: amt, actual: 0, fixed: true, custom: true });
+
+  // Välj rätt målkategori baserat på fast/rörlig-valet
+  let targetCat = _budget.categories.find(c => c.id === t.catId);
+  if (isFixed && targetCat.catType !== 'fixed') {
+    // Fast post i rörlig kategori → flytta till Övrigt (fast)
+    targetCat = _budget.categories.find(c => c.id === 'ovrigt_fast') || _budget.categories.find(c => c.catType === 'fixed') || targetCat;
+  } else if (!isFixed && targetCat.catType === 'fixed') {
+    // Rörlig post i fast kategori → flytta till Övrigt (rörlig)
+    targetCat = _budget.categories.find(c => c.id === 'ovrigt') || _budget.categories.find(c => c.catType === 'variable') || targetCat;
+  }
+
+  targetCat.items.push({ id: uid(), name, amount: amt, actual: 0, fixed: isFixed, custom: true });
   saveBudget(); closeSheet(); renderBudgetList();
 });
 
