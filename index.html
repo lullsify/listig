@@ -5459,11 +5459,15 @@ function showBulkAdd() {
 }
 
 // Fetch med timeout-skydd (förhindrar att iOS-Safari hänger på externa API-anrop)
-async function _fetchJSON(url, opts = {}, ms = 7000) {
-  const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), ms);
+async function _fetchJSON(url, opts = {}, ms = 10000) {
+  const ctrl    = new AbortController();
+  const tid     = setTimeout(() => ctrl.abort(), ms);
+  const headers = { ...(opts.headers ?? {}) };
+  if (url.includes('nominatim.openstreetmap.org')) {
+    headers['Accept'] = 'application/json';
+  }
   try {
-    const r = await fetch(url, { ...opts, signal: ctrl.signal });
+    const r = await fetch(url, { ...opts, headers, signal: ctrl.signal });
     return await r.json();
   } catch { return null; }
   finally { clearTimeout(tid); }
