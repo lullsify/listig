@@ -134,12 +134,13 @@
       display: flex; align-items: flex-end; justify-content: space-between;
     }
     /* Help sheet sections */
-    .help-section { margin-bottom: 26px; }
+    .help-section { margin-bottom: 18px; }
     .help-section-title {
-      font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--tx3); margin-bottom: 6px;
     }
     .help-section-body {
-      font-size: 14px; color: var(--tx2); line-height: 1.6;
+      font-size: 15px; color: var(--tx2); line-height: 1.6;
     }
     .app-name {
       font-size: 38px; font-weight: 200; letter-spacing: 0.18em;
@@ -319,7 +320,7 @@
     .item-row.is-goal.done { opacity: 0.55; }
     .item-row.is-goal.done .item-text { text-decoration: none; }
 
-    /* Luxury checkbox — thin circle, draws checkmark */
+    /* Luxury checkbox - thin circle, draws checkmark */
     .cb {
       width: 22px; height: 22px; border-radius: 50%;
       border: 1.5px solid var(--lc);
@@ -406,7 +407,7 @@
       padding-top: 28px;
     }
 
-    /* In-progress checkbox — gold ring with dash */
+    /* In-progress checkbox - gold ring with dash */
     .cb.in-progress { border-color: var(--gold); }
     .cb.in-progress::before {
       content: '';
@@ -662,7 +663,7 @@
       color: var(--tx3); cursor: pointer; padding: 4px 2px; flex-shrink: 0;
     }
 
-    /* Segmented control — list creation */
+    /* Segmented control - list creation */
     .seg-ctrl {
       display: flex; border-radius: 8px; overflow: hidden;
       border: 1.5px solid var(--bdr);
@@ -677,12 +678,12 @@
     .seg-btn.sel { background: rgb(var(--tx-raw) / 0.85); color: #fff; }
 
     /* Settings sheet header row (title + lang toggle) */
-    .settings-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .settings-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
     .settings-hd .sh-title { margin-bottom: 0; }
     /* No dividers inside settings rows */
-    #sh-pin-settings .act-row { border-bottom: none; padding: 12px 4px; font-size: 14px; align-items: flex-start; gap: 14px; }
-    #sh-pin-settings .act-icon { font-size: 16px; line-height: 1; width: 22px; display: flex; align-items: flex-start; justify-content: center; padding-top: 1px; flex-shrink: 0; }
-    #sh-pin-settings .grid-lbl { margin-top: 20px; margin-bottom: 4px; }
+    #sh-pin-settings .act-row { border-bottom: none; padding: 9px 4px; font-size: 15px; color: var(--tx2); align-items: center; gap: 8px; }
+    #sh-pin-settings .act-icon { font-size: 18px; line-height: 1; width: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    #sh-pin-settings .grid-lbl { margin-top: 14px; margin-bottom: 4px; }
     #sh-pin-settings .settings-hd + .grid-lbl { margin-top: 0; }
 
     /* Compact language toggle */
@@ -1307,7 +1308,7 @@
       flex: 1; font-size: 13px; color: var(--tx2); line-height: 1.4;
     }
 
-    /* Pin add panel — slides up inside map overlay */
+    /* Pin add panel - slides up inside map overlay */
     #pin-panel {
       position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
       background: var(--surf2); border-radius: 20px 20px 0 0;
@@ -1327,7 +1328,7 @@
     }
     #map-search-placeholder { font-size: 15px; color: var(--tx3); flex: 1; }
 
-    /* Full-screen search panel — sits ON TOP of map inside #map-overlay */
+    /* Full-screen search panel - sits ON TOP of map inside #map-overlay */
     #map-search-panel {
       position: absolute; inset: 0; z-index: 9999;
       background: var(--bg); display: flex; flex-direction: column;
@@ -2038,7 +2039,7 @@
     <span id="map-search-placeholder">Sök adress eller platsnamn…</span>
   </div>
 
-  <!-- Full-screen search panel — covers map entirely, no z-index fight -->
+  <!-- Full-screen search panel - covers map entirely, no z-index fight -->
   <div id="map-search-panel">
     <div id="map-search-panel-hd">
       <button class="ghost-btn" id="map-search-back" onclick="closeMapSearch()">
@@ -2059,7 +2060,7 @@
 
   <div id="map-container"></div>
 
-  <!-- Hårkors utanför Leaflets container — annars stör det touch-events -->
+  <!-- Hårkors utanför Leaflets container - annars stör det touch-events -->
   <div id="map-crosshair">
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <line x1="24" y1="4" x2="24" y2="18" stroke="#E8A4B8" stroke-width="2.5" stroke-linecap="round"/>
@@ -2336,12 +2337,12 @@
   <div class="handle"></div>
   <div class="sh-title" id="bulk-title">Klistra in lista</div>
   <p id="bulk-desc" style="font-size:13px;color:var(--tx3);margin-bottom:14px;line-height:1.5">Klistra in text - varje rad blir en egen punkt.</p>
-  <!-- Stad-fält — visas bara i platser-läge -->
+  <!-- Stad-fält - visas bara i platser-läge -->
   <div id="bulk-city-wrap" style="display:none;margin-bottom:10px">
     <input class="inp" id="bulk-city-inp" placeholder="Stad eller område (t.ex. New York, Stockholm)" autocomplete="off" autocapitalize="words" style="font-size:15px">
   </div>
   <textarea class="inp bulk-ta" id="bulk-ta" rows="6" placeholder="Via Carota&#10;51 Grove St, New York&#10;Riche&#10;Birger Jarlsgatan 4, Stockholm" autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>
-  <!-- Geocoding-preview — visas bara i platser-läge -->
+  <!-- Geocoding-preview - visas bara i platser-läge -->
   <div id="bulk-geo-wrap" style="display:none;margin-top:14px">
     <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:8px">Adressförslag</div>
     <div id="bulk-geo-list" style="max-height:38vh;overflow-y:auto;border-radius:10px;border:1px solid var(--bdr)"></div>
@@ -2419,7 +2420,7 @@
     </div>
     <button onclick="closeSheet()" style="border:none;background:none;font-size:26px;cursor:pointer;color:var(--tx3);padding:4px 0 0;line-height:1;font-weight:300">×</button>
   </div>
-  <p style="font-size:14px;color:var(--tx2);margin-bottom:28px;line-height:1.5" id="help-subtitle">Här är allt du kan göra:</p>
+  <p style="font-size:15px;color:var(--tx2);margin-bottom:24px;line-height:1.5" id="help-subtitle">Här är allt du kan göra:</p>
   <div id="help-sections"></div>
   <button class="btn btn-ghost" id="help-close-btn" style="margin-top:24px">Stäng</button>
 </div>
@@ -2771,21 +2772,29 @@ const LANG_DATA = {
     reorderTitle:'Ordna om', reorderSub:'Håll i och dra för att flytta', reorderDone:'Klar',
     cardOptsColor:'Färgsättning', cardOptsReorder:'Ordna om',
     calAddPlaceholder:'Lägg till uppgift...', calAddBtn:'Lägg till',
-    helpTitle:'Välkommen till Listig',
-    helpSubtitle:'Här är allt du kan göra:',
+    helpTitle:'Listig - en guide',
+    helpSubtitle:'Vad varje del gör och hur du får ut mest av den:',
     helpSections:[
-      { title:'TO DO: Idag', body:'Dagens uppgifter, samlat på ett ställe. Tryck + för att lägga till och håll i de tre strecken för att dra om prioriteten.' },
-      { title:'TO DO: Denna vecka', body:'Planera veckan på dina villkor. Schemalägg en uppgift på ett specifikt datum och den dyker upp automatiskt i Idag när dagen är inne.' },
-      { title:'TO DO: Denna månad', body:'Allt som ska hinnas med den här månaden. Sätt ett datum och uppgiften hittar själv in i Denna vecka och Idag när det är dags.' },
-      { title:'Mål', body:'Visualisera dina mål för att nå och slå dem. Bryt ner dem i delmål, lägg till ett inspirationsfoto och bocka av ett steg i taget. (Och glöm för guds skull inte att fira dina framgångar!!)' },
-      { title:'Platser att besöka', body:'Lägg in platser du vill besöka - de markeras med ett vitt hjärta på kartan. Ratea de du besökt och ladda upp bild, de markeras med ett rosa hjärta. Använd sökfältet för att hitta vilken adress eller plats som helst - fungerar precis som Google Maps.' },
-      { title:'Inköpslistor', body:'Skapa separata listor för olika ändamål - mataffären, shoppingturen, semestern.' },
-      { title:'Presentidéer', body:'En lista per person. Samla idéer löpande så du alltid har något redo när det gäller!' },
-      { title:'Favoriter', body:'Fria listor för böcker, filmer, tips och allt annat du vill komma ihåg.' },
-      { title:'Klistra in lista', body:'Har du en lista i Notes, ett mail eller en annan app? Tryck ··· på en lista, välj "Klistra in lista" och klistra in texten - varje rad blir automatiskt en egen punkt.' },
-      { title:'Rutiner <span style="font-weight:400;color:var(--tx3)">(hittas under ⚙️)</span>', body:'Saker du gör regelbundet - träning, medicin, lönerapport. Välj vilka dagar eller datum i månaden och rutinen dyker automatiskt upp i Idag.' },
-      { title:'Dela lista', body:'Dela en listas innehåll direkt via SMS, mail eller valfri app. Tryck ··· på valfri lista och välj Dela.' },
-      { title:'Säkerhetskopia <span style="font-weight:400;color:var(--tx3)">(hittas under ⚙️)</span>', body:'Exportera dina listor som en fil och importera för att återställa. Din data är alltid trygg vid uppdateringar.' },
+      { title:'TO DO',
+        body:'<b>Syfte:</b> Samla allt du behöver göra utan att något glöms.<br>Tre listor: <b>Idag</b>, <b>Denna vecka</b> och <b>Denna månad</b> - de hänger ihop. Lägg en uppgift i månaden med ett datum och den hoppar automatiskt in i veckan, sedan i Idag när dagen är inne.<br><b>Tips:</b> Skriv "fredag" eller "imorgon" direkt i texten när du lägger till - datumet sätts automatiskt. Svep vänster för att radera. Håll i ≡ för att dra om ordningen.' },
+      { title:'Rutiner',
+        body:'<b>Syfte:</b> Slipp lägga in återkommande uppgifter manuellt varje gång.<br>Lägg in saker du gör regelbundet - träning, medicin, städning - under <b>⚙️</b>. Välj vilka veckodagar, specifika datum i månaden eller ett intervall (t.ex. var tredje dag). Rutinen dyker upp automatiskt i Idag när det är dags och försvinner tills nästa gång den ska göras.' },
+      { title:'Mål',
+        body:'<b>Syfte:</b> Håll koll på det som verkligen betyder något, inte bara dagliga uppgifter.<br>Skapa ett mål och bryt ner det i konkreta delmål. Lägg till ett inspirationsfoto. Bocka av ett steg i taget och fira när du kommer i mål.' },
+      { title:'Platser',
+        body:'<b>Syfte:</b> En personlig karta över ställen du vill besöka och redan har testat.<br>Tryck på kartan för att spara ett ställe. <b>Vitt hjärta</b> = vill besöka. <b>Rosa hjärta</b> = har besökt och gett betyg. Öppna ett ställe för att lägga till notering, betyg och bild.<br><b>Tips:</b> Klistra in en hel lista på restauranger via ⎘-knappen - adresser söks upp automatiskt. Om en pin hamnar fel: öppna stället, tryck Flytta pin, dra kartan rätt och tryck Spara.' },
+      { title:'Budget',
+        body:'<b>Syfte:</b> Förstå vart pengarna tar vägen och se vad som faktiskt är kvar att spendera.<br>Ange din månadslön, sedan dina <b>fasta kostnader</b> (hyra, abonnemang) och <b>rörliga</b> (mat, nöje, kläder). Fyll i faktiska belopp löpande så uppdateras "kvar att spendera" i realtid.<br>Under Budget-fliken hittar du också <b>sparmål</b> och en <b>trendkurva</b> över tidigare månader.' },
+      { title:'Inköpslistor',
+        body:'<b>Syfte:</b> Separata listor för olika inköp - slipp leta bland fel saker.<br>Skapa en lista per ändamål: mataffären, resan, projektet. Lägg till mängd och pris om du vill. Tryck ··· → Klistra in lista för att snabbt importera en lista från Notes eller ett mail.' },
+      { title:'Presenter',
+        body:'<b>Syfte:</b> Aldrig mer last-minute presentlösningar.<br>En lista per person. Fyll på med idéer löpande under hela året - när du ser något de skulle gilla, när de nämner något de vill ha. När det väl är dags att köpa har du alltid något redo.' },
+      { title:'Favoriter',
+        body:'<b>Syfte:</b> Fria listor för allt som inte passar in någon annanstans.<br>Böcker du vill läsa, filmer, podcasts, tips från vänner. Skapa en lista per kategori och lägg till löpande.' },
+      { title:'Söka, dela och klistra in',
+        body:'<b>Sök</b> i alla listor på en gång via 🔍 i överkanten på hemskärmen.<br><b>Dela</b> en lista via ··· → Dela - skickas som text via SMS, mail eller valfri app.<br><b>Klistra in lista</b> via ··· → Klistra in lista: varje rad i texten blir en egen punkt. Fungerar med text från Notes, mail, eller vad som helst.' },
+      { title:'Export och import <span style="font-weight:400;color:var(--tx3)">(under ⚙️)</span>',
+        body:'<b>Syfte:</b> Säkerhetskopia av all din data.<br>Din data lagras lokalt på din iPhone - den försvinner om du tar bort appen. Under <b>⚙️ → Exportera data</b> sparar du en backupfil. Under <b>Importera data</b> läser du in en tidigare backup.<br>Gör detta regelbundet, särskilt innan du byter telefon eller uppdaterar appen.' },
     ],
   },
   en: {
@@ -2870,21 +2879,29 @@ const LANG_DATA = {
     reorderTitle:'Reorder', reorderSub:'Hold and drag to move', reorderDone:'Done',
     cardOptsColor:'Color', cardOptsReorder:'Reorder',
     calAddPlaceholder:'Add task...', calAddBtn:'Add',
-    helpTitle:'Welcome to Listig',
-    helpSubtitle:'Here is everything you can do:',
+    helpTitle:'Listig - a guide',
+    helpSubtitle:'What each section does and how to get the most out of it:',
     helpSections:[
-      { title:'TO DO: Today', body:"Today's tasks, all in one place. Tap + to add and hold the three lines to drag and reprioritize." },
-      { title:'TO DO: This week', body:'Plan the week on your terms. Schedule a task for a specific date and it appears automatically in Today when the day comes.' },
-      { title:'TO DO: This month', body:'Everything that needs to happen this month. Set a date and the task finds its way into This week and Today when the time comes.' },
-      { title:'Goals', body:"Visualize your goals to reach and crush them. Break them into sub-goals, add an inspiration photo and check off one step at a time. (And don't forget to celebrate your wins!!)" },
-      { title:'Places to visit', body:'Add places you want to visit - they appear as a white heart on the map. Rate the ones you have visited and upload a photo, they appear as a pink heart. Use the search bar to find any address or place - works just like Google Maps.' },
-      { title:'Shopping lists', body:'Create separate lists for different purposes - the grocery store, a shopping trip, vacation.' },
-      { title:'Gift ideas', body:'One list per person. Collect ideas along the way so you always have something ready when it counts!' },
-      { title:'Favorites', body:'Free-form lists for books, films, tips and anything else you want to remember.' },
-      { title:'Paste list', body:'Have a list in Notes, an email or another app? Tap ··· on a list, choose "Paste list" and paste the text - each line automatically becomes its own item.' },
-      { title:'Routines <span style="font-weight:400;color:var(--tx3)">(found under ⚙️)</span>', body:'Things you do regularly - workouts, medication, salary reports. Choose which days or dates in the month and the routine appears automatically in Today.' },
-      { title:'Share list', body:'Share a list\'s contents directly via SMS, email or any app. Tap ··· on any list and choose Share.' },
-      { title:'Backup <span style="font-weight:400;color:var(--tx3)">(found under ⚙️)</span>', body:'Export your lists as a file and import to restore. Your data is always safe during updates.' },
+      { title:'TO DO',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Keep everything you need to do in one place so nothing slips through.<br>Three lists: Today, This week and This month - they are linked. Add a task to the month with a date and it moves automatically into the week, then into Today when the day arrives.<br><span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Tips</span>  Type "friday" or "tomorrow" directly in the task text - the date is set automatically. Swipe left to delete. Hold ≡ to drag and reorder.' },
+      { title:'Routines',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Stop adding the same tasks manually every time.<br>Add recurring tasks - workouts, medication, cleaning - under ⚙️. Choose which weekdays, specific dates in the month, or an interval (e.g. every three days). The routine appears automatically in Today when due and disappears until next time.' },
+      { title:'Goals',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Stay focused on what actually matters beyond day-to-day tasks.<br>Create a goal and break it down into concrete sub-goals. Add an inspiration photo. Check off one step at a time and celebrate when you reach it.' },
+      { title:'Places',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  A personal map of places you want to visit and ones you have already tried.<br>Tap the map to save a place. White heart = want to visit. Pink heart = visited and rated. Open a place to add a note, rating and photo.<br><span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Tips</span>  Paste an entire restaurant list via the ⎘ button - addresses are looked up automatically. If a pin lands in the wrong spot: open the place → Move pin → drag the map into position → Save.' },
+      { title:'Budget',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Understand where your money goes and see what is actually left to spend.<br>Enter your monthly salary, then your fixed costs (rent, subscriptions) and variable (food, entertainment, clothing). Fill in actual amounts as you go and "left to spend" updates in real time.<br>The Budget tab also includes savings goals and a trend chart over previous months.' },
+      { title:'Shopping lists',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Separate lists for different shopping trips - no more searching through the wrong list.<br>Create one list per purpose: grocery store, trip, project. Add quantity and price if you like. Tap ··· → Paste list to quickly import a list from Notes or an email.' },
+      { title:'Gift ideas',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Never scramble for a last-minute gift again.<br>One list per person. Add ideas throughout the year - when you spot something they would love, when they mention something they want. When the time comes to buy, you always have something ready.' },
+      { title:'Favorites',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Free-form lists for everything that does not fit elsewhere.<br>Books to read, films, podcasts, tips from friends. Create one list per category and add things as you go.' },
+      { title:'Search, share and paste',
+        body:'Search across all lists at once via 🔍 at the top of the home screen.<br>Share a list via ··· → Share - sent as text via SMS, email or any app.<br>Paste list via ··· → Paste list: each line of text becomes its own item. Works with text from Notes, email, or anything.' },
+      { title:'Export and import <span style="font-weight:400;color:var(--tx3)">(under ⚙️)</span>',
+        body:'<span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:var(--tx3)">Purpose</span>  Back up all your data.<br>Your data is stored locally on your iPhone - it is lost if you delete the app. Under ⚙️ → Export data you save a backup file. Under Import data you restore a previous backup.<br>Do this regularly, especially before switching phones or updating the app.' },
     ],
   }
 };
@@ -3351,7 +3368,7 @@ function renderGroup() {
     wrap.appendChild(e);
   }
 
-  // "Visa alla på karta" — när det finns kartor att slå ihop
+  // "Visa alla på karta" - när det finns kartor att slå ihop
   const mapSublists = group.sublists.filter(sl => sl.useMap);
   if (group.id === 'favorites' && mapSublists.length >= 1) {
     const allBtn = document.createElement('button');
@@ -3521,9 +3538,26 @@ function renderList() {
   }
 
   active.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
-  scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-  dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-  dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
+
+  // Schemalagda uppgifter från veckans lista
+  if (scheduled.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.textContent = t('scheduledToday');
+    wrap.appendChild(lbl);
+    scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+  }
+
+  // Förfallna uppgifter från vecka + månad
+  const allDue = [...dueFromWeek, ...dueFromMonth];
+  if (allDue.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.textContent = t('dueToday');
+    wrap.appendChild(lbl);
+    dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+    dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
+  }
 
   // Due this week: from monthly
   if (dueThisWeek.length) {
@@ -3549,19 +3583,27 @@ function renderList() {
     done.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
   }
 
-  if (isShop) {
-    const total = src.items.filter(i => !i.done && i.price).reduce((s, i) => s + i.price, 0);
-    if (total > 0) {
-      const totalEl = document.createElement('div');
-      totalEl.className = 'total-row';
-      totalEl.innerHTML = `<span>${t('totalRemaining')}</span><span>${total.toLocaleString('sv-SE')} kr</span>`;
-      wrap.appendChild(totalEl);
-    }
-  }
 
   // Init swipe gestures (only for native list items, not map lists)
   const isFavMapSub = S.groupId === 'favorites' && S.listId;
   if (!isFavMapSub) initSwipeGestures(wrap, src);
+
+  // Engångstips: swipe-to-delete (visas första gången man ser en lista med minst 1 item)
+  const isAnyTodoCtx = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+  if (!isFavMapSub && isAnyTodoCtx && (active.length + scheduled.length + allDue.length) > 0) {
+    const swipeTip = getLang() === 'en'
+      ? 'Swipe left to delete · hold ≡ to reorder'
+      : 'Svep vänster för att radera · håll ≡ för att dra om';
+    setTimeout(() => showCtxTip('swipe_hint', swipeTip, wrap), 800);
+  }
+
+  // Engångstips: rutiner-discovery i Idag om inga rutiner är inställda
+  if (S.listId === 'todo-day' && !S.groupId && !S.routines?.length) {
+    const routineTip = getLang() === 'en'
+      ? '🔄 Tip: Add routines under ⚙️ to make recurring tasks appear here automatically'
+      : '🔄 Tips: Lägg till rutiner under ⚙️ så dyker återkommande uppgifter upp automatiskt';
+    setTimeout(() => showCtxTip('routine_discovery', routineTip, wrap), 2000);
+  }
 }
 
 function makeRow(item, color, isGoals, isShop, sourceListId) {
@@ -3980,7 +4022,10 @@ function showAdd() {
     extra.innerHTML = `<input class="inp" id="qty-inp" placeholder="${t('qtyLabel')}" autocomplete="off" style="margin-top:2px">
        <input class="inp" id="price-inp" placeholder="${t('priceLabel')}" type="number" inputmode="decimal" min="0" autocomplete="off" style="margin-top:2px">`;
   } else if (isTodoList) {
-    extra.innerHTML = `<div class="grid-lbl" style="margin-top:16px;margin-bottom:2px">${t('dateLabel')}</div>
+    extra.innerHTML = `<div class="grid-lbl" style="margin-top:16px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center">
+      <span>${t('dateLabel')}</span>
+      <span style="font-size:11px;color:var(--tx3);font-weight:400">${getLang()==='en'?'or write "friday" above':'eller skriv "fredag" ovan'}</span>
+    </div>
       <input class="inp" id="due-inp" type="date" style="color:var(--tx2)">`;
   } else {
     extra.innerHTML = '';
@@ -4103,7 +4148,7 @@ function showAddSublist() {
   document.getElementById('add-sl-inp').placeholder = ph[group.id] ?? ph.default;
   document.getElementById('add-sl-btn').style.background = group.color;
 
-  // Platser-sublists always use map — hide toggle
+  // Platser-sublists always use map - hide toggle
   document.getElementById('add-sl-map-wrap').style.display = 'none';
 
   openSheet('sh-add-sublist');
@@ -4626,7 +4671,7 @@ function fullConfetti() {
     shape:  Math.random() > 0.3 ? 'rect' : 'circle',
   }));
 
-  // BOOM! — visas efter 600ms, tonas ut vid 2200ms
+  // BOOM! - visas efter 600ms, tonas ut vid 2200ms
   const boom    = document.getElementById('boom-wrap');
   const boomTxt = document.getElementById('boom-txt');
   boom.style.display = 'flex';
@@ -4781,14 +4826,14 @@ function processPinEntry() {
 
   if (pinMode === 'lock') {
     if (pinEntry === stored) { unlockOverlay(); }
-    else { shakeDots(() => { pinEntry = ''; updateDots(); document.getElementById('pin-msg').textContent = 'Fel pinkod — försök igen'; }); }
+    else { shakeDots(() => { pinEntry = ''; updateDots(); document.getElementById('pin-msg').textContent = 'Fel pinkod - försök igen'; }); }
   }
   else if (pinMode === 'setup') {
     const tmp = pinEntry; enterPinMode('confirm'); pinNewTmp = tmp;
   }
   else if (pinMode === 'confirm') {
     if (pinEntry === pinNewTmp) { localStorage.setItem('listig_pin', pinEntry); unlockOverlay(); }
-    else { shakeDots(() => enterPinMode('setup', 'Stämmer inte — välj igen')); }
+    else { shakeDots(() => enterPinMode('setup', 'Stämmer inte - välj igen')); }
   }
   else if (pinMode === 'chg-verify') {
     if (pinEntry === stored) { enterPinMode('chg-new'); }
@@ -4799,7 +4844,7 @@ function processPinEntry() {
   }
   else if (pinMode === 'chg-confirm') {
     if (pinEntry === pinNewTmp) { localStorage.setItem('listig_pin', pinEntry); unlockOverlay(); }
-    else { shakeDots(() => enterPinMode('chg-new', 'Stämmer inte — välj igen')); }
+    else { shakeDots(() => enterPinMode('chg-new', 'Stämmer inte - välj igen')); }
   }
 }
 
@@ -4876,7 +4921,7 @@ document.getElementById('export-btn').addEventListener('click', async () => {
   const data = JSON.stringify(payload);
   const fileName = 'listig-backup.json';
 
-  // File System Access API — låter användaren välja/skriva över befintlig fil
+  // File System Access API - låter användaren välja/skriva över befintlig fil
   if (window.showSaveFilePicker) {
     try {
       const handle = await window.showSaveFilePicker({
@@ -4889,7 +4934,7 @@ document.getElementById('export-btn').addEventListener('click', async () => {
       closeSheet();
       return;
     } catch (e) {
-      if (e.name === 'AbortError') return; // användaren avbröt — gör inget
+      if (e.name === 'AbortError') return; // användaren avbröt - gör inget
       // Annat fel → fall igenom till share/download
     }
   }
@@ -4943,7 +4988,7 @@ function doImport(jsonText) {
   const budgetRestored = !!budgetData;
   const msg = budgetRestored
     ? '✅ Data importerad! Listor och budget är återställda.'
-    : '✅ Listor återställda.\n\n⚠️ Backup saknade budgetdata — troligen skapad innan den fixades. Ta en ny backup nu för att spara din budget.';
+    : '✅ Listor återställda.\n\n⚠️ Backup saknade budgetdata - troligen skapad innan den fixades. Ta en ny backup nu för att spara din budget.';
   setTimeout(() => alert(msg), 200);
 }
 
@@ -4994,7 +5039,7 @@ document.getElementById('import-confirm-btn').addEventListener('click', () => {
     doImport(_importPending);
     _importPending = null;
   } catch {
-    alert('Kunde inte importera — filen verkar skadad.');
+    alert('Kunde inte importera - filen verkar skadad.');
   }
 });
 
@@ -5291,8 +5336,8 @@ function showBulkAdd() {
   _bulkGeoResults = [];
   document.getElementById('bulk-btn').style.background = color;
   document.getElementById('bulk-desc').textContent = isMap
-    ? 'Klistra in restaurangnamn — ett per rad. Adressförslag hämtas automatiskt.'
-    : 'Klistra in text — varje rad blir en egen punkt.';
+    ? 'Klistra in restaurangnamn - ett per rad. Adressförslag hämtas automatiskt.'
+    : 'Klistra in text - varje rad blir en egen punkt.';
   document.getElementById('bulk-ta').placeholder = isMap
     ? 'Restaurang Volt\nFrantzén\nAstrid & Aporna\n...'
     : 'Rad 1\nRad 2\nRad 3...';
@@ -5368,7 +5413,7 @@ function renderBulkGeoList() {
     row.className = 'bulk-geo-row';
     const addrClass = r.status === 'searching' ? 'searching' : r.status === 'notfound' ? 'notfound' : '';
     const addrText  = r.status === 'searching' ? 'Söker adress…'
-                    : r.status === 'notfound'  ? 'Ingen adress hittades — läggs till utan karta'
+                    : r.status === 'notfound'  ? 'Ingen adress hittades - läggs till utan karta'
                     : r.addr;
     row.innerHTML = `
       <div class="bulk-geo-pin">${r.lat ? '📍' : '⬜'}</div>
@@ -5442,11 +5487,11 @@ document.getElementById('bulk-ta').addEventListener('input', () => {
       <div style="padding:12px 4px;line-height:1.6;color:var(--tx2);font-size:14px">
         <div style="font-size:20px;margin-bottom:6px">🍎</div>
         <strong style="color:var(--tx)">Apple Maps-listor kan inte importeras automatiskt.</strong><br>
-        Apple kräver inloggning för att läsa listdata — det går inte att kringgå.<br><br>
+        Apple kräver inloggning för att läsa listdata - det går inte att kringgå.<br>
         <strong style="color:var(--tx)">Gör så här istället:</strong><br>
         1. Öppna länken i Maps-appen på iPhone<br>
         2. Tryck på ett ställe → tryck <strong>Dela</strong> → <strong>Kopiera</strong><br>
-        3. Upprepa för varje ställe och klistra in namnen här<br><br>
+        3. Upprepa för varje ställe och klistra in namnen här<br>
         <span style="color:var(--tx3);font-size:12px">Tips: adress på raden under namnet hittas automatiskt</span>
       </div>`;
     _bulkGeoResults = [];
@@ -5632,7 +5677,7 @@ function showMap(filterSublistId) {
 
   if (!leafMap) {
     leafMap = L.map('map-container', { zoomControl: false }).setView([59.332, 18.065], 12);
-    // CartoDB Voyager — finare typsnitt, varmare färger, ingen API-nyckel krävs
+    // CartoDB Voyager - finare typsnitt, varmare färger, ingen API-nyckel krävs
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '© OpenStreetMap © CartoDB', maxZoom: 20, subdomains: 'abcd'
     }).addTo(leafMap);
@@ -5756,7 +5801,11 @@ function closePinPanel() {
 
 function onMapTap(e) {
   if (movingPinItemId) return; // Flytta-läge aktivt – ignorera klick
-  closePinDetail();
+  // Om detaljpanelen är öppen - stäng den och gör ingenting mer
+  if (document.getElementById('pin-detail-panel').classList.contains('on')) {
+    closePinDetail();
+    return;
+  }
   hideSearchResults();
   pendingPin = { lat: e.latlng.lat, lng: e.latlng.lng };
   selectedPinSl = null;
@@ -6268,7 +6317,7 @@ async function doMapSearch(q) {
     const features = data.features ?? [];
     results.innerHTML = '';
     if (!features.length) {
-      results.innerHTML = '<div style="padding:24px 20px;color:var(--tx3);font-size:14px">Inget hittades — prova med adressen istället</div>';
+      results.innerHTML = '<div style="padding:24px 20px;color:var(--tx3);font-size:14px">Inget hittades - prova med adressen istället</div>';
       return;
     }
     features.forEach(f => {
@@ -6364,7 +6413,7 @@ document.getElementById('add-inp').addEventListener('input', () => {
 });
 document.getElementById('l-opts-btn').addEventListener('click', showListOpts);
 
-// List opts — rename + bulk add
+// List opts - rename + bulk add
 document.getElementById('lopt-rename').addEventListener('click', () => {
   const src = getSource(); if (!src) return;
   if (S.groupId) {
@@ -6536,7 +6585,7 @@ function checkRoutines() {
     // Interval-rutin: dagar efter senast utfört
     if (r.intervalDays) {
       if (!r.lastCompleted) {
-        // Aldrig utförd — lägg till direkt
+        // Aldrig utförd - lägg till direkt
       } else {
         const last = new Date(r.lastCompleted + 'T00:00:00');
         const next = new Date(last);
@@ -6557,7 +6606,7 @@ function checkRoutines() {
       return;
     }
 
-    // Check if today matches — either by weekday or specific date in month
+    // Check if today matches - either by weekday or specific date in month
     const matches = r.monthDays?.length
       ? r.monthDays.includes(today.getDate())
       : r.days?.includes(dow);
@@ -6587,7 +6636,7 @@ function checkRoutines() {
 // ════════════════════════════════════════
 // NOTISER FÖR SCHEMALAGDA UPPGIFTER
 // ════════════════════════════════════════
-// ── URL till push-servern — uppdatera efter deploy ───────────────────────────
+// ── URL till push-servern - uppdatera efter deploy ───────────────────────────
 const PUSH_SERVER = localStorage.getItem('listig_push_url') || '';
 
 async function requestNotifPermission() {
@@ -6653,7 +6702,7 @@ async function pushSyncTasks() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key, tasks }),
     });
-  } catch(e) { /* tyst fel — synkas nästa gång */ }
+  } catch(e) { /* tyst fel - synkas nästa gång */ }
 }
 
 // Konvertera VAPID-nyckel från base64url till Uint8Array
@@ -6668,7 +6717,7 @@ function urlBase64ToUint8Array(base64String) {
 const _origSave = typeof save === 'function' ? save : null;
 function saveAndSyncPush() {
   if (_origSave) _origSave();
-  // Debounce synk — vänta 3 sek efter senaste ändring
+  // Debounce synk - vänta 3 sek efter senaste ändring
   clearTimeout(saveAndSyncPush._t);
   saveAndSyncPush._t = setTimeout(pushSyncTasks, 3000);
 }
@@ -6701,7 +6750,7 @@ function checkDueNotifications() {
 
 function showRoutines() {
   const list = document.getElementById('routines-list');
-  list.innerHTML = `<div class="routine-lvl">${getRoutineLevel()} &nbsp;&middot;&nbsp; ${getRoutinePoints()} ${getLang()==='en'?'pts':'poäng'}</div>`;
+  list.innerHTML = '';
   if (!S.routines.length) {
     list.innerHTML += `<p style="color:var(--tx3);font-size:13px;padding:16px 8px;line-height:1.6">
       ${getLang()==='en'?'No routines yet.<br>Add things you do regularly - they appear automatically in the right list.':'Inga rutiner ännu.<br>Lägg till saker du gör regelbundet - de dyker upp automatiskt i rätt lista.'}</p>`;
@@ -7016,7 +7065,7 @@ const TEMPLATES = [
   },
   {
     icon: '❤️', name: 'Favoritlista', color: '#E8A4B8',
-    desc: 'Anteckningar med ♡ — t.ex. favoritfilmer, böcker, restauranger',
+    desc: 'Anteckningar med ♡ - t.ex. favoritfilmer, böcker, restauranger',
     type: 'group', noCheck: true,
     sublists: [{ name: 'Min lista', items: [] }],
   },
@@ -7393,7 +7442,7 @@ function renderCalendar() {
   const todayStr = getTodayStr();
   document.getElementById('cal-title').textContent = `${D.months[calMonth]} ${calYear}`;
 
-  // Weekdays header — Mån first
+  // Weekdays header - Mån first
   const wdWrap = document.getElementById('cal-weekdays');
   wdWrap.innerHTML = '';
   const monFirstNames = getLang()==='en'
@@ -7411,7 +7460,7 @@ function renderCalendar() {
     });
   });
 
-  // Build grid — week starts on Monday (getDay: 0=Sun,1=Mon,...,6=Sat → offset (d+6)%7)
+  // Build grid - week starts on Monday (getDay: 0=Sun,1=Mon,...,6=Sat → offset (d+6)%7)
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
   const firstDay = (new Date(calYear, calMonth, 1).getDay() + 6) % 7;
@@ -7587,19 +7636,27 @@ function initOnboarding() {
 
   function buildObFeatures(lang) {
     const feats = lang === 'en' ? [
-      {icon:'☀️', name:'TO DO',         desc:'Collects everything you need to do today, this week and this month in one place, so nothing gets forgotten.'},
-      {icon:'🔄', name:'Routines',       desc:'Add things you do regularly, choose which days they apply, and they appear automatically in your list when it is time.'},
-      {icon:'🎯', name:'Goals',          desc:'Big goals are easier to tackle when you break them into concrete sub-goals. Add an inspiration photo and check off one step at a time.'},
-      {icon:'📍', name:'Places',         desc:'Save places you want to visit on a map, rate them once you have been there and document what you thought - so you know for next time (and can share tips easily with the sharing feature!!)'},
-      {icon:'🛒', name:'Shopping',       desc:'Create separate lists for different purposes - the grocery store, the trip, the project.'},
-      {icon:'🎁', name:'Gift ideas',     desc:'Collect ideas per person throughout the year, so you always have something concrete when it counts instead of scrambling for a last-minute solution!'},
+      {icon:'☀️', name:'TO DO - three levels that connect',
+        desc:'Today, This week and This month are linked. Set a date and the task moves automatically to the right list when the time comes. Add routines and they appear on their own every day.'},
+      {icon:'📍', name:'Places on a map',
+        desc:'Tap the map to save a place. White heart = want to visit (add a note about what to try). Pink heart = visited and rated. Paste an entire restaurant list at once - addresses are fetched automatically.'},
+      {icon:'💰', name:'Budget',
+        desc:'Fixed and variable expenses, savings goals and a trend chart. Fill in actual amounts as you go and see exactly what is left to spend this month.'},
+      {icon:'🛒', name:'Lists for everything',
+        desc:'Shopping lists, gift ideas per person and free-form favorites. Paste existing lists straight from Notes - one line becomes one item.'},
+      {icon:'🎯', name:'Goals',
+        desc:'Break big goals into concrete sub-goals, add an inspiration photo and check them off one step at a time.'},
     ] : [
-      {icon:'☀️', name:'TO DO',         desc:'Samlar allt du behöver göra idag, den här veckan och den här månaden på ett ställe, så att inget glöms bort.'},
-      {icon:'🔄', name:'Rutiner',       desc:'Lägg in saker du gör regelbundet, välj vilka dagar de ska gälla, och de dyker upp automatiskt i din lista när det är dags.'},
-      {icon:'🎯', name:'Mål',           desc:'Stora mål är lättare att ta sig an om du delar upp dem i konkreta delmål. Lägg till ett inspirationsfoto och bocka av ett steg i taget.'},
-      {icon:'📍', name:'Platser',       desc:'Spara ställen du vill besöka på en karta, ratea dem när du varit där och dokumentera vad du tyckte så att du vet till nästa gång.'},
-      {icon:'🛒', name:'Inköpslistor',  desc:'Skapa separata listor för olika ändamål - mataffären, resan, projektet.'},
-      {icon:'🎁', name:'Presenter',     desc:'Samla idéer per person löpande under året, så att du alltid har något konkret när det gäller istället för att komma med en sista minuten-lösning!'},
+      {icon:'☀️', name:'TO DO - tre nivåer som hänger ihop',
+        desc:'Idag, Denna vecka och Denna månad är kopplade. Sätt ett datum och uppgiften hoppar automatiskt till rätt lista när det är dags. Lägg till rutiner och de dyker upp på egen hand varje dag.'},
+      {icon:'📍', name:'Platser på karta',
+        desc:'Tryck på kartan för att spara ett ställe. Vitt hjärta = vill besöka (lägg till notering om vad du vill prova). Rosa hjärta = besökt och betygsatt. Klistra in en hel restauranglista på en gång - adresser hämtas automatiskt.'},
+      {icon:'💰', name:'Budget',
+        desc:'Fasta och rörliga kostnader, sparmål och trendkurva. Fyll i faktiska belopp löpande och se exakt vad som är kvar att spendera den här månaden.'},
+      {icon:'🛒', name:'Listor för allt',
+        desc:'Inköpslistor, presentidéer per person och fria favoriter. Klistra in befintliga listor direkt från Notes - varje rad blir en egen punkt.'},
+      {icon:'🎯', name:'Mål',
+        desc:'Bryt ner stora mål i konkreta delmål, lägg till ett inspirationsfoto och bocka av ett steg i taget.'},
     ];
     const wrap = document.getElementById('ob-features');
     wrap.innerHTML = feats.map(f=>`<div class="onboard-feat-row">
@@ -8105,7 +8162,7 @@ function renderBudgetList() {
       wrap.appendChild(row);
     });
 
-    // Dolda enskilda poster — restore direkt i kategorin
+    // Dolda enskilda poster - restore direkt i kategorin
     cat.items.filter(i => i.hidden).forEach(item => {
       const hidRow = document.createElement('div');
       hidRow.className = 'budget-item-hidden-row';
@@ -8141,7 +8198,7 @@ function renderBudgetList() {
     wrap.appendChild(addRow);
     }); // end visCats.forEach
 
-    // Dolda kategorier i denna sektion — syns direkt på rätt ställe
+    // Dolda kategorier i denna sektion - syns direkt på rätt ställe
     hiddenCats.forEach(cat => {
       const row = document.createElement('div');
       row.className = 'budget-hidden-row';
