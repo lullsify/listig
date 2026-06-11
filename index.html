@@ -442,13 +442,13 @@
     /* ── OVERLAY & SHEETS ── */
     #overlay {
       position: fixed; inset: 0; background: rgb(var(--tx-raw) / 0.45);
-      z-index: 200; opacity: 0; transition: opacity 0.28s ease;
+      z-index: 399; opacity: 0; transition: opacity 0.28s ease;
       pointer-events: none;
     }
     #overlay.on { opacity: 1; pointer-events: all; }
 
     .sheet {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 400;
       background: var(--surf2); border-radius: 20px 20px 0 0;
       padding: 10px 22px calc(var(--safe-bot) + 30px);
       transform: translateY(105%);
@@ -1290,6 +1290,23 @@
     }
     #map-hint.hidden { opacity: 0; }
 
+    /* ── FLYTTA PIN ── */
+    #map-crosshair {
+      display: none; position: fixed;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 48px; height: 48px; pointer-events: none; z-index: 350;
+    }
+    #map-crosshair.on { display: block; }
+    #move-bar {
+      display: none; padding: 12px 16px calc(var(--safe-bot) + 12px);
+      background: var(--surf); border-top: 1px solid var(--bdr);
+      gap: 10px; flex-shrink: 0;
+    }
+    #move-bar.on { display: flex; }
+    #move-bar .move-hint {
+      flex: 1; font-size: 13px; color: var(--tx2); line-height: 1.4;
+    }
+
     /* Pin add panel — slides up inside map overlay */
     #pin-panel {
       position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
@@ -1531,6 +1548,20 @@
       background: var(--surf); border-left: 3px solid var(--gold);
     }
 
+    /* ── Bulk geocoding preview ── */
+    .bulk-geo-row { display:flex; align-items:flex-start; gap:10px; padding:10px 14px;
+      border-bottom:1px solid var(--bdr); background:var(--surf); }
+    .bulk-geo-row:last-child { border-bottom:none; border-radius:0 0 10px 10px; }
+    .bulk-geo-row:first-child { border-radius:10px 10px 0 0; }
+    .bulk-geo-row:only-child  { border-radius:10px; }
+    .bulk-geo-pin { font-size:16px; flex-shrink:0; padding-top:1px; }
+    .bulk-geo-info { flex:1; min-width:0; }
+    .bulk-geo-name { font-size:14px; color:var(--tx); font-weight:500; }
+    .bulk-geo-addr { font-size:12px; color:var(--tx3); margin-top:2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bulk-geo-addr.searching { font-style:italic; }
+    .bulk-geo-addr.notfound  { color:#C0392B; }
+
     /* ── Snackbar / Ångra ── */
     #snackbar {
       position: fixed; bottom: calc(var(--safe-bot) + 84px); left: 50%;
@@ -1648,6 +1679,7 @@
         <span id="l-crumb" class="l-crumb"></span>
         <span id="l-name" class="l-name"></span>
       </div>
+      <button class="ghost-btn" id="l-paste-btn" style="display:none;font-size:18px;opacity:0.55" title="Klistra in lista">⎘</button>
       <button class="ghost-btn" id="l-opts-btn">
         <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
           <circle cx="2" cy="2" r="2"/><circle cx="2" cy="8" r="2"/><circle cx="2" cy="14" r="2"/>
@@ -1985,6 +2017,7 @@
       </svg>
     </button>
     <span id="map-title" class="g-name" style="flex:1;text-align:center"></span>
+    <button class="ghost-btn" id="map-paste-btn" title="Klistra in lista" style="font-size:18px;opacity:0.6">⎘</button>
     <button class="ghost-btn" id="map-list-btn" title="Visa platser">
       <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
         <line x1="5" y1="1" x2="15" y2="1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -2025,7 +2058,26 @@
   </div>
 
   <div id="map-container"></div>
+
+  <!-- Hårkors utanför Leaflets container — annars stör det touch-events -->
+  <div id="map-crosshair">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="24" y1="4" x2="24" y2="18" stroke="#E8A4B8" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="24" y1="30" x2="24" y2="44" stroke="#E8A4B8" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="4" y1="24" x2="18" y2="24" stroke="#E8A4B8" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="30" y1="24" x2="44" y2="24" stroke="#E8A4B8" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="5" stroke="#E8A4B8" stroke-width="2.5"/>
+      <circle cx="24" cy="24" r="2" fill="#E8A4B8"/>
+    </svg>
+  </div>
   <div id="map-hint">Tryck på kartan för att lägga till · Tryck på en pin för betyg &amp; foto</div>
+
+  <!-- Flytta-pin-bar -->
+  <div id="move-bar">
+    <div class="move-hint">Dra kartan så att hårkorset hamnar rätt</div>
+    <button class="btn btn-ghost" id="move-cancel-btn" style="flex:0 0 auto;padding:10px 16px;font-size:14px">Avbryt</button>
+    <button class="btn" id="move-confirm-btn" style="flex:0 0 auto;padding:10px 18px;font-size:14px">Spara plats</button>
+  </div>
 
   <!-- Add-pin panel -->
   <div id="pin-panel">
@@ -2056,6 +2108,12 @@
       <button class="dish-add-btn" id="dish-add-btn">+</button>
     </div>
 
+    <div class="grid-lbl">Notering</div>
+    <textarea class="inp" id="detail-note" rows="3"
+      placeholder="Tips, bokning, vad du vill prova…"
+      autocorrect="on" autocapitalize="sentences" spellcheck="true"
+      style="resize:none;font-size:15px;line-height:1.5;margin-bottom:14px"></textarea>
+
     <div id="detail-photo-wrap"></div>
     <input type="file" id="detail-photo-inp" accept="image/*" capture="environment" style="display:none">
 
@@ -2063,6 +2121,10 @@
       <button class="pl-goto-btn" id="detail-map-btn" style="flex:1">
         <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1L9 6L13 7L9 8L7 13L5 8L1 7L5 6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
         <span id="detail-map-txt">Visa på kartan</span>
+      </button>
+      <button class="pl-goto-btn" id="detail-move-btn" style="flex:1">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M7 14C7 14 2 9.5 2 5.5a5 5 0 0 1 10 0C12 9.5 7 14 7 14Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Flytta pin
       </button>
       <button class="pl-goto-btn" id="detail-share-btn" style="flex:1">
         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="11" cy="3" r="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="3" cy="7" r="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="11" cy="11" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M4.8 6.1l4.5-2.3M4.8 7.9l4.5 2.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
@@ -2274,8 +2336,17 @@
   <div class="handle"></div>
   <div class="sh-title" id="bulk-title">Klistra in lista</div>
   <p id="bulk-desc" style="font-size:13px;color:var(--tx3);margin-bottom:14px;line-height:1.5">Klistra in text - varje rad blir en egen punkt.</p>
-  <textarea class="inp bulk-ta" id="bulk-ta" rows="8" placeholder="Rad 1&#10;Rad 2&#10;Rad 3..." autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>
-  <button class="btn" id="bulk-btn">Lägg till</button>
+  <!-- Stad-fält — visas bara i platser-läge -->
+  <div id="bulk-city-wrap" style="display:none;margin-bottom:10px">
+    <input class="inp" id="bulk-city-inp" placeholder="Stad eller område (t.ex. New York, Stockholm)" autocomplete="off" autocapitalize="words" style="font-size:15px">
+  </div>
+  <textarea class="inp bulk-ta" id="bulk-ta" rows="6" placeholder="Via Carota&#10;51 Grove St, New York&#10;Riche&#10;Birger Jarlsgatan 4, Stockholm" autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>
+  <!-- Geocoding-preview — visas bara i platser-läge -->
+  <div id="bulk-geo-wrap" style="display:none;margin-top:14px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:8px">Adressförslag</div>
+    <div id="bulk-geo-list" style="max-height:38vh;overflow-y:auto;border-radius:10px;border:1px solid var(--bdr)"></div>
+  </div>
+  <button class="btn" id="bulk-btn" style="margin-top:14px">Lägg till</button>
 </div>
 
 
@@ -2329,6 +2400,11 @@
 <div id="sh-sl-opts" class="sheet">
   <div class="handle"></div>
   <div class="sh-title" id="sl-opts-title"></div>
+  <div class="act-row" id="slopt-bulk"><span class="act-icon">⎘</span><span>Klistra in lista</span></div>
+  <div class="act-row" id="slopt-kml" style="display:none">
+    <span class="act-icon">📍</span><span>Importera Google Maps-lista (.kml)</span>
+    <input type="file" id="kml-file-input" accept=".kml,.xml" style="display:none">
+  </div>
   <div class="act-row" id="slopt-rename"><span class="act-icon">✏</span><span id="slopt-rename-lbl">Byt namn</span></div>
   <div class="act-row danger" id="slopt-del"><span class="act-icon">✕</span><span id="slopt-del-lbl">Ta bort lista</span></div>
 </div>
@@ -3316,6 +3392,10 @@ function renderGroup() {
       S.slOptsGroupId = group.id;
       S.slOptsId = sl.id;
       document.getElementById('sl-opts-title').textContent = sl.name;
+      // Visa KML-import och klistra in bara för platser-listor
+      const isPlaces = group.id === 'favorites';
+      document.getElementById('slopt-kml').style.display  = isPlaces ? '' : 'none';
+      document.getElementById('slopt-bulk').style.display = '';
       openSheet('sh-sl-opts');
     });
 
@@ -3355,6 +3435,8 @@ function renderList() {
   document.getElementById('l-crumb').textContent = group ? getListDisplayName(group) : '';
   document.getElementById('l-crumb').style.display = group ? 'block' : 'none';
   document.getElementById('l-name').textContent  = getListDisplayName(src);
+  // Visa klistra-in-knapp i headern för platslister
+  document.getElementById('l-paste-btn').style.display = (S.groupId === 'favorites' && S.listId) ? '' : 'none';
 
   const wrap = document.getElementById('items-wrap');
   wrap.innerHTML = '';
@@ -3421,6 +3503,7 @@ function renderList() {
     const eKey   = S.listId || (S.groupId === 'gifts' ? 'gifts' : S.groupId === 'favlist' ? 'favlist' : null);
     const eData  = EMPTY[eKey] || { icon:'📝', title: t('emptyList'), sub: t('emptyAdd') };
     if (_isFavlist) { eData.icon = '♡'; eData.title = t('emptyFavlist'); eData.sub = t('emptyFavAdd'); }
+    const isFavSub = S.groupId === 'favorites' && !!S.listId;
     wrap.innerHTML = `<div class="empty-state">
       <div class="e-icon">${eData.icon}</div>
       <div class="e-title">${eData.title}</div>
@@ -4350,6 +4433,62 @@ document.getElementById('confirm-ok').addEventListener('click', () => {
 document.getElementById('confirm-cancel').addEventListener('click', closeSheet);
 
 // ── Underkategori-alternativ (⋮ i gruppvyn) ──
+
+// Klistra in lista i sublist
+document.getElementById('slopt-bulk').addEventListener('click', () => {
+  // Sätt rätt list-kontext och öppna bulk-sheeten
+  S.listId = S.slOptsId;
+  S.groupId = S.slOptsGroupId;
+  closeSheet();
+  setTimeout(showBulkAdd, 320);
+});
+
+// KML-import: trigga filväljaren
+document.getElementById('slopt-kml').addEventListener('click', () => {
+  document.getElementById('kml-file-input').click();
+});
+
+document.getElementById('kml-file-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const places = parseKML(ev.target.result);
+    if (!places.length) { alert('Hittade inga platser i filen.'); return; }
+    const g  = getList(S.slOptsGroupId);
+    const sl = g?.sublists?.find(s => s.id === S.slOptsId);
+    if (!sl) return;
+    sl.items.unshift(...places);
+    save(); closeSheet();
+    // Navigera in i listan
+    S.listId = S.slOptsId; S.groupId = S.slOptsGroupId;
+    setTimeout(renderList, 100);
+    showSnackbar(`${places.length} platser importerade`);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// KML-parser (Google Takeout / Google My Maps)
+function parseKML(text) {
+  const parser = new DOMParser();
+  const xml    = parser.parseFromString(text, 'text/xml');
+  const places = [];
+  xml.querySelectorAll('Placemark').forEach(pm => {
+    const name  = pm.querySelector('name')?.textContent?.trim();
+    const desc  = pm.querySelector('description')?.textContent?.trim() || '';
+    if (!name) return;
+    const item  = { id: uid(), text: name, done: false, createdAt: Date.now(), doneAt: null };
+    if (desc) item.note = desc.replace(/<[^>]+>/g, '').trim().slice(0, 200);
+    const coordStr = pm.querySelector('coordinates')?.textContent?.trim();
+    if (coordStr) {
+      const parts = coordStr.split(',');
+      if (parts.length >= 2) { item.lng = parseFloat(parts[0]); item.lat = parseFloat(parts[1]); }
+    }
+    places.push(item);
+  });
+  return places;
+}
+
 document.getElementById('slopt-rename').addEventListener('click', () => {
   const g  = getList(S.slOptsGroupId); if (!g) return;
   const sl = g.sublists.find(s => s.id === S.slOptsId); if (!sl) return;
@@ -5137,20 +5276,216 @@ document.getElementById('rename-btn').addEventListener('click', () => {
 // ════════════════════════════════════════
 // BULK ADD
 // ════════════════════════════════════════
+// Geocoding-resultat per rad: { name, lat, lng, addr, status }
+let _bulkGeoResults = [];
+let _bulkGeoTimer   = null;
+
 function showBulkAdd() {
-  const color   = getActiveColor();
-  const isMap   = !!(S.groupId === 'favorites' && S.listId);
+  const color = getActiveColor();
+  const isMap = !!(S.groupId === 'favorites' && S.listId);
   document.getElementById('bulk-ta').value = '';
+  document.getElementById('bulk-city-inp').value = '';
+  document.getElementById('bulk-city-wrap').style.display = isMap ? '' : 'none';
+  document.getElementById('bulk-geo-wrap').style.display = 'none';
+  document.getElementById('bulk-geo-list').innerHTML = '';
+  _bulkGeoResults = [];
   document.getElementById('bulk-btn').style.background = color;
   document.getElementById('bulk-desc').textContent = isMap
-    ? 'Klistra in platser från Google Maps — en plats per block (tom rad mellan). Koordinater hämtas automatiskt ur Google Maps-länkar.'
+    ? 'Klistra in restaurangnamn — ett per rad. Adressförslag hämtas automatiskt.'
     : 'Klistra in text — varje rad blir en egen punkt.';
   document.getElementById('bulk-ta').placeholder = isMap
-    ? 'Café Espresso\nKungsgatan 5, Stockholm\nhttps://maps.google.com/?q=...\n\nRestaurang X\n...'
+    ? 'Restaurang Volt\nFrantzén\nAstrid & Aporna\n...'
     : 'Rad 1\nRad 2\nRad 3...';
   openSheet('sh-bulk');
   setTimeout(() => document.getElementById('bulk-ta').focus(), 360);
 }
+
+// Geocoda ett namn via Photon + Nominatim som fallback
+function _parsePhotonFeature(f, fallbackName) {
+  const p      = f.properties;
+  const lat    = f.geometry.coordinates[1];
+  const lng    = f.geometry.coordinates[0];
+  const street = [p.street, p.housenumber].filter(Boolean).join(' ');
+  const parts  = [p.name || fallbackName, street, p.city || p.town || p.village || p.state].filter(Boolean);
+  return { lat, lng, addr: parts.join(', ') };
+}
+function _parseNominatimFeature(r, fallbackName) {
+  const lat = parseFloat(r.lat);
+  const lng = parseFloat(r.lon);
+  const a   = r.address || {};
+  const street = [a.road, a.house_number].filter(Boolean).join(' ');
+  const city   = a.city || a.town || a.village || a.county || '';
+  const name   = r.name || a.amenity || fallbackName;
+  const parts  = [name, street, city].filter(Boolean);
+  return { lat, lng, addr: parts.join(', ') };
+}
+async function geocodeName(name, city = '', rawAddr = null) {
+  try {
+    const NOM_HEADERS = { headers: { 'User-Agent': 'Listig-PWA/1.0 (personlig app)' } };
+
+    // 0: Om vi har en adressrad – använd den direkt (nära 100% träffsäker)
+    if (rawAddr) {
+      const addrEnc = encodeURIComponent(rawAddr);
+      const ra = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${addrEnc}&format=json&limit=1&addressdetails=1`,
+        NOM_HEADERS
+      ).then(r=>r.json()).catch(()=>null);
+      if (ra?.[0]) return _parseNominatimFeature(ra[0], name);
+      // Photon-fallback på adressen
+      const raPh = await fetch(`https://photon.komoot.io/api/?q=${addrEnc}&limit=1&lang=sv`).then(r=>r.json()).catch(()=>null);
+      const faPh = raPh?.features?.[0];
+      if (faPh) return _parsePhotonFeature(faPh, name);
+    }
+
+    // 1: Photon, amenity-filter (restauranger, caféer, butiker etc)
+    const q = city ? `${name}, ${city}` : name;
+    const enc = encodeURIComponent(q);
+    const r1 = await fetch(`https://photon.komoot.io/api/?q=${enc}&limit=3&lang=sv&osm_tag=amenity`).then(r=>r.json()).catch(()=>null);
+    const f1 = r1?.features?.[0];
+    if (f1) return _parsePhotonFeature(f1, name);
+
+    // 2: Photon utan filter (bredare sökning)
+    const r2 = await fetch(`https://photon.komoot.io/api/?q=${enc}&limit=3&lang=sv`).then(r=>r.json()).catch(()=>null);
+    const f2 = r2?.features?.[0];
+    if (f2) return _parsePhotonFeature(f2, name);
+
+    // 3: Nominatim (OpenStreetMap:s eget API, annan index)
+    const r3 = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${enc}&format=json&limit=1&addressdetails=1`,
+      NOM_HEADERS
+    ).then(r=>r.json()).catch(()=>null);
+    if (r3?.[0]) return _parseNominatimFeature(r3[0], name);
+
+    return null;
+  } catch { return null; }
+}
+
+function renderBulkGeoList() {
+  const list = document.getElementById('bulk-geo-list');
+  list.innerHTML = '';
+  _bulkGeoResults.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'bulk-geo-row';
+    const addrClass = r.status === 'searching' ? 'searching' : r.status === 'notfound' ? 'notfound' : '';
+    const addrText  = r.status === 'searching' ? 'Söker adress…'
+                    : r.status === 'notfound'  ? 'Ingen adress hittades — läggs till utan karta'
+                    : r.addr;
+    row.innerHTML = `
+      <div class="bulk-geo-pin">${r.lat ? '📍' : '⬜'}</div>
+      <div class="bulk-geo-info">
+        <div class="bulk-geo-name">${esc(r.name)}</div>
+        <div class="bulk-geo-addr ${addrClass}">${esc(addrText)}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+// Identifierar om en rad ser ut som en gatuadress
+function _isAddressLine(l) {
+  return (
+    /^\d+\s+\S/.test(l) ||          // "51 Grove St…" (US-format)
+    /\w+(gatan|vägen|gränd|torget|torg|allén|allé|stigen|väg)\s*\d*/i.test(l) || // Svenska gatunamn
+    /\b(street|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|place|pl|way|sq)\b/i.test(l) || // Engelska gatutyper
+    /\b\d{5}(-\d{4})?\b/.test(l)    // ZIP-kod
+  );
+}
+
+// Identifierar skräprader (betyg, öppettider, kategori m.m.)
+function _isJunkLine(l) {
+  return (
+    /^https?:\/\//.test(l) ||
+    /^[★⭐✩\d.,\s]+(%|reviews?|recensioner|ratings?|omdömen)/i.test(l) ||
+    /^\$+/.test(l) ||
+    /^(Open|Closed|Stängt|Öppet|Opens|Closes|öppnar|stänger)\b/i.test(l) ||
+    /^(Italian|French|Swedish|Japanese|Chinese|Mexican|American|Indian)\s*(restaurant|café|bar|bistro)?$/i.test(l) ||
+    /^\d+[.,]\d+\s*(★|⭐|\()/.test(l)  // "4.4 ★ (3278)"
+  );
+}
+
+// Parsar bulk-text smart: känner igen adressrader under restaurangnamn
+function parseBulkInput(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const results = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (_isJunkLine(line) || _isAddressLine(line)) { i++; continue; }
+    const name = line
+      .replace(/^(\d+[.)]\s+|[-*•]\s*(\[[ xXvV✓]\]\s*)?)/u, '')
+      .replace(/\s*[·•|]\s*(⭐|★|\d+[.,]\d+|Open|Stängt|Öppet).*$/u, '')
+      .trim();
+    if (!name || name.length < 2) { i++; continue; }
+    // Blicka framåt (upp till 3 rader) efter en adressrad
+    let rawAddr = null;
+    for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+      if (_isAddressLine(lines[j])) { rawAddr = lines[j]; break; }
+      if (!_isJunkLine(lines[j])) break; // ny plats börjar
+    }
+    results.push({ name, rawAddr });
+    i++;
+  }
+  return results;
+}
+
+// Lyssna på textarea-input i platser-läge
+document.getElementById('bulk-ta').addEventListener('input', () => {
+  const isMap = !!(S.groupId === 'favorites' && S.listId);
+  if (!isMap) return;
+  clearTimeout(_bulkGeoTimer);
+
+  const raw = document.getElementById('bulk-ta').value.trim();
+
+  // Detektera Apple Maps-URL → visa instruktioner istället
+  if (/maps\.apple(\.com)?\//i.test(raw) && raw.split('\n').length <= 2) {
+    document.getElementById('bulk-geo-wrap').style.display = '';
+    document.getElementById('bulk-geo-list').innerHTML = `
+      <div style="padding:12px 4px;line-height:1.6;color:var(--tx2);font-size:14px">
+        <div style="font-size:20px;margin-bottom:6px">🍎</div>
+        <strong style="color:var(--tx)">Apple Maps-listor kan inte importeras automatiskt.</strong><br>
+        Apple kräver inloggning för att läsa listdata — det går inte att kringgå.<br><br>
+        <strong style="color:var(--tx)">Gör så här istället:</strong><br>
+        1. Öppna länken i Maps-appen på iPhone<br>
+        2. Tryck på ett ställe → tryck <strong>Dela</strong> → <strong>Kopiera</strong><br>
+        3. Upprepa för varje ställe och klistra in namnen här<br><br>
+        <span style="color:var(--tx3);font-size:12px">Tips: adress på raden under namnet hittas automatiskt</span>
+      </div>`;
+    _bulkGeoResults = [];
+    return;
+  }
+
+  const parsed = parseBulkInput(raw);
+  if (!parsed.length) {
+    document.getElementById('bulk-geo-wrap').style.display = 'none';
+    return;
+  }
+  _bulkGeoResults = parsed.map(({ name, rawAddr }) => ({ name, rawAddr: rawAddr || null, lat: null, lng: null, addr: '', status: 'searching' }));
+  document.getElementById('bulk-geo-wrap').style.display = '';
+  renderBulkGeoList();
+  _bulkGeoTimer = setTimeout(runBulkGeocode, 600);
+});
+
+async function runBulkGeocode() {
+  const city = document.getElementById('bulk-city-inp').value.trim();
+  await Promise.all(_bulkGeoResults.map(async (r, i) => {
+    const res = await geocodeName(r.name, city, r.rawAddr);
+    if (res) {
+      _bulkGeoResults[i] = { ..._bulkGeoResults[i], lat: res.lat, lng: res.lng, addr: res.addr, status: 'found' };
+    } else {
+      _bulkGeoResults[i] = { ..._bulkGeoResults[i], status: 'notfound' };
+    }
+  }));
+  renderBulkGeoList();
+}
+
+// Om stad ändras → kör om geocoding
+document.getElementById('bulk-city-inp').addEventListener('change', () => {
+  const isMap = !!(S.groupId === 'favorites' && S.listId);
+  if (!isMap || !_bulkGeoResults.length) return;
+  _bulkGeoResults = _bulkGeoResults.map(r => ({ ...r, status: 'searching', lat: null, lng: null }));
+  renderBulkGeoList();
+  clearTimeout(_bulkGeoTimer);
+  _bulkGeoTimer = setTimeout(runBulkGeocode, 300);
+});
 
 // Extraherar koordinater ur en Google Maps-URL
 function extractMapCoords(text) {
@@ -5166,28 +5501,38 @@ document.getElementById('bulk-btn').addEventListener('click', () => {
   const isMap = S.groupId === 'favorites' && !!S.listId;
 
   if (isMap) {
-    // Google Maps-läge: dela på tomma rader → ett block per plats
-    const blocks = raw.split(/\n[ \t]*\n/).map(b => b.trim()).filter(Boolean);
-    if (!blocks.length) return;
-    const toAdd = blocks.map(block => {
-      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-      let name = null, lat = null, lng = null;
-      for (const line of lines) {
-        const coords = extractMapCoords(line);
-        if (coords && lat == null) { lat = coords.lat; lng = coords.lng; }
-        if (!name && !line.match(/^https?:\/\//)) {
-          name = line
-            .replace(/^(\d+[.)]\s+|[-*•]\s*)/u, '')
-            .replace(/\s*[·•|]\s*(⭐|★|\d+\.\d+|Open|Stängt|Öppet).*$/u, '')
-            .trim();
+    // Använd geocoding-resultat om de finns, annars parsa råtexten
+    let toAdd;
+    if (_bulkGeoResults.length) {
+      toAdd = _bulkGeoResults.map(r => {
+        const item = { id: uid(), text: r.name, done: false, createdAt: Date.now(), doneAt: null };
+        if (r.lat != null) { item.lat = r.lat; item.lng = r.lng; }
+        return item;
+      });
+    } else {
+      // Fallback: enkel textparser (block-format med adresser/URL)
+      const hasBlocks = /\n[ \t]*\n/.test(raw);
+      const blocks = hasBlocks
+        ? raw.split(/\n[ \t]*\n/).map(b => b.trim()).filter(Boolean)
+        : raw.split('\n').map(l => l.trim()).filter(Boolean);
+      toAdd = blocks.map(block => {
+        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+        let name = null, lat = null, lng = null;
+        for (const line of lines) {
+          const coords = extractMapCoords(line);
+          if (coords && lat == null) { lat = coords.lat; lng = coords.lng; }
+          if (!name && !line.match(/^https?:\/\//)) {
+            name = line.replace(/^(\d+[.)]\s+|[-*•]\s*)/u, '').replace(/\s*[·•|]\s*(⭐|★|\d+\.\d+|Open|Stängt|Öppet).*$/u, '').trim();
+          }
         }
-      }
-      if (!name) return null;
-      const item = { id: uid(), text: name, done: false, createdAt: Date.now(), doneAt: null };
-      if (lat != null) { item.lat = lat; item.lng = lng; }
-      return item;
-    }).filter(Boolean);
+        if (!name) return null;
+        const item = { id: uid(), text: name, done: false, createdAt: Date.now(), doneAt: null };
+        if (lat != null) { item.lat = lat; item.lng = lng; }
+        return item;
+      }).filter(Boolean);
+    }
     if (!toAdd.length) return;
+    _bulkGeoResults = [];
     src.items.unshift(...toAdd);
     save(); closeSheet();
     // Om kartan är öppen, uppdatera pins; annars rendera listan
@@ -5238,6 +5583,41 @@ let currentMapSublistId = null;
 let mapFromSublist = false;
 let detailItemId = null;
 let detailSlId = null;
+let movingPinItemId = null;
+let movingPinSlId = null;
+
+function enterMoveMode(itemId, slId) {
+  movingPinItemId = itemId;
+  movingPinSlId   = slId;
+  closePinDetail();
+  hidePinList();
+  // Centrera kartan på pinnen
+  const group = getList('favorites');
+  const sl    = group?.sublists.find(s => s.id === slId);
+  const item  = sl?.items.find(i => i.id === itemId);
+  if (item?.lat != null) leafMap.setView([item.lat, item.lng], Math.max(leafMap.getZoom(), 15));
+  document.getElementById('map-crosshair').classList.add('on');
+  document.getElementById('move-bar').classList.add('on');
+  document.getElementById('map-hint').classList.add('hidden');
+}
+
+function exitMoveMode(save_) {
+  if (save_ && movingPinItemId) {
+    const center = leafMap.getCenter();
+    const group  = getList('favorites');
+    const sl     = group?.sublists.find(s => s.id === movingPinSlId);
+    const item   = sl?.items.find(i => i.id === movingPinItemId);
+    if (item) { item.lat = center.lat; item.lng = center.lng; save(); renderMapPins(); }
+  }
+  movingPinItemId = null;
+  movingPinSlId   = null;
+  document.getElementById('map-crosshair').classList.remove('on');
+  document.getElementById('move-bar').classList.remove('on');
+  document.getElementById('map-hint').classList.remove('hidden');
+}
+
+document.getElementById('move-cancel-btn').addEventListener('click', () => exitMoveMode(false));
+document.getElementById('move-confirm-btn').addEventListener('click', () => exitMoveMode(true));
 
 function showMap(filterSublistId) {
   currentMapSublistId = filterSublistId ?? null;
@@ -5252,8 +5632,9 @@ function showMap(filterSublistId) {
 
   if (!leafMap) {
     leafMap = L.map('map-container', { zoomControl: false }).setView([59.332, 18.065], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap', maxZoom: 19
+    // CartoDB Voyager — finare typsnitt, varmare färger, ingen API-nyckel krävs
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CartoDB', maxZoom: 20, subdomains: 'abcd'
     }).addTo(leafMap);
     L.control.zoom({ position: 'bottomright' }).addTo(leafMap);
     leafMap.on('click', onMapTap);
@@ -5329,10 +5710,10 @@ function renderMapPins() {
   sublists.forEach(sl => {
     sl.items.forEach(item => {
       if (item.lat == null) return;
-      // "Att testa": vitt hjärta → bocka av → rosa hjärta + detaljpanel
-      const markerColor = sl.isTryList
-        ? (item.done ? '#E8A4B8' : '#FFFFFF')
-        : (sl.markerColor ?? '#E8A4B8');
+      // Vitt hjärta = ej betygsatt, färgat hjärta = betygsatt
+      const markerColor = (item.rating && item.rating > 0)
+        ? (sl.markerColor ?? '#E8A4B8')
+        : '#FFFFFF';
       const marker = L.marker([item.lat, item.lng], { icon: makeMarkerIcon(markerColor) });
       marker.on('click', e => {
         L.DomEvent.stopPropagation(e);
@@ -5374,6 +5755,7 @@ function closePinPanel() {
 }
 
 function onMapTap(e) {
+  if (movingPinItemId) return; // Flytta-läge aktivt – ignorera klick
   closePinDetail();
   hideSearchResults();
   pendingPin = { lat: e.latlng.lat, lng: e.latlng.lng };
@@ -5450,6 +5832,7 @@ function openPinDetail(item, slId) {
 
   document.getElementById('detail-name').textContent   = item.text;
   document.getElementById('detail-sl-lbl').textContent = sl?.name ?? '';
+  document.getElementById('detail-note').value         = item.note ?? '';
   renderDetailStars(item.rating ?? 0);
   renderDetailDishes(item.dishes ?? []);
   renderDetailPhoto(item.photo ?? null);
@@ -5534,6 +5917,13 @@ document.getElementById('dish-inp').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); document.getElementById('dish-add-btn').click(); }
 });
 
+// Auto-spara notering
+document.getElementById('detail-note').addEventListener('input', () => {
+  const it = getDetailItem(); if (!it) return;
+  it.note = document.getElementById('detail-note').value;
+  save();
+});
+
 function renderDetailPhoto(photoSrc) {
   const wrap = document.getElementById('detail-photo-wrap');
   if (photoSrc) {
@@ -5570,12 +5960,15 @@ document.getElementById('detail-photo-inp').addEventListener('change', async e =
 
 document.getElementById('detail-map-btn').addEventListener('click', () => {
   const it = getDetailItem(); if (!it) return;
-  const slId = detailSlId;
-  // Close both panels, fly to pin on map
   document.getElementById('pin-detail-panel').classList.remove('on');
   hidePinList();
   detailItemId = null; detailSlId = null;
   leafMap.setView([it.lat, it.lng], 16);
+});
+
+document.getElementById('detail-move-btn').addEventListener('click', () => {
+  if (!detailItemId || !detailSlId) return;
+  enterMoveMode(detailItemId, detailSlId);
 });
 
 document.getElementById('detail-share-btn').addEventListener('click', () => {
@@ -5633,6 +6026,13 @@ let pinListSort    = 'default'; // 'default' | 'rating'
 let activeAreaFilter = null;    // [{lat,lng}] polygon, or null
 
 document.getElementById('map-list-btn').addEventListener('click', showPinList);
+
+document.getElementById('map-paste-btn').addEventListener('click', () => {
+  // Sätt rätt kontext så bulk-sheeten vet vilken lista den fyller på
+  S.groupId = 'favorites';
+  S.listId  = currentMapSublistId;
+  showBulkAdd();
+});
 document.getElementById('pin-list-close').addEventListener('click', hidePinList);
 
 function showPinList() {
@@ -5698,9 +6098,9 @@ function showPinList() {
       const card = document.createElement('div');
       card.className = 'pl-card';
 
-      const hc = sl.isTryList
-        ? (item.done ? '#E8A4B8' : '#FFFFFF')
-        : (sl.markerColor ?? '#E8A4B8');
+      const hc = (item.rating && item.rating > 0)
+        ? (sl.markerColor ?? '#E8A4B8')
+        : '#FFFFFF';
       const isWhiteHc  = hc === '#FFFFFF';
       const hFill      = isWhiteHc ? 'none'    : hc;
       const hStr       = isWhiteHc ? '#E8A4B8' : 'none';
@@ -5712,6 +6112,7 @@ function showPinList() {
       const metaLines = [];
       if (stars)               metaLines.push(`<span class="pl-stars-sm">${stars}</span>`);
       if (item.dishes?.length) metaLines.push(`<span class="pl-meta">${esc(item.dishes.slice(0,2).join(' · '))}${item.dishes.length > 2 ? ' …' : ''}</span>`);
+      if (item.note)           metaLines.push(`<span class="pl-meta" style="color:var(--tx3)">📝 ${esc(item.note.split('\n')[0].slice(0, 40))}${item.note.length > 40 ? '…' : ''}</span>`);
       if (!metaLines.length)   metaLines.push(`<span class="pl-meta">${esc(sl.name)}</span>`);
 
       card.innerHTML = `
@@ -5941,6 +6342,7 @@ document.getElementById('fab').addEventListener('click', () => {
   else showAdd();
 });
 document.getElementById('add-paste-link').addEventListener('click', () => { closeSheet(); setTimeout(showBulkAdd, 260); });
+document.getElementById('l-paste-btn').addEventListener('click', showBulkAdd);
 
 // Naturspråk-chip: uppdatera i realtid när användaren skriver
 document.getElementById('add-inp').addEventListener('input', () => {
@@ -6106,18 +6508,27 @@ function checkRoutines() {
   const dayKey  = getTodayStr();
   let changed   = false;
 
-  // Rensa bort rutinposter från tidigare dagar i todo-day
-  // (ej avbockade rensas bort, avbockade tas också bort eftersom de är klara)
-  const todayList = getList('todo-day');
-  if (todayList) {
-    const todayStart = new Date(dayKey + 'T00:00:00').getTime();
-    const before = todayList.items.length;
-    todayList.items = todayList.items.filter(i => {
-      if (!i.isRoutine) return true;          // behåll vanliga uppgifter
-      return (i.createdAt ?? 0) >= todayStart; // behåll bara dagens rutinposter
-    });
-    if (todayList.items.length !== before) changed = true;
-  }
+  // Rensa rutinposter som hamnat i fel lista eller tillhör en tidigare period
+  const todayStart = new Date(dayKey + 'T00:00:00').getTime();
+
+  // Måndag denna vecka
+  const monDow  = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  const weekStart = new Date(todayStart); weekStart.setDate(today.getDate() - monDow);
+  const weekStartMs = weekStart.getTime();
+
+  // Första dagen denna månad
+  const monthStartMs = new Date(today.getFullYear(), today.getMonth(), 1).getTime();
+
+  [
+    { listId: 'todo-day',   cutoff: todayStart },
+    { listId: 'todo-week',  cutoff: weekStartMs },
+    { listId: 'todo-month', cutoff: monthStartMs },
+  ].forEach(({ listId, cutoff }) => {
+    const lst = getList(listId); if (!lst) return;
+    const before = lst.items.length;
+    lst.items = lst.items.filter(i => !i.isRoutine || (i.createdAt ?? 0) >= cutoff);
+    if (lst.items.length !== before) changed = true;
+  });
 
   S.routines.forEach(r => {
     if (!r.lastAdded) r.lastAdded = {};
@@ -6176,6 +6587,9 @@ function checkRoutines() {
 // ════════════════════════════════════════
 // NOTISER FÖR SCHEMALAGDA UPPGIFTER
 // ════════════════════════════════════════
+// ── URL till push-servern — uppdatera efter deploy ───────────────────────────
+const PUSH_SERVER = localStorage.getItem('listig_push_url') || '';
+
 async function requestNotifPermission() {
   if (!('Notification' in window)) return false;
   if (Notification.permission === 'granted') return true;
@@ -6184,40 +6598,105 @@ async function requestNotifPermission() {
   return res === 'granted';
 }
 
+// Hämtar uppgifter med förfallodatum imorgon (servern skickar dem kl 08:00)
+function getTomorrowTasks() {
+  const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate()+1); return localDateStr(d); })();
+  const today    = getTodayStr();
+  const tasks    = [];
+  const lists    = [...(S.lists||[]), ...(S.lists||[]).flatMap(l=>l.sublists||[])];
+  lists.forEach(list => {
+    (list.items||[]).forEach(item => {
+      if (item.done) return;
+      if (item.dueDate === tomorrow || item.scheduledDay === tomorrow ||
+          item.dueDate === today    || item.scheduledDay === today) {
+        tasks.push(item.text || '');
+      }
+    });
+  });
+  return [...new Set(tasks)].slice(0, 5); // max 5 unika titlar
+}
+
+async function pushSubscribe() {
+  if (!PUSH_SERVER) return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const reg  = await navigator.serviceWorker.ready;
+    // Hämta VAPID public key från servern
+    const res  = await fetch(`${PUSH_SERVER}/vapid-key`);
+    const { key } = await res.json();
+    const sub  = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key),
+    });
+    const tasks = getTomorrowTasks();
+    const resp  = await fetch(`${PUSH_SERVER}/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: sub.toJSON(), tasks }),
+    });
+    const { key: subKey } = await resp.json();
+    localStorage.setItem('listig_push_key', subKey);
+    console.log('Push-prenumeration registrerad');
+  } catch(e) {
+    console.warn('Push-prenumeration misslyckades:', e.message);
+  }
+}
+
+async function pushSyncTasks() {
+  const key = localStorage.getItem('listig_push_key');
+  if (!PUSH_SERVER || !key) return;
+  const tasks = getTomorrowTasks();
+  try {
+    await fetch(`${PUSH_SERVER}/sync-tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, tasks }),
+    });
+  } catch(e) { /* tyst fel — synkas nästa gång */ }
+}
+
+// Konvertera VAPID-nyckel från base64url till Uint8Array
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw     = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+// Anropas efter varje save() för att hålla serverns uppgiftslista uppdaterad
+const _origSave = typeof save === 'function' ? save : null;
+function saveAndSyncPush() {
+  if (_origSave) _origSave();
+  // Debounce synk — vänta 3 sek efter senaste ändring
+  clearTimeout(saveAndSyncPush._t);
+  saveAndSyncPush._t = setTimeout(pushSyncTasks, 3000);
+}
+
+// Visa lokala notiser för uppgifter som förfaller idag (när appen öppnas)
 function checkDueNotifications() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const today = getTodayStr();
   const notifKey = 'listig_notif_' + today;
-  const already = JSON.parse(localStorage.getItem(notifKey) || '[]');
-  const notified = new Set(already);
-  const newNotified = [...notified];
-  let swReg = null;
+  const already = new Set(JSON.parse(localStorage.getItem(notifKey) || '[]'));
+  const newIds  = [];
+  const lists   = [...(S.lists||[]), ...(S.lists||[]).flatMap(l=>l.sublists||[])];
 
-  navigator.serviceWorker?.ready.then(reg => { swReg = reg; });
-
-  const lists = [
-    ...(S.lists || []),
-    ...((S.lists || []).flatMap(l => l.sublists || [])),
-  ];
-
-  lists.forEach(list => {
-    (list.items || []).forEach(item => {
-      if (item.done) return;
-      const dueToday = item.dueDate === today || item.scheduledDay === today;
-      if (!dueToday || notified.has(item.id)) return;
-      newNotified.push(item.id);
-      const body = list.name || 'Listig';
-      if (swReg) {
-        swReg.showNotification('📋 ' + (item.text || ''), { body, icon: './icon.svg', tag: item.id, silent: false });
-      } else {
-        new Notification('📋 ' + (item.text || ''), { body, icon: './icon.svg' });
-      }
+  navigator.serviceWorker?.ready.then(reg => {
+    lists.forEach(list => {
+      (list.items||[]).forEach(item => {
+        if (item.done || already.has(item.id)) return;
+        if (item.dueDate !== today && item.scheduledDay !== today) return;
+        newIds.push(item.id);
+        reg.showNotification('📋 ' + (item.text||''), {
+          body: list.name||'Listig', icon:'./icon.svg', tag: item.id,
+        });
+      });
     });
+    if (newIds.length) {
+      localStorage.setItem(notifKey, JSON.stringify([...already, ...newIds]));
+    }
   });
-
-  if (newNotified.length > notified.size) {
-    localStorage.setItem(notifKey, JSON.stringify(newNotified));
-  }
 }
 
 function showRoutines() {
@@ -8158,24 +8637,30 @@ initPin();
 initWeekSummSettings();
 checkWeekSummarySchedule();
 initOnboarding();
-// Notiser: visa för uppgifter som förfaller idag (om tillstånd redan beviljat)
+// Notiser vid appstart
 if ('Notification' in window && Notification.permission === 'granted') {
-  setTimeout(checkDueNotifications, 1000);
+  setTimeout(checkDueNotifications, 1000); // lokala notiser för idag
+  setTimeout(pushSubscribe, 2000);          // uppdatera push-prenumeration
 }
 
 // Notis-inställnings-knapp
 document.getElementById('notif-enable-btn').addEventListener('click', async () => {
-  if (!('Notification' in window)) {
-    alert('Din webbläsare stöder inte notiser.');
+  if (!('Notification' in window) || !('PushManager' in window)) {
+    alert('Din webbläsare stöder inte push-notiser.\nSe till att appen är installerad på hemskärmen (iOS 16.4+).');
     return;
   }
   if (Notification.permission === 'denied') {
-    alert('Notiser är blockerade. Gå till Safari-inställningar → Webbplatsinställningar → Listig och tillåt notiser.');
+    alert('Notiser är blockerade.\nGå till Inställningar → Safari → Avancerat → Webbplatsinställningar → Listig → Notiser → Tillåt.');
+    return;
+  }
+  if (!PUSH_SERVER) {
+    alert('Push-servern är inte konfigurerad ännu.\nSätt PUSH_SERVER-URL i appen efter att du deployat servern.');
     return;
   }
   const granted = await requestNotifPermission();
   if (granted) {
-    document.getElementById('notif-enable-lbl').textContent = '🔔 Påminnelser aktiverade';
+    await pushSubscribe();
+    document.getElementById('notif-enable-lbl').textContent = '🔔 Morgonnotiser aktiverade';
     checkDueNotifications();
   } else {
     alert('Notiser nekades. Du kan ändra detta i Inställningar.');
