@@ -18,3 +18,15 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
 });
+
+// Notification click → focus app
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      const focused = clients.find(c => c.focus);
+      if (focused) return focused.focus();
+      return self.clients.openWindow('/');
+    })
+  );
+});
