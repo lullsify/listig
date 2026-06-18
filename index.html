@@ -1636,6 +1636,19 @@
     #snackbar-undo { background: none; border: none; color: #98C99C;
       font-weight: 700; font-size: 14px; cursor: pointer; padding: 0; font-family: inherit; }
 
+    /* ── Prioriterade uppgifter ── */
+    .item-row.is-priority:not(.done) {
+      border-left: 3px solid var(--gold);
+      padding-left: 19px; /* 14 + 3 border = 17, justera optiskt */
+      margin-left: -3px;
+    }
+
+    /* ── Scroll-indikator på tag-filter ── */
+    #pl-tag-filter.scrollable {
+      -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+      mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+    }
+
     /* ── Global search ── */
     #search-overlay {
       position: fixed; inset: 0; z-index: 200;
@@ -2182,7 +2195,7 @@
     <div class="dishes-wrap" id="tags-wrap"></div>
     <div class="dish-add-row">
       <input class="inp dish-add-inp" id="tag-inp" placeholder="t.ex. Japanskt, Pasta, Burgare…"
-        autocomplete="off" autocapitalize="words">
+        autocomplete="off" autocapitalize="none">
       <datalist id="tag-suggestions">
         <option value="Italienskt"><option value="Japanskt"><option value="Franskt">
         <option value="Asiatiskt"><option value="Mexikanskt"><option value="Indiskt">
@@ -2201,7 +2214,8 @@
       style="resize:none;font-size:15px;line-height:1.5;margin-bottom:14px"></textarea>
 
     <div id="detail-photo-wrap"></div>
-    <input type="file" id="detail-photo-inp" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="detail-photo-inp" accept="image/*" style="display:none">
+    <input type="file" id="detail-photo-camera-inp" accept="image/*" capture="environment" style="display:none">
 
     <div style="display:flex;gap:10px;margin-top:18px;margin-bottom:4px">
       <button class="pl-goto-btn" id="detail-map-btn" style="flex:1">
@@ -2321,6 +2335,9 @@
     <div class="act-row" id="act-progress" style="display:none">
       <span class="act-icon">◑</span><span id="act-progress-label">Markera som påbörjad</span>
     </div>
+    <div class="act-row" id="act-priority" style="display:none">
+      <span class="act-icon">⭐</span><span id="act-priority-lbl">Prioritera</span>
+    </div>
     <div class="act-row" id="act-tomorrow" style="display:none"><span class="act-icon">➜</span><span id="act-tomorrow-lbl">Flytta till imorgon</span></div>
     <div class="act-row" id="act-schedule" style="display:none"><span class="act-icon">📅</span><span id="act-schedule-lbl">Schemalägg dag</span></div>
     <div class="act-row" id="act-move"><span class="act-icon">↗</span><span id="act-move-lbl">Flytta till…</span></div>
@@ -2426,7 +2443,7 @@
   <p id="bulk-desc" style="font-size:13px;color:var(--tx3);margin-bottom:14px;line-height:1.5">Klistra in text - varje rad blir en egen punkt.</p>
   <!-- Stad-fält - visas bara i platser-läge -->
   <div id="bulk-city-wrap" style="display:none;margin-bottom:10px">
-    <input class="inp" id="bulk-city-inp" placeholder="Stad eller område (t.ex. Stockholm)" autocomplete="off" autocapitalize="words" style="font-size:15px">
+    <input class="inp" id="bulk-city-inp" placeholder="Stad eller område (t.ex. Stockholm)" autocomplete="off" autocapitalize="none" style="font-size:15px">
   </div>
   <textarea class="inp bulk-ta" id="bulk-ta" rows="6" placeholder="Via Carota&#10;51 Grove St, New York&#10;Riche&#10;Birger Jarlsgatan 4, Stockholm" autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>
   <!-- Geocoding-preview - visas bara i platser-läge -->
@@ -2632,7 +2649,7 @@
 </div>
 
 <!-- hidden photo input for goals -->
-<input type="file" id="goal-photo-input" accept="image/*" capture="environment" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
+<input type="file" id="goal-photo-input" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -2743,6 +2760,9 @@ function save() {
     weekSummDay:     S.weekSummDay,
     weekSummLastShown: S.weekSummLastShown,
   }));
+  // Push-sync: debounce 3s efter senaste ändring så servern alltid har färsk data
+  clearTimeout(save._pushTimer);
+  save._pushTimer = setTimeout(() => { if (typeof pushSyncTasks === 'function') pushSyncTasks(); }, 3000);
 }
 function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
@@ -3421,8 +3441,21 @@ function renderHome() {
   const bc = document.createElement('div');
   bc.className = 'list-card';
   bc.style.cssText = `background:${BUDGET_COLOR};`;
-  bc.innerHTML = `<div class="card-info"><div class="card-name">BUDGET</div></div>`;
+  bc.innerHTML = `<div class="card-info"><div class="card-name">BUDGET</div><div class="card-count" style="margin-top:6px;font-size:9px;letter-spacing:0.1em">HÅLL FÖR SNABBLOGG</div></div>`;
   bc.addEventListener('click', openBudget);
+  // Långtryckning → öppna budget och direkt snabblogg
+  let _bPressTimer;
+  bc.addEventListener('touchstart', () => {
+    _bPressTimer = setTimeout(() => {
+      openBudget();
+      setTimeout(() => {
+        const qlBtn = document.getElementById('budget-quicklog-btn');
+        if (qlBtn && qlBtn.style.display !== 'none') qlBtn.click();
+      }, 450);
+    }, 520);
+  }, { passive: true });
+  bc.addEventListener('touchend',  () => clearTimeout(_bPressTimer), { passive: true });
+  bc.addEventListener('touchmove', () => clearTimeout(_bPressTimer), { passive: true });
   grid.appendChild(bc);
 
   // New list card
@@ -3572,6 +3605,10 @@ function renderList() {
     if (isMonth && i.dueDate      && (i.dueDate < mStart || i.dueDate > mEnd)) return false;
     return true;
   });
+  // Prioriterade uppgifter flyter alltid till toppen i todo-listorna
+  if (isToday || isWeek || isMonth) {
+    active.sort((a, b) => (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0));
+  }
   // For time-based lists: only show items completed within the current period
   const done = src.items.filter(i => isTimeTodo ? isDoneInPeriod(i, S.listId) : i.done);
 
@@ -3697,7 +3734,7 @@ function renderList() {
 
 function makeRow(item, color, isGoals, isShop, sourceListId) {
   const row = document.createElement('div');
-  row.className = `item-row${isGoals ? ' is-goal' : ''}${item.done ? ' done' : (item.inProgress ? ' in-progress' : '')}`;
+  row.className = `item-row${isGoals ? ' is-goal' : ''}${item.done ? ' done' : (item.inProgress ? ' in-progress' : '')}${item.isPriority && !item.done ? ' is-priority' : ''}`;
   row.dataset.id     = item.id;
   row.dataset.listId = sourceListId || S.listId || '';
   if (sourceListId)  row.dataset.crossList = '1';
@@ -3787,6 +3824,10 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     const isGoalItem = !S.groupId && getList(S.listId)?.type === 'goals' && !item.done;
     document.getElementById('act-photo').style.display = isGoalItem ? 'flex' : 'none';
     document.getElementById('act-photo-lbl').textContent = item.photo ? t('changePhoto') : t('addPhoto');
+    // Prioritering: bara i todo-listor, inte för avklarade
+    const isTodoCtx = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
+    document.getElementById('act-priority').style.display = (isTodoCtx && !item.done) ? 'flex' : 'none';
+    document.getElementById('act-priority-lbl').textContent = item.isPriority ? 'Ta bort prioritet' : 'Prioritera';
     openSheet('sh-item-actions');
   });
 
@@ -3889,7 +3930,16 @@ function toggleItem(id, cx, cy, sourceListId) {
     if (item.isRoutine) {
       addRoutinePoint();
       const rtn = S.routines?.find(r => r.id === item.isRoutine);
-      if (rtn?.intervalDays) { rtn.lastCompleted = getTodayStr(); rtn.lastAdded = {}; }
+      if (rtn) {
+        if (rtn.intervalDays) { rtn.lastCompleted = getTodayStr(); rtn.lastAdded = {}; }
+        // Spara genomförandedatum för per-rutin historik
+        if (!rtn.doneHistory) rtn.doneHistory = [];
+        const _today = getTodayStr();
+        if (!rtn.doneHistory.includes(_today)) {
+          rtn.doneHistory.push(_today);
+          if (rtn.doneHistory.length > 90) rtn.doneHistory = rtn.doneHistory.slice(-90);
+        }
+      }
     }
   }
   save(); renderList();
@@ -3979,6 +4029,12 @@ document.getElementById('act-del').addEventListener('click', () => {
 document.getElementById('act-progress').addEventListener('click', () => {
   const item = activeItem(); if (!item) return;
   item.inProgress = !item.inProgress;
+  save(); closeSheet(); renderList();
+});
+
+document.getElementById('act-priority').addEventListener('click', () => {
+  const item = activeItem(); if (!item) return;
+  item.isPriority = !item.isPriority;
   save(); closeSheet(); renderList();
 });
 
@@ -5282,6 +5338,20 @@ function runMigration() {
     });
   }
 
+  // ── Migrera gamla lastAdded-nycklar (bara datum/vecka → "listId_datum") ──
+  S.routines.forEach(r => {
+    if (!r.lastAdded) return;
+    const target = r.targetList ?? 'todo-day';
+    const hasOldKeys = Object.keys(r.lastAdded).some(k => !k.includes('_'));
+    if (!hasOldKeys) return;
+    const migrated = {};
+    Object.keys(r.lastAdded).forEach(k => {
+      migrated[k.includes('_') ? k : `${target}_${k}`] = r.lastAdded[k];
+    });
+    r.lastAdded = migrated;
+    forced = true;
+  });
+
   if (forced) save();
 
   const now      = Date.now();
@@ -5439,7 +5509,9 @@ function showBulkAdd() {
   const color = getActiveColor();
   const isMap = !!(S.groupId === 'favorites' && S.listId);
   document.getElementById('bulk-ta').value = '';
-  document.getElementById('bulk-city-inp').value = '';
+  // Förfyll stad med senast använda (sparar ett klick)
+  const _lastCity = isMap ? (JSON.parse(localStorage.getItem('listig_city_history') || '[]')[0] ?? '') : '';
+  document.getElementById('bulk-city-inp').value = _lastCity;
   document.getElementById('bulk-city-wrap').style.display = isMap ? '' : 'none';
   document.getElementById('bulk-geo-wrap').style.display = 'none';
   document.getElementById('bulk-geo-list').innerHTML = '';
@@ -6046,13 +6118,16 @@ function onMapTap(e) {
     if (!group || !group.sublists.length) {
       list.innerHTML = `<p style="font-size:13px;color:var(--tx3);padding:8px">${t('noPlaceListYet')}</p>`;
     } else {
+      const _lastPinSl = localStorage.getItem('listig_last_pin_sl');
+      const _hasSaved  = _lastPinSl && group.sublists.some(s => s.id === _lastPinSl);
       group.sublists.forEach((sl, i) => {
-        if (i === 0) selectedPinSl = sl.id;
+        const isSel = _hasSaved ? sl.id === _lastPinSl : i === 0;
+        if (isSel) selectedPinSl = sl.id;
         const row = document.createElement('div');
-        row.className = `pin-sl-row${i === 0 ? ' sel' : ''}`;
+        row.className = `pin-sl-row${isSel ? ' sel' : ''}`;
         row.dataset.slid = sl.id;
         const chk = `<svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>`;
-        row.innerHTML = `<div class="pin-sl-check">${i === 0 ? chk : ''}</div><span style="font-size:15px;color:var(--tx)">${esc(sl.name)}</span>`;
+        row.innerHTML = `<div class="pin-sl-check">${isSel ? chk : ''}</div><span style="font-size:15px;color:var(--tx)">${esc(sl.name)}</span>`;
         row.addEventListener('click', () => {
           selectedPinSl = sl.id;
           list.querySelectorAll('.pin-sl-row').forEach(r => {
@@ -6080,6 +6155,7 @@ document.getElementById('pin-btn').addEventListener('click', () => {
   const newSlId = selectedPinSl;
   sl.items.unshift(newItem);
   save(); closePinPanel(); renderMapPins();
+  localStorage.setItem('listig_last_pin_sl', selectedPinSl); // kom ihåg senast vald lista
   openPinDetail(newItem, newSlId);
 });
 
@@ -6114,6 +6190,8 @@ function openPinDetail(item, slId) {
   document.getElementById('detail-map-btn').style.display  = hasCoords ? '' : 'none';
   document.getElementById('detail-move-btn').textContent   = hasCoords ? 'Flytta pin' : 'Placera på kartan';
 
+  // Dölj pin-listan bakom detaljpanelen så tryck inte läcker igenom
+  document.getElementById('pin-list-panel').classList.remove('on');
   document.getElementById('pin-detail-panel').classList.add('on');
   document.getElementById('map-hint').classList.add('hidden');
 }
@@ -6151,12 +6229,58 @@ document.getElementById('detail-addr-inp').addEventListener('keydown', e => {
 function closePinDetail() {
   document.getElementById('pin-detail-panel').classList.remove('on');
   document.getElementById('map-hint').classList.remove('hidden');
-  // Refresh list if it's open (so stars/dishes/photo update)
-  if (document.getElementById('pin-list-panel').classList.contains('on')) {
-    showPinList();
-  }
+  // Visa alltid pin-listan när detaljpanelen stängs, och uppdatera den
+  showPinList();
   detailItemId = null; detailSlId = null;
 }
+
+// ── Swipe ner för att stänga detaljpanelen ──
+(function() {
+  const panel = document.getElementById('pin-detail-panel');
+  let startY = 0, startScroll = 0, dy = 0, active = false;
+
+  panel.addEventListener('touchstart', e => {
+    startY      = e.touches[0].clientY;
+    startScroll = panel.scrollTop;
+    dy = 0; active = false;
+  }, { passive: true });
+
+  panel.addEventListener('touchmove', e => {
+    dy = e.touches[0].clientY - startY;
+    if (!active && dy > 8 && startScroll <= 2) {
+      active = true;
+      panel.style.transition = 'none';
+    }
+    if (!active) return;
+    if (dy > 0 && startScroll <= 2) {
+      panel.style.transform = `translateY(${Math.min(dy * 0.55, 200)}px)`;
+    } else {
+      active = false;
+      panel.style.transform = '';
+      panel.style.transition = '';
+    }
+  }, { passive: true });
+
+  function endSwipe() {
+    if (!active) return;
+    active = false;
+    if (dy > 90 && startScroll <= 2) {
+      panel.style.transition = 'transform 0.24s ease';
+      panel.style.transform  = 'translateY(110%)';
+      setTimeout(() => {
+        panel.style.transition = '';
+        panel.style.transform  = '';
+        closePinDetail();
+      }, 230);
+    } else {
+      panel.style.transition = 'transform 0.24s ease';
+      panel.style.transform  = 'translateY(0)';
+      setTimeout(() => { panel.style.transition = ''; panel.style.transform = ''; }, 260);
+    }
+  }
+  panel.addEventListener('touchend',    endSwipe, { passive: true });
+  panel.addEventListener('touchcancel', endSwipe, { passive: true });
+})();
 
 let _sgN = 0;
 function renderDetailStars(rating) {
@@ -6245,24 +6369,35 @@ function renderDetailPhoto(photoSrc) {
     });
   } else {
     wrap.innerHTML = `
-      <label for="detail-photo-inp" class="photo-upload-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <rect x="3" y="3" width="18" height="18" rx="3"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <path d="M21 15l-5-5L5 21"/>
-        </svg>
-        Lägg till bild
-      </label>`;
+      <div style="display:flex;gap:8px;margin-bottom:18px">
+        <label for="detail-photo-camera-inp" class="photo-upload-btn" style="flex:1;margin-bottom:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Ta bild
+        </label>
+        <label for="detail-photo-inp" class="photo-upload-btn" style="flex:1;margin-bottom:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Välj bild
+        </label>
+      </div>`;
   }
 }
 
-document.getElementById('detail-photo-inp').addEventListener('change', async e => {
+async function handleDetailPhoto(e) {
   const file = e.target.files[0]; if (!file) return;
   const dataUrl = await resizeImage(file, 1000, 600, 0.82);
   const it = getDetailItem(); if (!it) return;
   it.photo = dataUrl; save(); renderDetailPhoto(dataUrl);
   e.target.value = '';
-});
+}
+document.getElementById('detail-photo-inp').addEventListener('change', handleDetailPhoto);
+document.getElementById('detail-photo-camera-inp').addEventListener('change', handleDetailPhoto);
 
 
 document.getElementById('detail-map-btn').addEventListener('click', () => {
@@ -6282,14 +6417,24 @@ document.getElementById('detail-share-btn').addEventListener('click', () => {
   const it = getDetailItem(); if (!it) return;
 
   const lines = [it.text];
-  if (it.lat != null)    lines.push(`https://maps.google.com/?q=${it.lat},${it.lng}`);
-  if (it.dishes?.length) lines.push(`Favoriträtter: ${it.dishes.join(', ')}`);
+  if (it.lat != null) lines.push(`📍maps.google.com/?q=${it.lat},${it.lng}`);
+  if (it.dishes?.length) lines.push(`\nFavorit: ${it.dishes.join(', ')}`);
+  if (it.note?.trim()) lines.push(it.note.trim());
+  lines.push('\nENJOY!');
 
   const text = lines.join('\n');
+  const copyFallback = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => showSnackbar('Kopierat till urklipp'));
+    }
+  };
+
   if (navigator.share) {
-    navigator.share({ title: it.text, text }).catch(() => {});
+    navigator.share({ title: it.text, text }).catch(e => {
+      if (e.name !== 'AbortError') copyFallback();
+    });
   } else {
-    navigator.clipboard?.writeText(text).then(() => alert('Kopierat!'));
+    copyFallback();
   }
 });
 
@@ -6329,7 +6474,8 @@ function renderDetailTags(tags) {
     chip.querySelector('.tag-x').addEventListener('click', () => {
       const it = getDetailItem(); if (!it) return;
       it.tags = (it.tags ?? []).filter((_, j) => j !== i);
-      save(); renderDetailTags(it.tags); showPinList();
+      save(); renderDetailTags(it.tags);
+      if (document.getElementById('pin-list-panel').classList.contains('on')) showPinList();
     });
     wrap.appendChild(chip);
   });
@@ -6340,7 +6486,10 @@ document.getElementById('tag-add-btn').addEventListener('click', () => {
   const text = inp.value.trim(); if (!text) return;
   const it = getDetailItem(); if (!it) return;
   if (!it.tags) it.tags = [];
-  if (!it.tags.includes(text)) { it.tags.push(text); save(); renderDetailTags(it.tags); showPinList(); }
+  if (!it.tags.includes(text)) {
+    it.tags.push(text); save(); renderDetailTags(it.tags);
+    if (document.getElementById('pin-list-panel').classList.contains('on')) showPinList();
+  }
   inp.value = '';
 });
 document.getElementById('tag-inp').addEventListener('keydown', e => {
@@ -6393,6 +6542,10 @@ function showPinList() {
       `<div class="tag-chip${activeTagFilter === tag ? ' filter-active' : ''}" data-tag="${esc(tag)}">${esc(tag)}</div>`
     ).join('');
     tagFilterEl.classList.add('on');
+    // Visa scroll-indikator om innehållet är bredare än behållaren
+    requestAnimationFrame(() => {
+      tagFilterEl.classList.toggle('scrollable', tagFilterEl.scrollWidth > tagFilterEl.clientWidth + 4);
+    });
     tagFilterEl.querySelectorAll('.tag-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         activeTagFilter = activeTagFilter === chip.dataset.tag ? null : chip.dataset.tag;
@@ -6907,6 +7060,10 @@ function checkRoutines() {
   // Första dagen denna månad
   const monthStartMs = new Date(today.getFullYear(), today.getMonth(), 1).getTime();
 
+  // Bygg uppslagstabell: routineId → targetList
+  const routineTargetMap = {};
+  S.routines.forEach(r => { routineTargetMap[r.id] = r.targetList ?? 'todo-day'; });
+
   [
     { listId: 'todo-day',   cutoff: todayStart },
     { listId: 'todo-week',  cutoff: weekStartMs },
@@ -6914,7 +7071,15 @@ function checkRoutines() {
   ].forEach(({ listId, cutoff }) => {
     const lst = getList(listId); if (!lst) return;
     const before = lst.items.length;
-    lst.items = lst.items.filter(i => !i.isRoutine || (i.createdAt ?? 0) >= cutoff);
+    lst.items = lst.items.filter(i => {
+      if (!i.isRoutine) return true;
+      // Ta bort om för gammal
+      if ((i.createdAt ?? 0) < cutoff) return false;
+      // Ta bort om rutinen är satt till annan lista
+      const target = routineTargetMap[i.isRoutine];
+      if (target && target !== listId) return false;
+      return true;
+    });
     if (lst.items.length !== before) changed = true;
   });
 
@@ -6932,9 +7097,10 @@ function checkRoutines() {
         const nextStr = localDateStr(next);
         if (nextStr > dayKey) return; // inte dags än
       }
-      const trackKey = `todo-day_${dayKey}`;
+      const intervalTarget = r.targetList ?? 'todo-day';
+      const trackKey = `${intervalTarget}_${dayKey}`;
       if (!r.lastAdded[trackKey]) {
-        const target = getList('todo-day');
+        const target = getList(intervalTarget);
         if (target && !target.items.some(i => !i.done && i.text === r.text)) {
           target.items.unshift({ id: uid(), text: r.text, done: false, createdAt: Date.now(), doneAt: null, isRoutine: r.id });
           changed = true;
@@ -6966,8 +7132,8 @@ function checkRoutines() {
       changed = true;
     }
 
-    // Lägg till i Idag den dag rutinen matchar
-    tryAdd('todo-day', dayKey);
+    // Lägg till i rätt lista den dag rutinen matchar
+    tryAdd(r.targetList ?? 'todo-day', dayKey);
   });
   if (changed) save();
 }
@@ -7052,15 +7218,6 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-// Anropas efter varje save() för att hålla serverns uppgiftslista uppdaterad
-const _origSave = typeof save === 'function' ? save : null;
-function saveAndSyncPush() {
-  if (_origSave) _origSave();
-  // Debounce synk - vänta 3 sek efter senaste ändring
-  clearTimeout(saveAndSyncPush._t);
-  saveAndSyncPush._t = setTimeout(pushSyncTasks, 3000);
-}
-
 // Visa lokala notiser för uppgifter som förfaller idag (när appen öppnas)
 function checkDueNotifications() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -7101,9 +7258,15 @@ function showRoutines() {
     const dayChips = r.monthDays?.length
       ? r.monthDays.map(d => `<span class="routine-day-chip">${d}</span>`).join('')
       : (r.days ?? []).map(d => `<span class="routine-day-chip">${LANG_DATA[getLang()].dayNamesShort[d]}</span>`).join('');
+    // Per-rutin historik - räkna genomföranden senaste 30 dagarna
+    const _now30 = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const _recentDone = (r.doneHistory ?? []).filter(d => new Date(d + 'T00:00:00').getTime() >= _now30).length;
+    const streakHtml = _recentDone > 0
+      ? `<span style="font-size:11px;font-weight:700;color:var(--gold);background:rgba(184,152,106,0.15);border-radius:10px;padding:2px 8px;margin-left:6px">🔥 ${_recentDone}</span>`
+      : '';
     row.innerHTML = `
       <div style="flex:1">
-        <div style="font-size:15px;color:var(--tx)">${esc(r.text)}</div>
+        <div style="display:flex;align-items:center;gap:0"><span style="font-size:15px;color:var(--tx)">${esc(r.text)}</span>${streakHtml}</div>
         <div class="routine-days">${dayChips}</div>
         <div style="font-size:11px;color:var(--tx3);margin-top:3px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase">→ ${targetName}</div>
       </div>
@@ -7650,9 +7813,17 @@ function initSwipeGestures(wrap, src) {
         if (S.listId === 'todo-day') updateStreak();
         if (item.isRoutine) {
           addRoutinePoint();
-          // Uppdatera lastCompleted för interval-rutiner
           const rtn = S.routines?.find(r => r.id === item.isRoutine);
-          if (rtn?.intervalDays) { rtn.lastCompleted = getTodayStr(); rtn.lastAdded = {}; }
+          if (rtn) {
+            if (rtn.intervalDays) { rtn.lastCompleted = getTodayStr(); rtn.lastAdded = {}; }
+            // Spara genomförandedatum för per-rutin historik
+            if (!rtn.doneHistory) rtn.doneHistory = [];
+            const _td = getTodayStr();
+            if (!rtn.doneHistory.includes(_td)) {
+              rtn.doneHistory.push(_td);
+              if (rtn.doneHistory.length > 90) rtn.doneHistory = rtn.doneHistory.slice(-90);
+            }
+          }
         }
       }
       save(); renderList();
@@ -9054,6 +9225,11 @@ initPin();
 initWeekSummSettings();
 checkWeekSummarySchedule();
 initOnboarding();
+// Kör rutin-check när appen återaktiveras (täcker fallet att appen är öppen vid midnatt)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { checkRoutines(); renderHome(); }
+});
+
 // Notiser vid appstart
 if ('Notification' in window && Notification.permission === 'granted') {
   setTimeout(checkDueNotifications, 1000); // lokala notiser för idag
