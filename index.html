@@ -1639,8 +1639,14 @@
     /* ── Prioriterade uppgifter ── */
     .item-row.is-priority:not(.done) {
       border-left: 3px solid var(--gold);
-      padding-left: 19px; /* 14 + 3 border = 17, justera optiskt */
+      padding-left: 19px;
       margin-left: -3px;
+    }
+    .item-row.is-overdue:not(.done) {
+      border-left: 3px solid #D4845A;
+      padding-left: 19px;
+      margin-left: -3px;
+      opacity: 0.82;
     }
 
     /* ── Scroll-indikator på tag-filter ── */
@@ -2569,12 +2575,6 @@
     </div>
     <div style="font-size:12px;color:var(--tx3);margin-top:8px">Dyker upp igen X dagar efter att du bockar av den.</div>
   </div>
-  <div class="grid-lbl" style="margin-top:16px" id="routine-addto-lbl">Lägg till i lista</div>
-  <div class="seg-ctrl" id="routine-list-ctrl">
-    <button class="seg-btn sel" data-list="todo-day" id="rlist-day-btn">Idag</button>
-    <button class="seg-btn" data-list="todo-week" id="rlist-week-btn">Denna vecka</button>
-    <button class="seg-btn" data-list="todo-month" id="rlist-month-btn">Denna månad</button>
-  </div>
   <button class="btn" id="save-routine-btn">Spara rutin</button>
   <button class="btn btn-ghost" id="del-routine-btn" style="display:none;color:#C0392B">Ta bort rutin</button>
 </div>
@@ -2824,7 +2824,6 @@ const LANG_DATA = {
     pinWrong:'Fel pinkod - försök igen', pinNoMatch:'Stämmer inte - välj igen', pinCancel:'Avbryt',
     importTitle:'Återställ från backup', importZoneTitle:'Tryck här för att välja fil',
     importZoneSub:'listig-backup-ÅÅÅÅ-MM-DD.json', importConfirm:'Importera →',
-    routineTarget:{'todo-day':'Idag','todo-week':'Denna vecka','todo-month':'Denna månad'},
     groupEmptyFavlist:'Inga favoriter ännu.<br>Tryck + för att lägga till en favoritlista.',
     groupEmptyGeneric:'Inga listor ännu.<br>Tryck + för att skapa en.',
     showAllOnMap:'Visa alla platser på karta',
@@ -2852,7 +2851,7 @@ const LANG_DATA = {
     shareList:'Dela lista', share:'Dela',
     viewOnMap:'Visa på karta', viewOnMapBtn:'Visa på kartan',
     mapSubtext:'Öppnar en karta för att pinna platser', mapBasedList:'Kartbaserad lista',
-    addToList:'Lägg till i lista', saveRoutine:'Spara rutin', deleteRoutine:'Ta bort rutin',
+    saveRoutine:'Spara rutin', deleteRoutine:'Ta bort rutin',
     clearDone:'Rensa avklarade', clearIncomplete:'Ta bort alla ej avklarade',
     createBtn:'Skapa', convertToMap:'Konvertera till kartlista',
     useTemplate:'Använd mall', chooseTemplate:'Välj mall',
@@ -2931,7 +2930,6 @@ const LANG_DATA = {
     pinWrong:'Wrong PIN - try again', pinNoMatch:'PIN does not match - try again', pinCancel:'Cancel',
     importTitle:'Restore from backup', importZoneTitle:'Tap here to choose a file',
     importZoneSub:'listig-backup-YYYY-MM-DD.json', importConfirm:'Import →',
-    routineTarget:{'todo-day':'Today','todo-week':'This week','todo-month':'This month'},
     groupEmptyFavlist:'No favorites yet.<br>Tap + to add a favorites list.',
     groupEmptyGeneric:'No lists yet.<br>Tap + to create one.',
     showAllOnMap:'Show all places on map',
@@ -2959,7 +2957,7 @@ const LANG_DATA = {
     shareList:'Share list', share:'Share',
     viewOnMap:'View on map', viewOnMapBtn:'View on map',
     mapSubtext:'Opens a map to pin places', mapBasedList:'Map-based list',
-    addToList:'Add to list', saveRoutine:'Save routine', deleteRoutine:'Delete routine',
+    saveRoutine:'Save routine', deleteRoutine:'Delete routine',
     clearDone:'Clear completed', clearIncomplete:'Remove all incomplete',
     createBtn:'Create', convertToMap:'Convert to map list',
     useTemplate:'Use template', chooseTemplate:'Choose template',
@@ -3149,10 +3147,6 @@ function applyLang() {
   document.getElementById('freq-monthly-btn').textContent       = D.freqMonthly;
   document.getElementById('routine-days-lbl').textContent       = D.whichDays;
   document.getElementById('routine-monthdays-lbl').textContent  = D.whichMonthDays;
-  document.getElementById('routine-addto-lbl').textContent      = D.addToList;
-  document.getElementById('rlist-day-btn').textContent          = D.routineTarget['todo-day'];
-  document.getElementById('rlist-week-btn').textContent         = D.routineTarget['todo-week'];
-  document.getElementById('rlist-month-btn').textContent        = D.routineTarget['todo-month'];
   document.getElementById('save-routine-btn').textContent       = D.saveRoutine;
   document.getElementById('del-routine-btn').textContent        = D.deleteRoutine;
 
@@ -3441,7 +3435,7 @@ function renderHome() {
   const bc = document.createElement('div');
   bc.className = 'list-card';
   bc.style.cssText = `background:${BUDGET_COLOR};`;
-  bc.innerHTML = `<div class="card-info"><div class="card-name">BUDGET</div><div class="card-count" style="margin-top:6px;font-size:9px;letter-spacing:0.1em">HÅLL FÖR SNABBLOGG</div></div>`;
+  bc.innerHTML = `<div class="card-info"><div class="card-name">BUDGET</div></div>`;
   bc.addEventListener('click', openBudget);
   // Långtryckning → öppna budget och direkt snabblogg
   let _bPressTimer;
@@ -3612,6 +3606,31 @@ function renderList() {
   // For time-based lists: only show items completed within the current period
   const done = src.items.filter(i => isTimeTodo ? isDoneInPeriod(i, S.listId) : i.done);
 
+  // Cross-list done items: visa avklarade från kortare listor i vecka/månad-vyerna
+  // (rutiner exkluderas - de ska aldrig synas i vecka/månad)
+  const crossDone = []; // [{ item, srcId }]
+  if (isWeek) {
+    (getList('todo-day')?.items ?? [])
+      .filter(i => !i.isRoutine && isDoneInPeriod(i, 'todo-week'))
+      .forEach(i => crossDone.push({ item: i, srcId: 'todo-day' }));
+  } else if (isMonth) {
+    (getList('todo-day')?.items ?? [])
+      .filter(i => !i.isRoutine && isDoneInPeriod(i, 'todo-month'))
+      .forEach(i => crossDone.push({ item: i, srcId: 'todo-day' }));
+    (getList('todo-week')?.items ?? [])
+      .filter(i => !i.isRoutine && isDoneInPeriod(i, 'todo-month'))
+      .forEach(i => crossDone.push({ item: i, srcId: 'todo-week' }));
+  }
+
+  // Eftersläpande uppgifter från Idag (visas i både Idag och Denna vecka)
+  let overdueItems = [];
+  if (isToday) {
+    overdueItems = active.filter(i => i.isOverdue);
+  } else if (isWeek) {
+    const dayList = getList('todo-day');
+    overdueItems = (dayList?.items ?? []).filter(i => i.isOverdue && !i.done);
+  }
+
   // Scheduled items from weekly list (only visible in Idag)
   let scheduled = [];
   // Due-date cascade: items from longer-term lists that fall due now
@@ -3632,7 +3651,7 @@ function renderList() {
     dueThisWeek = (monthList?.items ?? []).filter(i => i.dueDate && i.dueDate >= wStart && i.dueDate <= wEnd && !i.done);
   }
 
-  const hasAnything = src.items.length || scheduled.length || dueFromWeek.length || dueFromMonth.length || dueThisWeek.length;
+  const hasAnything = src.items.length || scheduled.length || dueFromWeek.length || dueFromMonth.length || dueThisWeek.length || overdueItems.length || crossDone.length;
   if (!hasAnything) {
     const _isFavlist = !S.groupId && S.listId === 'favlist';
     const EMPTY = {
@@ -3663,50 +3682,42 @@ function renderList() {
     inProg.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
   }
 
-  active.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
+  const freshActive = isToday ? active.filter(i => !i.isOverdue) : active;
+  freshActive.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
 
-  // Schemalagda uppgifter från veckans lista
-  if (scheduled.length) {
+  // Eftersläpande uppgifter (ej gjorda från tidigare dagar)
+  if (overdueItems.length) {
     const lbl = document.createElement('div');
     lbl.className = 'section-lbl';
-    lbl.textContent = t('scheduledToday');
+    lbl.textContent = getLang() === 'en' ? 'Backlog' : 'Psst.. dessa to do:s behöver kärlek!';
     wrap.appendChild(lbl);
-    scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+    const srcId = isWeek ? 'todo-day' : undefined;
+    overdueItems.forEach(it => wrap.appendChild(makeRow(it, color, false, false, srcId)));
   }
 
-  // Förfallna uppgifter från vecka + månad
-  const allDue = [...dueFromWeek, ...dueFromMonth];
-  if (allDue.length) {
-    const lbl = document.createElement('div');
-    lbl.className = 'section-lbl';
-    lbl.textContent = t('dueToday');
-    wrap.appendChild(lbl);
-    dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-    dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
-  }
+  // Schemalagda + förfallna uppgifter från andra listor (inga separata rubriker)
+  scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+  dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+  dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
 
-  // Due this week: from monthly
-  if (dueThisWeek.length) {
-    const lbl = document.createElement('div');
-    lbl.className = 'section-lbl';
-    lbl.textContent = t('dueThisWeek');
-    wrap.appendChild(lbl);
-    dueThisWeek.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
-  }
+  // Förfallna denna vecka från månaden (ingen separat rubrik)
+  dueThisWeek.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
 
   const isGifts   = !S.groupId && S.listId === 'gifts' || S.groupId === 'gifts';
   const isFavlist  = !S.groupId && S.listId === 'favlist';
   const isFavSub   = S.groupId === 'favlist';
   const isPlatser  = S.groupId === 'favorites';
   const isNoCheck  = S.groupId ? !!getList(S.groupId)?.noCheck : !!getList(S.listId)?.noCheck;
-  if (done.length && !isFavlist && !isFavSub && !isPlatser && !isNoCheck) {
+  if ((done.length || crossDone.length) && !isFavlist && !isFavSub && !isPlatser && !isNoCheck) {
     const lbl = document.createElement('div');
     lbl.className = isGoals ? 'section-lbl section-achieved' : 'section-lbl';
+    const totalDone = done.length + crossDone.length;
     lbl.textContent = isGoals
       ? t('goals_done')
-      : (isShop || isGifts) ? t('shop_done') : `${t('completed')} · ${done.length}`;
+      : (isShop || isGifts) ? t('shop_done') : `${t('completed')} · ${totalDone}`;
     wrap.appendChild(lbl);
     done.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
+    crossDone.forEach(({ item, srcId }) => wrap.appendChild(makeRow(item, color, isGoals, isShop, srcId)));
   }
 
 
@@ -3716,7 +3727,7 @@ function renderList() {
 
   // Engångstips: swipe-to-delete (visas första gången man ser en lista med minst 1 item)
   const isAnyTodoCtx = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
-  if (!isFavMapSub && isAnyTodoCtx && (active.length + scheduled.length + allDue.length) > 0) {
+  if (!isFavMapSub && isAnyTodoCtx && (active.length + scheduled.length + dueFromWeek.length + dueFromMonth.length + dueThisWeek.length + overdueItems.length) > 0) {
     const swipeTip = getLang() === 'en'
       ? 'Swipe left to delete · hold ≡ to reorder'
       : 'Svep vänster för att radera · håll ≡ för att dra om';
@@ -3734,7 +3745,7 @@ function renderList() {
 
 function makeRow(item, color, isGoals, isShop, sourceListId) {
   const row = document.createElement('div');
-  row.className = `item-row${isGoals ? ' is-goal' : ''}${item.done ? ' done' : (item.inProgress ? ' in-progress' : '')}${item.isPriority && !item.done ? ' is-priority' : ''}`;
+  row.className = `item-row${isGoals ? ' is-goal' : ''}${item.done ? ' done' : (item.inProgress ? ' in-progress' : '')}${item.isPriority && !item.done ? ' is-priority' : ''}${item.isOverdue && !item.done ? ' is-overdue' : ''}`;
   row.dataset.id     = item.id;
   row.dataset.listId = sourceListId || S.listId || '';
   if (sourceListId)  row.dataset.crossList = '1';
@@ -3812,8 +3823,7 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
       (S.listId === 'todo-day' && !S.groupId && !item.done) ? 'flex' : 'none';
     document.getElementById('act-schedule').style.display =
       (S.listId === 'todo-week' && !S.groupId) ? 'flex' : 'none';
-    // Visa "Ändra datum" för vecka/månad-listor (inte Idag)
-    const showDate = ['todo-week','todo-month'].includes(S.listId) && !S.groupId;
+    const showDate = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
     document.getElementById('act-date').style.display = showDate ? 'flex' : 'none';
     // Show in-progress option for todo/goals lists, not done items, not shopping
     const showProg = !item.done && !S.groupId && !['shopping'].includes(S.listId);
@@ -3915,6 +3925,7 @@ function toggleItem(id, cx, cy, sourceListId) {
   const item = findItem(src.items, id); if (!item) return;
   item.done = !item.done;
   item.doneAt = item.done ? Date.now() : null;
+  if (item.done && item.isOverdue) delete item.isOverdue;
   const isGoalItem = src.type === 'goals';
   if (item.done && isGoalItem) {
     save();
@@ -5121,13 +5132,26 @@ function doImport(jsonText) {
     throw new Error('Ogiltigt format');
   }
 
+  // Nollställ lastAdded för alla rutiner så att uppgifter läggs till direkt efter import
+  if (listsData?.routines) {
+    listsData.routines.forEach(r => { if (r) r.lastAdded = {}; });
+  }
+
   localStorage.setItem('listig_v4', JSON.stringify(listsData));
   if (budgetData   != null) localStorage.setItem('listig_budget',      JSON.stringify(budgetData));
   if (parsed.listig_streak      != null) localStorage.setItem('listig_streak',      JSON.stringify(parsed.listig_streak));
   if (parsed.listig_routine_pts != null) localStorage.setItem('listig_routine_pts', String(parsed.listig_routine_pts));
   if (parsed.listig_lang)                localStorage.setItem('listig_lang',         parsed.listig_lang);
 
-  load(); runMigration(); loadBudget(); renderHome();
+  // Sätt period-nycklar till föregående perioder så att rollover alltid körs vid import
+  const _yesterday = new Date(); _yesterday.setDate(_yesterday.getDate() - 1);
+  const _lastWeek  = new Date(); _lastWeek.setDate(_lastWeek.getDate() - 7);
+  const _lastMonth = new Date(); _lastMonth.setMonth(_lastMonth.getMonth() - 1);
+  localStorage.setItem('mg_day',   _yesterday.toISOString().slice(0, 10));
+  localStorage.setItem('mg_week',  getWeekKey(_lastWeek));
+  localStorage.setItem('mg_month', getMonthKey(_lastMonth));
+
+  load(); runMigration(); loadBudget(); checkRoutines(); renderHome();
   if (S.view === 'list') { goHome(); }
   closeSheet();
   const budgetRestored = !!budgetData;
@@ -5379,26 +5403,30 @@ function runMigration() {
   }
 
   // ── Avklarade: flytta framåt baserat på tid ──
+  // Rutinuppgifter flyttas INTE - de raderas när de är för gamla
 
-  // Idag → Denna vecka (done > 1 dag)
-  const d2w = today.items.filter(i => i.done && i.doneAt && now - i.doneAt >= ONE_DAY);
-  if (d2w.length) {
-    today.items = today.items.filter(i => !d2w.includes(i));
-    week.items.unshift(...d2w);
+  // Idag → Denna vecka (done > 1 dag, ej rutiner)
+  const d2wAll = today.items.filter(i => i.done && i.doneAt && now - i.doneAt >= ONE_DAY);
+  if (d2wAll.length) {
+    today.items = today.items.filter(i => !d2wAll.includes(i));
+    week.items.unshift(...d2wAll.filter(i => !i.isRoutine));
     changed = true;
   }
 
-  // Denna vecka → Denna månad (done > 7 dagar)
-  const w2m = week.items.filter(i => i.done && i.doneAt && now - i.doneAt >= ONE_WEEK);
-  if (w2m.length) {
-    week.items = week.items.filter(i => !w2m.includes(i));
-    month.items.unshift(...w2m);
+  // Denna vecka → Denna månad (done > 7 dagar, ej rutiner)
+  const w2mAll = week.items.filter(i => i.done && i.doneAt && now - i.doneAt >= ONE_WEEK);
+  if (w2mAll.length) {
+    week.items = week.items.filter(i => !w2mAll.includes(i));
+    month.items.unshift(...w2mAll.filter(i => !i.isRoutine));
     changed = true;
   }
 
   // Denna månad → raderas (done > 30 dagar)
   const beforeM = month.items.length;
   month.items = month.items.filter(i => !(i.done && i.doneAt && now - i.doneAt >= ONE_MONTH));
+  // Rutinuppgifter ska aldrig ligga i veckan/månaden - rensa bort dem
+  week.items  = week.items.filter(i => !i.isRoutine);
+  month.items = month.items.filter(i => !i.isRoutine);
   if (month.items.length !== beforeM) changed = true;
 
   // ── Oavklarade: rulla framåt vid periodbyte ──
@@ -5411,21 +5439,22 @@ function runMigration() {
   const lastWeek  = localStorage.getItem('mg_week')  ?? '';
   const lastMonth = localStorage.getItem('mg_month') ?? '';
 
-  // Ny dag → oavklarade i Idag hamnar i Denna vecka
+  // Ny dag → avklarade icke-rutiner → veckan, oavklarade markeras eftersläpande, rutiner raderas
   if (lastDay && lastDay !== todayStr) {
-    const undone = today.items.filter(i => !i.done);
-    if (undone.length) {
-      today.items = today.items.filter(i => i.done);
-      week.items.unshift(...undone);
-      changed = true;
-    }
+    const doneNonRoutine   = today.items.filter(i =>  i.done && !i.isRoutine);
+    const undoneNonRoutine = today.items.filter(i => !i.done && !i.isRoutine);
+    undoneNonRoutine.forEach(i => { i.isOverdue = true; });
+    if (doneNonRoutine.length) { week.items.unshift(...doneNonRoutine); }
+    // Behåll bara eftersläpande icke-rutiner; ta bort rutiner och avklarade (redan flyttade)
+    today.items = today.items.filter(i => !i.done && !i.isRoutine);
+    changed = true;
   }
 
-  // Ny vecka → oavklarade i Denna vecka hamnar i Denna månad
-  if (lastWeek && lastWeek !== weekKey) {
-    const undone = week.items.filter(i => !i.done);
+  // Ny vecka → oavklarade icke-rutiner i Denna vecka hamnar i Denna månad
+  if (!lastWeek || lastWeek !== weekKey) {
+    const undone = week.items.filter(i => !i.done && !i.isRoutine);
     if (undone.length) {
-      week.items = week.items.filter(i => i.done);
+      week.items = week.items.filter(i => i.done && !i.isRoutine);
       month.items.unshift(...undone);
       changed = true;
     }
@@ -5492,7 +5521,6 @@ function getCityCandidates() {
   return [...history, ..._CITY_DEFAULTS.filter(c => !history.includes(c))];
 }
 
-function updateCityDatalist() { /* no-op, inline autocomplete hanteras via JS */ }
 
 function saveCityToHistory(city) {
   if (!city) return;
@@ -5502,7 +5530,6 @@ function saveCityToHistory(city) {
   history.unshift(city);
   if (history.length > 8) history.pop();
   localStorage.setItem('listig_city_history', JSON.stringify(history));
-  updateCityDatalist();
 }
 
 function showBulkAdd() {
@@ -5525,7 +5552,6 @@ function showBulkAdd() {
   document.getElementById('bulk-ta').placeholder = isMap
     ? 'Restaurang Volt\nFrantzén\nAstrid & Aporna\n...'
     : 'Rad 1\nRad 2\nRad 3...';
-  updateCityDatalist();
   openSheet('sh-bulk');
   setTimeout(() => document.getElementById('bulk-ta').focus(), 360);
 }
@@ -7060,9 +7086,9 @@ function checkRoutines() {
   // Första dagen denna månad
   const monthStartMs = new Date(today.getFullYear(), today.getMonth(), 1).getTime();
 
-  // Bygg uppslagstabell: routineId → targetList
+  // Alla rutiner går alltid till todo-day
   const routineTargetMap = {};
-  S.routines.forEach(r => { routineTargetMap[r.id] = r.targetList ?? 'todo-day'; });
+  S.routines.forEach(r => { routineTargetMap[r.id] = 'todo-day'; });
 
   [
     { listId: 'todo-day',   cutoff: todayStart },
@@ -7097,10 +7123,9 @@ function checkRoutines() {
         const nextStr = localDateStr(next);
         if (nextStr > dayKey) return; // inte dags än
       }
-      const intervalTarget = r.targetList ?? 'todo-day';
-      const trackKey = `${intervalTarget}_${dayKey}`;
+      const trackKey = `todo-day_${dayKey}`;
       if (!r.lastAdded[trackKey]) {
-        const target = getList(intervalTarget);
+        const target = getList('todo-day');
         if (target && !target.items.some(i => !i.done && i.text === r.text)) {
           target.items.unshift({ id: uid(), text: r.text, done: false, createdAt: Date.now(), doneAt: null, isRoutine: r.id });
           changed = true;
@@ -7132,8 +7157,8 @@ function checkRoutines() {
       changed = true;
     }
 
-    // Lägg till i rätt lista den dag rutinen matchar
-    tryAdd(r.targetList ?? 'todo-day', dayKey);
+    // Lägg till i todo-day den dag rutinen matchar
+    tryAdd('todo-day', dayKey);
   });
   if (changed) save();
 }
@@ -7249,12 +7274,11 @@ function showRoutines() {
   list.innerHTML = '';
   if (!S.routines.length) {
     list.innerHTML += `<p style="color:var(--tx3);font-size:13px;padding:16px 8px;line-height:1.6">
-      ${getLang()==='en'?'No routines yet.<br>Add things you do regularly - they appear automatically in the right list.':'Inga rutiner ännu.<br>Lägg till saker du gör regelbundet - de dyker upp automatiskt i rätt lista.'}</p>`;
+      ${getLang()==='en'?'No routines yet.<br>Add things you do regularly - they appear automatically in TO DO: Today.':'Inga rutiner ännu.<br>Lägg till saker du gör regelbundet - de dyker upp automatiskt i TO DO: Idag.'}</p>`;
   }
   S.routines.forEach(r => {
     const row = document.createElement('div');
     row.className = 'routine-row';
-    const targetName = (t('routineTarget'))[r.targetList] ?? r.targetList;
     const dayChips = r.monthDays?.length
       ? r.monthDays.map(d => `<span class="routine-day-chip">${d}</span>`).join('')
       : (r.days ?? []).map(d => `<span class="routine-day-chip">${LANG_DATA[getLang()].dayNamesShort[d]}</span>`).join('');
@@ -7268,7 +7292,6 @@ function showRoutines() {
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:0"><span style="font-size:15px;color:var(--tx)">${esc(r.text)}</span>${streakHtml}</div>
         <div class="routine-days">${dayChips}</div>
-        <div style="font-size:11px;color:var(--tx3);margin-top:3px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase">→ ${targetName}</div>
       </div>
       <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="flex-shrink:0;opacity:0.3">
         <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -7293,8 +7316,6 @@ function showAddRoutine() {
   setRoutineFreq('weekly');
   buildDaySelGrid([]);
   buildMonthDayGrid([]);
-  document.querySelectorAll('#routine-list-ctrl .seg-btn').forEach(b =>
-    b.classList.toggle('sel', b.dataset.list === 'todo-day'));
   openSheet('sh-add-routine');
   setTimeout(() => document.getElementById('routine-text-inp').focus(), 360);
 }
@@ -7311,8 +7332,6 @@ function showEditRoutine(id) {
   buildDaySelGrid(r.days ?? []);
   buildMonthDayGrid(r.monthDays ?? []);
   if (r.intervalDays) document.getElementById('routine-interval-inp').value = r.intervalDays;
-  document.querySelectorAll('#routine-list-ctrl .seg-btn').forEach(b =>
-    b.classList.toggle('sel', b.dataset.list === r.targetList));
   openSheet('sh-add-routine');
   setTimeout(() => document.getElementById('routine-text-inp').focus(), 360);
 }
@@ -7356,16 +7375,10 @@ document.getElementById('routine-freq-ctrl').addEventListener('click', e => {
   setRoutineFreq(btn.dataset.freq);
 });
 
-document.getElementById('routine-list-ctrl').addEventListener('click', e => {
-  const btn = e.target.closest('.seg-btn'); if (!btn) return;
-  document.querySelectorAll('#routine-list-ctrl .seg-btn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-});
-
 document.getElementById('save-routine-btn').addEventListener('click', () => {
   const text = document.getElementById('routine-text-inp').value.trim(); if (!text) return;
   const freq = document.querySelector('#routine-freq-ctrl .seg-btn.sel')?.dataset.freq ?? 'weekly';
-  const targetList = document.querySelector('#routine-list-ctrl .seg-btn.sel')?.dataset.list ?? 'todo-day';
+  const targetList = 'todo-day';
 
   let days = [], monthDays = [], intervalDays = 0;
   if (freq === 'monthly') {
