@@ -2682,6 +2682,7 @@ let S = {
   groupId: null,
   listId: null,
   itemId: null,
+  itemSrcId: null,   // actual list the active item lives in (for cross-list rows)
   openSheet: null,
   newList: { icon: EMOJIS[0], color: COLORS[0] },
   confirmCb: null,
@@ -2793,7 +2794,8 @@ function findItem(items, id) {
   }
   return null;
 }
-function activeItem() { const src = getSource(); return src ? findItem(src.items, S.itemId) : null; }
+function activeSource() { return S.itemSrcId ? getList(S.itemSrcId) : getSource(); }
+function activeItem() { const src = activeSource(); return src ? findItem(src.items, S.itemId) : null; }
 
 // ════════════════════════════════════════
 // LANGUAGE / TRANSLATIONS
@@ -3622,11 +3624,11 @@ function renderList() {
       .forEach(i => crossDone.push({ item: i, srcId: 'todo-week' }));
   }
 
-  // Eftersläpande uppgifter från Idag (visas i både Idag och Denna vecka)
+  // Eftersläpande uppgifter från Idag (visas i Idag, Denna vecka och Denna månad)
   let overdueItems = [];
   if (isToday) {
     overdueItems = active.filter(i => i.isOverdue);
-  } else if (isWeek) {
+  } else if (isWeek || isMonth) {
     const dayList = getList('todo-day');
     overdueItems = (dayList?.items ?? []).filter(i => i.isOverdue && !i.done);
   }
@@ -3691,7 +3693,7 @@ function renderList() {
     lbl.className = 'section-lbl';
     lbl.textContent = getLang() === 'en' ? 'Backlog' : 'Psst.. dessa to do:s behöver kärlek!';
     wrap.appendChild(lbl);
-    const srcId = isWeek ? 'todo-day' : undefined;
+    const srcId = (isWeek || isMonth) ? 'todo-day' : undefined;
     overdueItems.forEach(it => wrap.appendChild(makeRow(it, color, false, false, srcId)));
   }
 
@@ -3781,13 +3783,31 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
          </button>`;
 
   // Cross-list badge
-  const fromBadge = sourceListId === 'todo-week'  ? `<span class="from-week-badge">${t('badgeWeek')}</span>`
-                  : sourceListId === 'todo-month' ? `<span class="from-month-badge">${t('badgeMonth')}</span>` : '';
+  const _weekdays = getLang() === 'en'
+    ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    : ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+  let fromBadge = '';
+  if (sourceListId) {
+    if (S.listId === 'todo-day') {
+      // Uppgifter från vecka/månad som förfaller idag: visa "Idag"
+      fromBadge = `<span class="due-chip due-today">Idag</span>`;
+    } else if (sourceListId === 'todo-week') {
+      fromBadge = `<span class="from-week-badge">${t('badgeWeek')}</span>`;
+    } else if (sourceListId === 'todo-month' && S.listId === 'todo-week' && item.dueDate) {
+      // Månadsuppgifter i veckovy: visa veckodagsnamn utan datum
+      fromBadge = `<span class="due-chip">${_weekdays[new Date(item.dueDate + 'T00:00:00').getDay()]}</span>`;
+    } else if (sourceListId === 'todo-month') {
+      fromBadge = `<span class="from-month-badge">${t('badgeMonth')}</span>`;
+    }
+  }
 
-  // Due-date chip (only shown on native items, not cross-list)
+  // Due-date chip (only shown on native items, not cross-list, not overdue items)
   const todayStr0 = getTodayStr();
-  const dueChip = (!sourceListId && item.dueDate)
+  const dueChip = (!sourceListId && item.dueDate && !item.isOverdue)
     ? `<span class="due-chip${item.dueDate === todayStr0 ? ' due-today' : ''}">${formatDueDate(item.dueDate)}</span>` : '';
+  // Overdue chip: visar datumet uppgiften blev eftersläpande
+  const overdueChip = (item.isOverdue && !item.done && item.overdueDate)
+    ? `<span class="due-chip">${formatDueDate(item.overdueDate)}</span>` : '';
 
   // Scheduled-day chip shown on weekly list items
   const schedChip = (!sourceListId && S.listId === 'todo-week' && item.scheduledDay)
@@ -3798,8 +3818,8 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     <div class="item-body">
       <div class="item-text">${esc(item.text)}</div>${subProg}${photoHtml}
     </div>
-    ${schedChip}${dueChip}${fromBadge}${qtyTag}${priceTag}
-    <button class="menu-btn" style="${sourceListId ? 'display:none' : ''}">
+    ${schedChip}${dueChip}${overdueChip}${fromBadge}${qtyTag}${priceTag}
+    <button class="menu-btn" style="${(sourceListId && !(sourceListId === 'todo-month' && S.listId === 'todo-week')) ? 'display:none' : ''}">
       <svg width="3" height="13" viewBox="0 0 3 13" fill="var(--tx3)">
         <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="1.5" cy="6.5" r="1.5"/><circle cx="1.5" cy="11.5" r="1.5"/>
       </svg>
@@ -3819,10 +3839,11 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
   });
   row.querySelector('.menu-btn').addEventListener('click', () => {
     S.itemId = item.id;
+    S.itemSrcId = sourceListId || null;
     document.getElementById('act-tomorrow').style.display =
       (S.listId === 'todo-day' && !S.groupId && !item.done) ? 'flex' : 'none';
     document.getElementById('act-schedule').style.display =
-      (S.listId === 'todo-week' && !S.groupId) ? 'flex' : 'none';
+      (S.listId === 'todo-week' && !S.groupId && !S.itemSrcId) ? 'flex' : 'none';
     const showDate = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
     document.getElementById('act-date').style.display = showDate ? 'flex' : 'none';
     // Show in-progress option for todo/goals lists, not done items, not shopping
@@ -4023,7 +4044,7 @@ document.getElementById('act-schedule').addEventListener('click', () => {
 });
 
 document.getElementById('act-del').addEventListener('click', () => {
-  const src = getSource(); if (!src) return;
+  const src = activeSource(); if (!src) return;
   const deletedItem = deepCopy(src.items.find(i => i.id === S.itemId));
   const deletedIdx  = src.items.findIndex(i => i.id === S.itemId);
   src.items = src.items.filter(i => i.id !== S.itemId);
@@ -4031,8 +4052,7 @@ document.getElementById('act-del').addEventListener('click', () => {
   if (deletedItem) {
     const label = (deletedItem.text || '').slice(0, 28) + ((deletedItem.text||'').length > 28 ? '…' : '');
     showSnackbar(`"${label}" raderad`, () => {
-      const s = getSource(); if (!s) return;
-      s.items.splice(deletedIdx, 0, deletedItem); save(); renderList();
+      src.items.splice(deletedIdx, 0, deletedItem); save(); renderList();
     });
   }
 });
@@ -4136,7 +4156,7 @@ document.getElementById('act-move').addEventListener('click', () => {
 });
 
 function moveItemTo(targetGroupId, targetListId) {
-  const src = getSource();
+  const src = activeSource();
   const idx = src.items.findIndex(i => i.id === S.itemId); if (idx === -1) return;
   const [item] = src.items.splice(idx, 1);
   item.done = false; item.doneAt = null;
@@ -5443,7 +5463,7 @@ function runMigration() {
   if (lastDay && lastDay !== todayStr) {
     const doneNonRoutine   = today.items.filter(i =>  i.done && !i.isRoutine);
     const undoneNonRoutine = today.items.filter(i => !i.done && !i.isRoutine);
-    undoneNonRoutine.forEach(i => { i.isOverdue = true; });
+    undoneNonRoutine.forEach(i => { i.isOverdue = true; if (!i.overdueDate) i.overdueDate = lastDay; });
     if (doneNonRoutine.length) { week.items.unshift(...doneNonRoutine); }
     // Behåll bara eftersläpande icke-rutiner; ta bort rutiner och avklarade (redan flyttade)
     today.items = today.items.filter(i => !i.done && !i.isRoutine);
