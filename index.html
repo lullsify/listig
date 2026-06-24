@@ -3608,10 +3608,18 @@ function renderList() {
   // For time-based lists: only show items completed within the current period
   const done = src.items.filter(i => isTimeTodo ? isDoneInPeriod(i, S.listId) : i.done);
 
-  // Cross-list done items: visa avklarade från kortare listor i vecka/månad-vyerna
+  // Cross-list done items: visa avklarade från kortare listor i alla tidsbaserade vyer
   // (rutiner exkluderas - de ska aldrig synas i vecka/månad)
   const crossDone = []; // [{ item, srcId }]
-  if (isWeek) {
+  if (isToday) {
+    // Avklarade månads- och veckouppgifter som bockas av från Idag-vyn
+    (getList('todo-month')?.items ?? [])
+      .filter(i => !i.isRoutine && i.done && isDoneInPeriod(i, 'todo-day'))
+      .forEach(i => crossDone.push({ item: i, srcId: 'todo-month' }));
+    (getList('todo-week')?.items ?? [])
+      .filter(i => !i.isRoutine && i.done && isDoneInPeriod(i, 'todo-day'))
+      .forEach(i => crossDone.push({ item: i, srcId: 'todo-week' }));
+  } else if (isWeek) {
     (getList('todo-day')?.items ?? [])
       .filter(i => !i.isRoutine && isDoneInPeriod(i, 'todo-week'))
       .forEach(i => crossDone.push({ item: i, srcId: 'todo-day' }));
@@ -3639,20 +3647,16 @@ function renderList() {
     overdueItems = (dayList?.items ?? []).filter(i => i.isOverdue && !i.done);
   }
 
-  // Eftersläpande cross-list items i Idag-vyn
-  let todayOverdueCrossMonth = [], todayOverdueCrossWeek = [];
+  // Eftersläpande cross-list items i Idag-vyn (månadsuppgifter med passerat datum)
+  let todayOverdueCrossMonth = [];
   if (isToday) {
     const _mL = getList('todo-month');
-    const _wL = getList('todo-week');
     todayOverdueCrossMonth = (_mL?.items ?? []).filter(i => !i.isRoutine && !i.done && i.dueDate && i.dueDate < todayStr);
-    todayOverdueCrossWeek  = (_wL?.items  ?? []).filter(i => !i.isRoutine && !i.done && i.scheduledDay && i.scheduledDay < todayStr && i.scheduledDay >= wStart);
   }
 
-  // Eftersläpande native items i vecka/månads-vyer (datum har passerat men ej avklarade)
-  let weekNativeOverdue = [], weekCrossOverdue = [], monthNativeOverdue = [];
-  if (isWeek) {
-    weekNativeOverdue = active.filter(i => i.scheduledDay && i.scheduledDay < todayStr);
-  } else if (isMonth) {
+  // Eftersläpande native månadsuppgifter i månadsvyn + cross-list i veckovy
+  let weekCrossOverdue = [], monthNativeOverdue = [];
+  if (isMonth) {
     monthNativeOverdue = active.filter(i => i.dueDate && i.dueDate < todayStr);
   }
 
@@ -3677,7 +3681,7 @@ function renderList() {
     weekCrossOverdue = allThisWeek.filter(i => i.dueDate < todayStr);
   }
 
-  const hasAnything = src.items.length || scheduled.length || dueFromWeek.length || dueFromMonth.length || dueThisWeek.length || weekCrossOverdue.length || overdueItems.length || weekNativeOverdue.length || monthNativeOverdue.length || todayOverdueCrossMonth.length || todayOverdueCrossWeek.length || crossDone.length;
+  const hasAnything = src.items.length || scheduled.length || dueFromWeek.length || dueFromMonth.length || dueThisWeek.length || weekCrossOverdue.length || overdueItems.length || monthNativeOverdue.length || todayOverdueCrossMonth.length || crossDone.length;
   if (!hasAnything) {
     const _isFavlist = !S.groupId && S.listId === 'favlist';
     const EMPTY = {
@@ -3710,19 +3714,15 @@ function renderList() {
 
   const freshActive = isToday
     ? active.filter(i => !i.isOverdue)
-    : isWeek
-      ? active.filter(i => !i.scheduledDay || i.scheduledDay >= todayStr)
-      : isMonth
-        ? active.filter(i => !i.dueDate || i.dueDate >= todayStr)
-        : active;
+    : isMonth
+      ? active.filter(i => !i.dueDate || i.dueDate >= todayStr)
+      : active;
   freshActive.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
 
   // Eftersläpande uppgifter (Psst-sektion) - samlar alla typer av eftersläpande
   const allOverdueWithSrc = [
     ...overdueItems.map(i => ({ item: i, srcId: (isWeek || isMonth) ? 'todo-day' : undefined })),
     ...todayOverdueCrossMonth.map(i => ({ item: i, srcId: 'todo-month' })),
-    ...todayOverdueCrossWeek.map(i => ({ item: i, srcId: 'todo-week' })),
-    ...weekNativeOverdue.map(i => ({ item: i, srcId: undefined })),
     ...weekCrossOverdue.map(i => ({ item: i, srcId: 'todo-month' })),
     ...monthNativeOverdue.map(i => ({ item: i, srcId: undefined })),
   ];
@@ -3868,7 +3868,7 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
       <div class="item-text">${esc(item.text)}</div>${subProg}${photoHtml}
     </div>
     ${schedChip}${dueChip}${overdueChip}${fromBadge}${qtyTag}${priceTag}
-    <button class="menu-btn" style="${(sourceListId && !(sourceListId === 'todo-month' && S.listId === 'todo-week')) ? 'display:none' : ''}">
+    <button class="menu-btn" style="${(sourceListId && !(sourceListId === 'todo-month' && (S.listId === 'todo-week' || S.listId === 'todo-day'))) ? 'display:none' : ''}">
       <svg width="3" height="13" viewBox="0 0 3 13" fill="var(--tx3)">
         <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="1.5" cy="6.5" r="1.5"/><circle cx="1.5" cy="11.5" r="1.5"/>
       </svg>
@@ -3890,7 +3890,7 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
     S.itemId = item.id;
     S.itemSrcId = sourceListId || null;
     document.getElementById('act-tomorrow').style.display =
-      (S.listId === 'todo-day' && !S.groupId && !item.done) ? 'flex' : 'none';
+      (S.listId === 'todo-day' && !S.groupId && !S.itemSrcId && !item.done) ? 'flex' : 'none';
     document.getElementById('act-schedule').style.display =
       (S.listId === 'todo-week' && !S.groupId && !S.itemSrcId) ? 'flex' : 'none';
     const showDate = ['todo-day','todo-week','todo-month'].includes(S.listId) && !S.groupId;
