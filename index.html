@@ -3601,9 +3601,18 @@ function renderList() {
     if (isMonth && i.dueDate      && (i.dueDate < mStart || i.dueDate > mEnd)) return false;
     return true;
   });
-  // Prioriterade uppgifter flyter alltid till toppen i todo-listorna
+  // Sortering: prioritet alltid överst, sedan datum stigande för vecka/månad
   if (isToday || isWeek || isMonth) {
-    active.sort((a, b) => (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0));
+    active.sort((a, b) => {
+      const prioDiff = (b.isPriority ? 1 : 0) - (a.isPriority ? 1 : 0);
+      if (prioDiff !== 0) return prioDiff;
+      if (isMonth) {
+        const da = a.dueDate ?? 'zzz';
+        const db = b.dueDate ?? 'zzz';
+        return da.localeCompare(db);
+      }
+      return 0;
+    });
   }
   // For time-based lists: only show items completed within the current period
   const done = src.items.filter(i => isTimeTodo ? isDoneInPeriod(i, S.listId) : i.done);
@@ -3717,9 +3726,27 @@ function renderList() {
     : isMonth
       ? active.filter(i => !i.dueDate || i.dueDate >= todayStr)
       : active;
-  freshActive.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
+  if (isWeek) {
+    // Veckovyn: sammanfoga native och cross-list månadsitems, sortera på datum stigande
+    const weekAllActive = [
+      ...freshActive.map(i => ({ item: i, srcId: undefined })),
+      ...dueThisWeek.map(i => ({ item: i, srcId: 'todo-month' })),
+    ].sort((a, b) => {
+      if (a.item.isPriority !== b.item.isPriority) return b.item.isPriority ? 1 : -1;
+      const da = a.item.scheduledDay ?? a.item.dueDate ?? 'zzz';
+      const db = b.item.scheduledDay ?? b.item.dueDate ?? 'zzz';
+      return da.localeCompare(db);
+    });
+    weekAllActive.forEach(({ item, srcId }) => wrap.appendChild(makeRow(item, color, false, false, srcId)));
+  } else {
+    freshActive.forEach(it => wrap.appendChild(makeRow(it, color, isGoals, isShop)));
+    // Aktiva cross-list items för Idag-vyn
+    scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+    dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
+    dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
+  }
 
-  // Eftersläpande uppgifter (Psst-sektion) - samlar alla typer av eftersläpande
+  // Eftersläpande uppgifter (Psst-sektion) - alltid sist bland oavklarade
   const allOverdueWithSrc = [
     ...overdueItems.map(i => ({ item: i, srcId: (isWeek || isMonth) ? 'todo-day' : undefined })),
     ...todayOverdueCrossMonth.map(i => ({ item: i, srcId: 'todo-month' })),
@@ -3733,14 +3760,6 @@ function renderList() {
     wrap.appendChild(lbl);
     allOverdueWithSrc.forEach(({ item, srcId }) => wrap.appendChild(makeRow(item, color, false, false, srcId)));
   }
-
-  // Schemalagda + förfallna uppgifter från andra listor (inga separata rubriker)
-  scheduled.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-  dueFromWeek.forEach(it  => wrap.appendChild(makeRow(it, color, false, false, 'todo-week')));
-  dueFromMonth.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
-
-  // Förfallna denna vecka från månaden (ingen separat rubrik)
-  dueThisWeek.forEach(it => wrap.appendChild(makeRow(it, color, false, false, 'todo-month')));
 
   const isGifts   = !S.groupId && S.listId === 'gifts' || S.groupId === 'gifts';
   const isFavlist  = !S.groupId && S.listId === 'favlist';
