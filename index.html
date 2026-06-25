@@ -3733,8 +3733,8 @@ function renderList() {
       ...dueThisWeek.map(i => ({ item: i, srcId: 'todo-month' })),
     ].sort((a, b) => {
       if (a.item.isPriority !== b.item.isPriority) return b.item.isPriority ? 1 : -1;
-      const da = a.item.scheduledDay ?? a.item.dueDate ?? 'zzz';
-      const db = b.item.scheduledDay ?? b.item.dueDate ?? 'zzz';
+      const da = a.item.scheduledDay || a.item.dueDate || 'zzz';
+      const db = b.item.scheduledDay || b.item.dueDate || 'zzz';
       return da.localeCompare(db);
     });
     weekAllActive.forEach(({ item, srcId }) => wrap.appendChild(makeRow(item, color, false, false, srcId)));
@@ -3877,9 +3877,9 @@ function makeRow(item, color, isGoals, isShop, sourceListId) {
   const overdueChip = (item.isOverdue && !item.done && item.overdueDate)
     ? `<span class="due-chip">${formatDueDate(item.overdueDate)}</span>` : '';
 
-  // Scheduled-day chip shown on weekly list items
+  // Scheduled-day chip shown on weekly list items (veckodagsnamn, matchar cross-list badge-format)
   const schedChip = (!sourceListId && S.listId === 'todo-week' && item.scheduledDay)
-    ? `<span class="sched-chip">${formatScheduledDay(item.scheduledDay)}</span>` : '';
+    ? `<span class="sched-chip">${item.scheduledDay === getTodayStr() ? 'Idag' : _weekdays[new Date(item.scheduledDay + 'T00:00:00').getDay()]}</span>` : '';
 
   row.innerHTML = `
     ${cbHtml}
