@@ -957,6 +957,20 @@
     .service-amt-inp.vis { display: block; }
     .service-unit { font-size: 12px; color: var(--tx3); display: none; }
     .service-unit.vis { display: block; }
+    .service-fixed-toggle {
+      border: 1.5px solid rgb(var(--tx-raw) / 0.2); background: transparent; border-radius: 12px;
+      padding: 3px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--tx2);
+      cursor: pointer; font-family: inherit; transition: all 0.15s; display: none; flex-shrink: 0;
+    }
+    .service-fixed-toggle.vis { display: block; }
+    .service-fixed-toggle.on { background: var(--tx); color: #fff; border-color: var(--tx); }
+    .budget-cat-rename { border: none; background: none; cursor: pointer; padding: 2px 4px;
+      font-size: 14px; line-height: 1; color: rgb(var(--tx-raw) / 0.2); font-family: inherit; transition: color 0.15s; }
+    .budget-cat-rename:active { color: rgb(var(--tx-raw) / 0.6); }
+    .budget-edit-name-inp { width:100%; font-size:16px; border:none; border-bottom:1.5px solid var(--gold);
+      background:transparent; outline:none; padding:8px 0 6px; color:var(--tx); font-family:inherit; margin-bottom:4px; }
+    .budget-temp-note { font-size:11px; color:var(--tx3); margin-top:3px; }
+    .budget-toggle-val { font-size:11px; color:var(--tx3); margin-top:2px; }
     /* Quick-log FAB */
     .budget-quicklog-fab {
       position: absolute; bottom: calc(var(--safe-bot) + 24px); right: 20px;
@@ -1177,6 +1191,8 @@
       width: 46px; height: 28px; border-radius: 14px;
       background: var(--bdr); cursor: pointer; flex-shrink: 0;
       position: relative; transition: background 0.22s;
+      border: none; padding: 0; -webkit-appearance: none; appearance: none;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
     .toggle.on { background: var(--gold); }
     .toggle::after {
@@ -1382,12 +1398,28 @@
       padding: 6px 0 6px 14px; flex-shrink: 0;
     }
     #pin-detail-close:active { opacity: 0.6; }
-    .detail-name { font-size: 19px; font-weight: 600; color: var(--tx); }
+    #detail-name {
+      font-size: 19px; font-weight: 600; color: var(--tx); flex: 1;
+      background: none; border: none; outline: none; padding: 0;
+      font-family: inherit; min-width: 0;
+      border-bottom: 1.5px solid transparent; transition: border-color 0.15s;
+    }
+    #detail-name:focus { border-bottom-color: var(--gold); }
+    .star-rating-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+    .star-row { display: flex; gap: 4px; }
+    #rating-inp {
+      width: 52px; border: 1.5px solid var(--bdr); border-radius: 8px;
+      padding: 5px 6px; font-size: 15px; background: var(--surf); color: var(--tx);
+      font-family: inherit; text-align: center; -moz-appearance: textfield;
+      -webkit-appearance: none; outline: none;
+    }
+    #rating-inp:focus { border-color: var(--gold); }
+    #rating-inp::-webkit-outer-spin-button,
+    #rating-inp::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .detail-sl-lbl {
       font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--tx3); margin-bottom: 20px;
     }
-    .star-row { display: flex; gap: 4px; margin-bottom: 22px; }
     .star-slot { position: relative; width: 36px; height: 36px; cursor: pointer; }
     .star-svg  { width: 36px; height: 36px; display: block; }
     .star-hit-l, .star-hit-r {
@@ -1847,6 +1879,10 @@
   <!-- Post-läge -->
   <div id="budget-edit-item-sec" style="display:none">
     <div class="budget-edit-field">
+      <label class="budget-edit-lbl">Namn på post</label>
+      <input type="text" id="budget-edit-name-inp" class="budget-edit-name-inp" placeholder="Namn">
+    </div>
+    <div class="budget-edit-field">
       <label class="budget-edit-lbl">Utfall denna månad</label>
       <div class="budget-edit-inp-row">
         <input type="number" id="budget-edit-actual-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
@@ -1861,8 +1897,18 @@
       </div>
     </div>
     <div class="budget-edit-fixed-row">
-      <span class="budget-edit-fixed-lbl">Typ av kostnad</span>
-      <button class="budget-fixed-toggle" id="budget-fixed-toggle" type="button">Rörlig</button>
+      <div>
+        <span class="budget-edit-fixed-lbl">Typ av kostnad</span>
+        <div class="budget-toggle-val" id="budget-fixed-val">Rörlig</div>
+      </div>
+      <button class="toggle" id="budget-fixed-toggle" type="button"></button>
+    </div>
+    <div class="budget-edit-fixed-row" id="budget-edit-temp-row" style="display:none">
+      <div>
+        <span class="budget-edit-fixed-lbl">Tillfällig kostnad</span>
+        <div class="budget-temp-note" id="budget-edit-temp-note"></div>
+      </div>
+      <button class="toggle" id="budget-edit-temp-toggle" type="button"></button>
     </div>
   </div>
   <button class="btn" id="budget-edit-save" style="background:var(--lc);margin-top:8px">Spara</button>
@@ -1883,8 +1929,11 @@
     <span style="font-size:16px;color:var(--tx2);font-weight:300">kr/mån</span>
   </div>
   <div class="budget-edit-fixed-row" style="margin-bottom:20px">
-    <span class="budget-edit-fixed-lbl">Typ av kostnad</span>
-    <button class="budget-fixed-toggle on" id="budget-add-fixed-toggle" type="button">Fast</button>
+    <div>
+      <span class="budget-edit-fixed-lbl">Typ av kostnad</span>
+      <div class="budget-toggle-val" id="budget-add-fixed-val">Fast</div>
+    </div>
+    <button class="toggle on" id="budget-add-fixed-toggle" type="button"></button>
   </div>
   <button class="btn" id="budget-add-save" style="background:var(--lc)">Lägg till</button>
 </div>
@@ -1895,6 +1944,16 @@
   <div class="sh-title">Streaming & Appar</div>
   <div id="services-list"></div>
   <button class="btn btn-ghost" id="services-save-btn" style="margin-top:16px">Stäng</button>
+</div>
+
+<!-- Byt namn på kategori -->
+<div id="sh-budget-rename-cat" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Byt namn på kategori</div>
+  <input type="text" id="budget-rename-cat-inp" placeholder="Kategorinamn"
+    style="width:100%;font-size:16px;border:none;border-bottom:1.5px solid var(--gold);
+    background:transparent;outline:none;padding:10px 0 8px;color:var(--tx);font-family:inherit;margin-bottom:16px;">
+  <button class="btn" id="budget-rename-cat-save" style="background:var(--lc)">Spara</button>
 </div>
 
 <!-- Snabbloggning -->
@@ -2172,7 +2231,7 @@
   <!-- Pin detail panel -->
   <div id="pin-detail-panel">
     <div id="pin-detail-hd">
-      <div id="detail-name"></div>
+      <input id="detail-name" type="text" autocomplete="off" autocapitalize="words" spellcheck="false">
       <button id="pin-detail-close" onclick="closePinDetail()">Klar</button>
     </div>
     <div class="detail-sl-lbl" id="detail-sl-lbl"></div>
@@ -2188,7 +2247,10 @@
     </div>
 
     <div class="grid-lbl">Betyg</div>
-    <div class="star-row" id="star-row"></div>
+    <div class="star-rating-wrap">
+      <div class="star-row" id="star-row"></div>
+      <input type="number" id="rating-inp" min="0" max="5" step="0.1" inputmode="decimal" placeholder="-">
+    </div>
 
     <div class="grid-lbl">Favoriträtter</div>
     <div class="dishes-wrap" id="dishes-wrap"></div>
@@ -6289,7 +6351,7 @@ function openPinDetail(item, slId) {
   const group  = getList('favorites');
   const sl     = group?.sublists.find(s => s.id === slId);
 
-  document.getElementById('detail-name').textContent   = item.text;
+  document.getElementById('detail-name').value   = item.text;
   document.getElementById('detail-sl-lbl').textContent = sl?.name ?? '';
   document.getElementById('detail-note').value         = item.note ?? '';
   renderDetailStars(item.rating ?? 0);
@@ -6399,6 +6461,10 @@ function closePinDetail() {
 let _sgN = 0;
 function renderDetailStars(rating) {
   const row = document.getElementById('star-row');
+  const inp = document.getElementById('rating-inp');
+  if (inp && document.activeElement !== inp) {
+    inp.value = rating > 0 ? rating : '';
+  }
   row.innerHTML = '';
   for (let i = 1; i <= 5; i++) {
     const pct = rating >= i ? 100 : rating >= i - 0.5 ? 50 : 0;
@@ -6463,10 +6529,25 @@ document.getElementById('dish-inp').addEventListener('keydown', e => {
 });
 
 // Auto-spara notering
+document.getElementById('detail-name').addEventListener('input', () => {
+  const it = getDetailItem(); if (!it) return;
+  const val = document.getElementById('detail-name').value.trim();
+  if (val) { it.text = val; save(); }
+});
+
 document.getElementById('detail-note').addEventListener('input', () => {
   const it = getDetailItem(); if (!it) return;
   it.note = document.getElementById('detail-note').value;
   save();
+});
+
+document.getElementById('rating-inp').addEventListener('change', () => {
+  const it = getDetailItem(); if (!it) return;
+  const raw = parseFloat(document.getElementById('rating-inp').value);
+  const val = isNaN(raw) ? 0 : Math.min(5, Math.max(0, Math.round(raw * 10) / 10));
+  it.rating = val;
+  save();
+  renderDetailStars(val);
 });
 
 function renderDetailPhoto(photoSrc) {
@@ -6913,72 +6994,98 @@ document.getElementById('map-search-inp').addEventListener('input', e => {
   searchDebounce = setTimeout(() => doMapSearch(q), 420);
 });
 
+function _pickMapPlace(lat, lon, name) {
+  closeMapSearch();
+  leafMap.setView([lat, lon], 17);
+  pendingPin = { lat, lng: lon };
+  document.getElementById('pin-inp').value = name;
+  const slLabel = document.getElementById('pin-sl-label');
+  const slList  = document.getElementById('pin-sl-list');
+  slList.innerHTML = ''; selectedPinSl = null;
+  if (currentMapSublistId) {
+    selectedPinSl = currentMapSublistId;
+    slLabel.style.display = 'none'; slList.style.display = 'none';
+  } else {
+    slLabel.style.display = ''; slList.style.display = '';
+    const group = getList('favorites');
+    if (group?.sublists.length) {
+      const chk = `<svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+      group.sublists.forEach((sl, i) => {
+        if (i === 0) selectedPinSl = sl.id;
+        const r2 = document.createElement('div');
+        r2.className = `pin-sl-row${i === 0 ? ' sel' : ''}`;
+        r2.dataset.slid = sl.id;
+        r2.innerHTML = `<div class="pin-sl-check">${i === 0 ? chk : ''}</div><span style="font-size:15px;color:var(--tx)">${esc(sl.name)}</span>`;
+        r2.addEventListener('click', () => {
+          selectedPinSl = sl.id;
+          slList.querySelectorAll('.pin-sl-row').forEach(rx => {
+            const s = rx.dataset.slid === sl.id;
+            rx.classList.toggle('sel', s);
+            rx.querySelector('.pin-sl-check').innerHTML = s ? chk : '';
+          });
+        });
+        slList.appendChild(r2);
+      });
+    }
+  }
+  document.getElementById('pin-btn').style.background = getList('favorites')?.color ?? '#F2C490';
+  setTimeout(openPinPanel, 300);
+}
+
+function _mapResultRow(lat, lon, name, sub) {
+  const row = document.createElement('button');
+  row.type = 'button';
+  row.className = 'map-res-row';
+  row.innerHTML = `<div class="map-res-main">${esc(name)}</div>${sub ? `<div class="map-res-sub">${esc(sub)}</div>` : ''}`;
+  const pick = e => { e.preventDefault(); e.stopPropagation(); _pickMapPlace(lat, lon, name); };
+  row.addEventListener('touchend', pick, { passive: false });
+  row.addEventListener('click', pick);
+  return row;
+}
+
 async function doMapSearch(q) {
   const results = document.getElementById('map-search-results');
   try {
     const center = leafMap ? leafMap.getCenter() : { lat: 59.332, lng: 18.065 };
-    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=7&lat=${center.lat}&lon=${center.lng}`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-    const features = data.features ?? [];
-    results.innerHTML = '';
-    if (!features.length) {
-      results.innerHTML = '<div style="padding:24px 20px;color:var(--tx3);font-size:14px">Inget hittades - prova med adressen istället</div>';
-      return;
-    }
-    features.forEach(f => {
-      const p    = f.properties;
-      const lat  = f.geometry.coordinates[1];
-      const lon  = f.geometry.coordinates[0];
+    const enc = encodeURIComponent(q);
+
+    const [photonRes, nominatimRes] = await Promise.allSettled([
+      _fetchJSON(`https://photon.komoot.io/api/?q=${enc}&limit=8&lat=${center.lat}&lon=${center.lng}`),
+      _fetchJSON(`https://nominatim.openstreetmap.org/search?q=${enc}&format=json&limit=5&addressdetails=1&accept-language=sv`),
+    ]);
+
+    const rows = [];
+
+    // Photon results
+    const photonFeatures = photonRes.status === 'fulfilled' ? (photonRes.value?.features ?? []) : [];
+    photonFeatures.forEach(f => {
+      const p = f.properties;
+      const lat = f.geometry.coordinates[1];
+      const lon = f.geometry.coordinates[0];
       const name = p.name || p.street || q;
       const parts = [p.street, p.housenumber, p.city].filter(Boolean);
-      const sub  = parts.join(' ');
-      const row  = document.createElement('button');
-      row.type = 'button';
-      row.className = 'map-res-row';
-      row.innerHTML = `<div class="map-res-main">${esc(name)}</div>${sub ? `<div class="map-res-sub">${esc(sub)}</div>` : ''}`;
+      rows.push({ lat, lon, name, sub: parts.join(' ') });
+    });
 
-      const pickPlace = e => {
-        e.preventDefault(); e.stopPropagation();
-        closeMapSearch();
-        leafMap.setView([lat, lon], 17);
-        pendingPin = { lat, lng: lon };
-        document.getElementById('pin-inp').value = name;
-        const slLabel = document.getElementById('pin-sl-label');
-        const slList  = document.getElementById('pin-sl-list');
-        slList.innerHTML = ''; selectedPinSl = null;
-        if (currentMapSublistId) {
-          selectedPinSl = currentMapSublistId;
-          slLabel.style.display = 'none'; slList.style.display = 'none';
-        } else {
-          slLabel.style.display = ''; slList.style.display = '';
-          const group = getList('favorites');
-          if (group?.sublists.length) {
-            const chk = `<svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>`;
-            group.sublists.forEach((sl, i) => {
-              if (i === 0) selectedPinSl = sl.id;
-              const r2 = document.createElement('div');
-              r2.className = `pin-sl-row${i === 0 ? ' sel' : ''}`;
-              r2.dataset.slid = sl.id;
-              r2.innerHTML = `<div class="pin-sl-check">${i === 0 ? chk : ''}</div><span style="font-size:15px;color:var(--tx)">${esc(sl.name)}</span>`;
-              r2.addEventListener('click', () => {
-                selectedPinSl = sl.id;
-                slList.querySelectorAll('.pin-sl-row').forEach(rx => {
-                  const s = rx.dataset.slid === sl.id;
-                  rx.classList.toggle('sel', s);
-                  rx.querySelector('.pin-sl-check').innerHTML = s ? chk : '';
-                });
-              });
-              slList.appendChild(r2);
-            });
-          }
-        }
-        document.getElementById('pin-btn').style.background = getList('favorites')?.color ?? '#F2C490';
-        setTimeout(openPinPanel, 300);
-      };
-      row.addEventListener('touchend', pickPlace, { passive: false });
-      row.addEventListener('click',    pickPlace);
-      results.appendChild(row);
+    // Nominatim results - deduplicate by proximity to existing rows
+    const nomItems = nominatimRes.status === 'fulfilled' ? (nominatimRes.value ?? []) : [];
+    nomItems.forEach(item => {
+      const lat = parseFloat(item.lat);
+      const lon = parseFloat(item.lon);
+      if (rows.some(r => Math.abs(r.lat - lat) < 0.0015 && Math.abs(r.lon - lon) < 0.0015)) return;
+      const nameParts = item.display_name?.split(',') ?? [];
+      const name = item.name || nameParts[0]?.trim() || q;
+      const sub  = nameParts.slice(1, 3).map(s => s.trim()).filter(Boolean).join(', ');
+      rows.push({ lat, lon, name, sub });
+    });
+
+    results.innerHTML = '';
+    if (!rows.length) {
+      results.innerHTML = '<div style="padding:24px 20px;color:var(--tx3);font-size:14px">Inget hittades - prova med gatuadressen</div>';
+      return;
+    }
+    rows.slice(0, 12).forEach(({ lat, lon, name, sub }) => {
+      results.appendChild(_mapResultRow(lat, lon, name, sub));
     });
   } catch(err) {
     results.innerHTML = '<div style="padding:24px 20px;color:var(--tx3);font-size:14px">Kunde inte söka just nu</div>';
@@ -8312,12 +8419,13 @@ const BUDGET_PRESET = [
   { id:'boende',        catType:'fixed',    name:'Boende & Hushåll',  color:'#92BCE0', items:[
     { id:'hyra',         name:'Månadsavgift bostad (hyra/avgift/bolån)', amount:0, actual:0, fixed:true  },
     { id:'el',           name:'El',                  amount:0, actual:0, fixed:false },
-    { id:'bredband',     name:'Bredband',             amount:0, actual:0, fixed:true  },
     { id:'hemforsakring',name:'Hemförsäkring',        amount:0, actual:0, fixed:true  },
   ]},
   { id:'kommunikation', catType:'fixed',    name:'Kommunikation',     color:'#98C99C', items:[
     { id:'telefon',      name:'Telefon',              amount:0, actual:0, fixed:true  },
+    { id:'bredband',     name:'Bredband',             amount:0, actual:0, fixed:true  },
   ]},
+  { id:'forsakringar',  catType:'fixed',    name:'Försäkringar',      color:'#B8C4D4', items:[] },
   { id:'streaming',     catType:'fixed',    name:'Streaming & Appar', color:'#E8D47C', items:[] },
   { id:'lan',           catType:'fixed',    name:'Lån',               color:'#EDAAA4', items:[
     { id:'studielan',    name:'Studielån',            amount:0, actual:0, fixed:true  },
@@ -8343,6 +8451,8 @@ let _budgetMonth = '';
 let _budget = null; // pekar alltid på _budgetData.months[_budgetMonth]
 let _budgetEditTarget = null;
 let _budgetEditOrigFixed = false;
+let _budgetEditOrigAmount = 0;
+let _budgetRenameCatId = null;
 
 const MONTHS_SV = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
 
@@ -8362,6 +8472,18 @@ function budgetMonthLabel(key) {
   return `${MONTHS_SV[parseInt(m,10)-1]} ${y}`;
 }
 
+function budgetEnsureFields(md) {
+  md.categories.forEach(cat => {
+    if (!cat.catType) cat.catType = 'variable';
+    cat.items.forEach(item => {
+      if (item.actual  === undefined) item.actual  = 0;
+      if (item.fixed   === undefined) item.fixed   = true;
+      if (item.custom  === undefined) item.custom  = false;
+      if (item.hidden  === undefined) item.hidden  = false;
+    });
+  });
+}
+
 function budgetMergePresets(md) {
   BUDGET_PRESET.forEach(pc => {
     let cat = md.categories.find(c => c.id === pc.id);
@@ -8369,15 +8491,7 @@ function budgetMergePresets(md) {
     if (!cat.catType) cat.catType = pc.catType;
     pc.items.forEach(pi => { if (!cat.items.find(i => i.id === pi.id)) cat.items.push(deepCopy(pi)); });
   });
-  md.categories.forEach(cat => {
-    if (!cat.catType) cat.catType = 'variable';
-    cat.items.forEach(item => {
-      if (item.actual  === undefined) item.actual  = 0;
-      if (item.fixed   === undefined) item.fixed   = true;   // default fast
-      if (item.custom  === undefined) item.custom  = false;
-      if (item.hidden  === undefined) item.hidden  = false;
-    });
-  });
+  budgetEnsureFields(md);
 }
 
 function budgetEnsureMonth(key) {
@@ -8385,8 +8499,15 @@ function budgetEnsureMonth(key) {
   const keys = Object.keys(_budgetData.months).sort();
   if (keys.length > 0) {
     const copy = deepCopy(_budgetData.months[keys[keys.length-1]]);
-    // Nollställ utfall för ny månad - budgetbelopp kopieras
-    copy.categories.forEach(cat => cat.items.forEach(item => { item.actual = 0; }));
+    // Nollställ utfall för ny månad; återställ tillfälliga kostnader till basbelopp
+    copy.categories.forEach(cat => cat.items.forEach(item => {
+      item.actual = 0;
+      if (item.isTemporary) {
+        item.amount = item.baseAmount ?? 0;
+        item.isTemporary = false;
+        delete item.baseAmount;
+      }
+    }));
     _budgetData.months[key] = copy;
   } else {
     _budgetData.months[key] = { income: 0, categories: deepCopy(BUDGET_PRESET) };
@@ -8399,7 +8520,11 @@ function loadBudget() {
     const raw = JSON.parse(localStorage.getItem('listig_budget'));
     if (raw && raw.months) {
       _budgetData = raw;
-      Object.values(_budgetData.months).forEach(budgetMergePresets);
+      const curKey = budgetCurrentKey();
+      Object.entries(_budgetData.months).forEach(([k, md]) => {
+        if (k >= curKey) budgetMergePresets(md);
+        else budgetEnsureFields(md);
+      });
     } else if (raw && raw.categories) {
       const key = budgetCurrentKey();
       _budgetData = { months: { [key]: raw } };
@@ -8451,7 +8576,7 @@ function loadBudget() {
     if (!_budgetData._migrOvrigtFast) {
       const presetIds = {
         'boende':        ['hyra','el','bredband','hemforsakring'],
-        'kommunikation': ['telefon'],
+        'kommunikation': ['telefon','bredband'],
         'lan':           ['studielan','privatlån'],
       };
       Object.values(_budgetData.months).forEach(md => {
@@ -8466,6 +8591,79 @@ function loadBudget() {
         });
       });
       _budgetData._migrOvrigtFast = true;
+    }
+    // Migration: flytta bredband från boende till kommunikation
+    if (!_budgetData._migrBredband) {
+      Object.values(_budgetData.months).forEach(md => {
+        const boende = md.categories?.find(c => c.id === 'boende');
+        const komm   = md.categories?.find(c => c.id === 'kommunikation');
+        if (boende && komm) {
+          const bbIdx = boende.items?.findIndex(i => i.id === 'bredband');
+          if (bbIdx >= 0) {
+            const bb = boende.items[bbIdx];
+            boende.items.splice(bbIdx, 1);
+            const existIdx = komm.items.findIndex(i => i.id === 'bredband');
+            if (existIdx >= 0) {
+              if ((bb.amount||0) > 0 || (bb.actual||0) > 0) komm.items[existIdx] = bb;
+            } else {
+              komm.items.push(bb);
+            }
+          }
+        }
+      });
+      _budgetData._migrBredband = true;
+    }
+    // Migration: flytta hemförsäkring från boende till ny kategori försäkringar
+    if (!_budgetData._migrForsakringar) {
+      Object.values(_budgetData.months).forEach(md => {
+        const boende = md.categories?.find(c => c.id === 'boende');
+        if (!boende) return;
+        const hfIdx = boende.items?.findIndex(i => i.id === 'hemforsakring');
+        if (hfIdx >= 0) {
+          const hf = boende.items[hfIdx];
+          boende.items.splice(hfIdx, 1);
+          let forsak = md.categories?.find(c => c.id === 'forsakringar');
+          if (!forsak) {
+            forsak = { id:'forsakringar', catType:'fixed', name:'Försäkringar', color:'#B8C4D4', items:[] };
+            const lanIdx = md.categories?.findIndex(c => c.id === 'lan');
+            if (lanIdx >= 0) md.categories.splice(lanIdx, 0, forsak);
+            else md.categories.push(forsak);
+          }
+          const existIdx = forsak.items.findIndex(i => i.id === 'hemforsakring');
+          if (existIdx >= 0) {
+            if ((hf.amount||0) > 0 || (hf.actual||0) > 0) forsak.items[existIdx] = hf;
+          } else {
+            forsak.items.push(hf);
+          }
+        }
+      });
+      _budgetData._migrForsakringar = true;
+    }
+    // Migration: flytta hemförsäkring tillbaka från försäkringar till boende
+    if (!_budgetData._migrHemBack) {
+      const curKey = budgetCurrentKey();
+      Object.entries(_budgetData.months).forEach(([monthKey, md]) => {
+        const forsak = md.categories?.find(c => c.id === 'forsakringar');
+        const boende = md.categories?.find(c => c.id === 'boende');
+        if (!forsak || !boende) return;
+        const hfIdx = forsak.items?.findIndex(i => i.id === 'hemforsakring');
+        if (hfIdx >= 0) {
+          const hf = forsak.items[hfIdx];
+          forsak.items.splice(hfIdx, 1);
+          const existIdx = boende.items.findIndex(i => i.id === 'hemforsakring');
+          if (existIdx >= 0) {
+            if ((hf.amount||0) > 0 || (hf.actual||0) > 0) boende.items[existIdx] = hf;
+          } else {
+            boende.items.push(hf);
+          }
+        }
+        // Dölj försäkringar-kategorin i gamla månader om den inte innehåller egna poster
+        const hasCustom = forsak.items?.some(i => i.custom);
+        if (!hasCustom && monthKey < curKey) {
+          forsak.hidden = true;
+        }
+      });
+      _budgetData._migrHemBack = true;
     }
     // Säkerställ note/rating på alla månader
     Object.values(_budgetData.months).forEach(md => {
@@ -8549,10 +8747,10 @@ function renderBudgetTrend() {
     const md = _budgetData.months[key];
     const inc  = md.income || 0;
     const visCats = md.categories.filter(c => !c.hidden);
-    const anyActual = visCats.some(c => c.items.some(i => (i.actual||0) > 0));
+    const anyActual = visCats.some(c => c.items.filter(i => !i.hidden).some(i => (i.actual||0) > 0));
     const totalExp  = anyActual
-      ? visCats.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.actual||0), 0), 0)
-      : visCats.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.amount||0), 0), 0);
+      ? visCats.reduce((s,c) => s + c.items.filter(i => !i.hidden).reduce((ss,i) => ss+(i.actual||0), 0), 0)
+      : visCats.reduce((s,c) => s + c.items.filter(i => !i.hidden).reduce((ss,i) => ss+(i.amount||0), 0), 0);
     const leftover  = inc - totalExp;
     const hasData   = inc > 0 || totalExp > 0;
     return { key, leftover, hasData, isCurrent: key===curKey, anyActual };
@@ -8630,10 +8828,10 @@ function renderBudgetList() {
   // Daglig disponibel budget (bara för aktuell månad och om inkomst finns)
   if (inc > 0 && _budgetMonth === budgetCurrentKey()) {
     const visCatsD = _budget.categories.filter(c => !c.hidden);
-    const anyActD  = visCatsD.some(c => c.items.some(i => (i.actual||0) > 0));
+    const anyActD  = visCatsD.some(c => c.items.filter(i => !i.hidden).some(i => (i.actual||0) > 0));
     const totalExpD = anyActD
-      ? visCatsD.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.actual||0), 0), 0)
-      : visCatsD.reduce((s,c) => s + c.items.reduce((ss,i) => ss+(i.amount||0), 0), 0);
+      ? visCatsD.reduce((s,c) => s + c.items.filter(i => !i.hidden).reduce((ss,i) => ss+(i.actual||0), 0), 0)
+      : visCatsD.reduce((s,c) => s + c.items.filter(i => !i.hidden).reduce((ss,i) => ss+(i.amount||0), 0), 0);
     const leftD  = inc - totalExpD;
     const today  = new Date();
     const lastDay = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
@@ -8669,8 +8867,8 @@ function renderBudgetList() {
     wrap.appendChild(secHd);
 
     visCats.forEach(cat => {
-    const catBudget = cat.items.reduce((s, i) => s + (i.amount||0), 0);
-    const catActual = cat.items.reduce((s, i) => s + (i.actual||0), 0);
+    const catBudget = cat.items.filter(i => !i.hidden).reduce((s, i) => s + (i.amount||0), 0);
+    const catActual = cat.items.filter(i => !i.hidden).reduce((s, i) => s + (i.actual||0), 0);
     const hasActual = catActual > 0;
     const pct = (inc > 0 && catBudget > 0) ? Math.round(catBudget / inc * 100) : 0;
 
@@ -8689,8 +8887,10 @@ function renderBudgetList() {
           <span class="budget-cat-total">${catBudget > 0 ? catBudget.toLocaleString('sv-SE')+' kr'+(pct?' ('+pct+'%)':'') : ''}</span>
           ${catDevHtml}
         </span>
+        <button class="budget-cat-rename" aria-label="Byt namn">✎</button>
         <button class="budget-cat-hide" aria-label="Dölj kategori">×</button>
       </span>`;
+    hd.querySelector('.budget-cat-rename').addEventListener('click', () => openCatRenameSheet(cat.id));
     hd.querySelector('.budget-cat-hide').addEventListener('click', () => {
       cat.hidden = true; saveBudget(); renderBudgetList();
     });
@@ -8753,15 +8953,24 @@ function renderBudgetList() {
       row.addEventListener('click', () => {
         _budgetEditTarget = { type:'item', catId:cat.id, itemId:item.id };
         _budgetEditOrigFixed = isFixed;
-        document.getElementById('budget-edit-title').textContent = item.name;
+        _budgetEditOrigAmount = item.amount || 0;
+        document.getElementById('budget-edit-title').textContent = 'Redigera post';
+        document.getElementById('budget-edit-name-inp').value    = item.name;
         document.getElementById('budget-edit-budget-inp').value  = item.amount || '';
         document.getElementById('budget-edit-actual-inp').value  = item.actual || '';
-        document.getElementById('budget-fixed-toggle').textContent = isFixed ? 'Fast' : 'Rörlig';
         document.getElementById('budget-fixed-toggle').classList.toggle('on', isFixed);
+        document.getElementById('budget-fixed-val').textContent = isFixed ? 'Fast' : 'Rörlig';
         document.getElementById('budget-edit-income-sec').style.display = 'none';
         document.getElementById('budget-edit-item-sec').style.display   = '';
         // Dölj utfall-fältet för fasta kostnader
         document.getElementById('budget-edit-actual-inp').closest('.budget-edit-field').style.display = isFixed ? 'none' : '';
+        // Tillfällig kostnad - bara för fasta poster
+        const tempRow = document.getElementById('budget-edit-temp-row');
+        tempRow.style.display = isFixed ? '' : 'none';
+        const isTemp = !!item.isTemporary;
+        document.getElementById('budget-edit-temp-toggle').classList.toggle('on', isTemp);
+        document.getElementById('budget-edit-temp-note').textContent = isTemp && item.baseAmount != null
+          ? `Basbelopp: ${item.baseAmount.toLocaleString('sv-SE')} kr` : '';
         // Streaming-tjänster kan tas bort direkt (trots custom:false)
         document.getElementById('budget-edit-delete').style.display = (item.custom || cat.id === 'streaming') ? '' : 'none';
         openSheet('sh-budget-edit');
@@ -8824,9 +9033,9 @@ function renderBudgetList() {
 
   // Summering
   const visCats  = _budget.categories.filter(c => !c.hidden);
-  const totalBudget = visCats.reduce((s, c) => s + c.items.reduce((ss, i) => ss + (i.amount||0), 0), 0);
-  const totalActual = visCats.reduce((s, c) => s + c.items.reduce((ss, i) => ss + (i.actual||0), 0), 0);
-  const sparBudget  = (_budget.categories.find(c=>c.id==='sparande'&&!c.hidden)?.items??[]).reduce((s,i)=>s+(i.amount||0),0);
+  const totalBudget = visCats.reduce((s, c) => s + c.items.filter(i => !i.hidden).reduce((ss, i) => ss + (i.amount||0), 0), 0);
+  const totalActual = visCats.reduce((s, c) => s + c.items.filter(i => !i.hidden).reduce((ss, i) => ss + (i.actual||0), 0), 0);
+  const sparBudget  = (_budget.categories.find(c=>c.id==='sparande'&&!c.hidden)?.items??[]).filter(i=>!i.hidden).reduce((s,i)=>s+(i.amount||0),0);
   const anyActual   = totalActual > 0;
 
   const leftBudget = inc - totalBudget;
@@ -8875,8 +9084,8 @@ function renderBudgetChart() {
   const wrap = document.getElementById('budget-chart-view');
   wrap.innerHTML = '';
 
-  const cats = _budget.categories.filter(c => !c.hidden && c.items.some(i => i.amount > 0));
-  const total = cats.reduce((s, c) => s + c.items.reduce((ss,i)=>ss+(i.amount||0),0), 0);
+  const cats = _budget.categories.filter(c => !c.hidden && c.items.some(i => !i.hidden && i.amount > 0));
+  const total = cats.reduce((s, c) => s + c.items.filter(i => !i.hidden).reduce((ss,i)=>ss+(i.amount||0),0), 0);
 
   if (total === 0) {
     wrap.innerHTML = '<p style="text-align:center;color:var(--tx3);padding:60px 24px;font-size:14px">Ange belopp i lista-vyn för att se diagrammet.</p>';
@@ -8890,7 +9099,7 @@ function renderBudgetChart() {
   let segments = '';
 
   cats.forEach(cat => {
-    const catAmt = cat.items.reduce((s,i)=>s+(i.amount||0),0);
+    const catAmt = cat.items.filter(i => !i.hidden).reduce((s,i)=>s+(i.amount||0),0);
     if (catAmt <= 0) return;
     const pct = catAmt / total;
     const dash = pct * CIRC;
@@ -8920,7 +9129,7 @@ function renderBudgetChart() {
   const legend = document.createElement('div');
   legend.className = 'budget-legend';
   cats.forEach(cat => {
-    const catAmt = cat.items.reduce((s,i)=>s+(i.amount||0),0);
+    const catAmt = cat.items.filter(i => !i.hidden).reduce((s,i)=>s+(i.amount||0),0);
     if (catAmt <= 0) return;
     const row = document.createElement('div');
     row.className = 'budget-legend-row';
@@ -8934,7 +9143,14 @@ function renderBudgetChart() {
 // Fixed-toggle
 document.getElementById('budget-fixed-toggle').addEventListener('click', function() {
   const isOn = this.classList.toggle('on');
-  this.textContent = isOn ? 'Fast' : 'Rörlig';
+  document.getElementById('budget-fixed-val').textContent = isOn ? 'Fast' : 'Rörlig';
+});
+
+// Tillfällig-kostnad-toggle
+document.getElementById('budget-edit-temp-toggle').addEventListener('click', function() {
+  const isOn = this.classList.toggle('on');
+  document.getElementById('budget-edit-temp-note').textContent = isOn
+    ? `Basbelopp: ${_budgetEditOrigAmount.toLocaleString('sv-SE')} kr` : '';
 });
 
 // Spara redigerat värde
@@ -8947,9 +9163,23 @@ document.getElementById('budget-edit-save').addEventListener('click', () => {
     const cat = _budget.categories.find(c => c.id === t.catId);
     const item = cat?.items.find(i => i.id === t.itemId);
     if (item) {
+      const newName = document.getElementById('budget-edit-name-inp').value.trim();
+      if (newName) item.name = newName;
       item.amount = parseFloat(document.getElementById('budget-edit-budget-inp').value) || 0;
       item.actual = parseFloat(document.getElementById('budget-edit-actual-inp').value) || 0;
       item.fixed  = document.getElementById('budget-fixed-toggle').classList.contains('on');
+
+      // Hantera tillfällig kostnad
+      const isTemp = document.getElementById('budget-edit-temp-toggle').classList.contains('on');
+      if (item.fixed) {
+        if (isTemp) {
+          if (!item.isTemporary) item.baseAmount = _budgetEditOrigAmount;
+          item.isTemporary = true;
+        } else {
+          item.isTemporary = false;
+          delete item.baseAmount;
+        }
+      }
 
       // Flytta post till rätt sektion om fast/rörlig faktiskt ändrades
       if (item.fixed !== _budgetEditOrigFixed) {
@@ -8978,10 +9208,28 @@ document.getElementById('budget-edit-delete').addEventListener('click', () => {
   saveBudget(); closeSheet(); renderBudgetList();
 });
 
+// Kategori-rename
+function openCatRenameSheet(catId) {
+  _budgetRenameCatId = catId;
+  const cat = _budget.categories.find(c => c.id === catId);
+  document.getElementById('budget-rename-cat-inp').value = cat?.name || '';
+  openSheet('sh-budget-rename-cat');
+  setTimeout(() => document.getElementById('budget-rename-cat-inp').focus(), 320);
+}
+document.getElementById('budget-rename-cat-save').addEventListener('click', () => {
+  const name = document.getElementById('budget-rename-cat-inp').value.trim();
+  if (!name || !_budgetRenameCatId) return;
+  Object.values(_budgetData.months).forEach(md => {
+    const cat = md.categories.find(c => c.id === _budgetRenameCatId);
+    if (cat) cat.name = name;
+  });
+  saveBudget(); closeSheet(); renderBudgetList();
+});
+
 // Toggle i lägg-till-sheet
 document.getElementById('budget-add-fixed-toggle').addEventListener('click', function() {
   const on = this.classList.toggle('on');
-  this.textContent = on ? 'Fast' : 'Rörlig';
+  document.getElementById('budget-add-fixed-val').textContent = on ? 'Fast' : 'Rörlig';
 });
 
 // Lägg till egen post
@@ -9030,13 +9278,14 @@ function openServicesSheet(streamingCat) {
   const wrap = document.getElementById('services-list');
   wrap.innerHTML = '';
 
-  function syncService(id, isOn, amt) {
+  function syncService(id, isOn, amt, isFixed) {
     const svc = STREAMING_SERVICES.find(s => s.id === id);
     const existing = streamingCat.items.find(i => i.id === id);
     if (isOn && !existing) {
-      streamingCat.items.push({ id, name: svc.name, amount: amt, actual: 0, fixed: true, custom: false });
+      streamingCat.items.push({ id, name: svc.name, amount: amt, actual: 0, fixed: isFixed !== false, custom: false });
     } else if (isOn && existing) {
       existing.amount = amt;
+      existing.fixed = isFixed !== false;
     } else if (!isOn && existing) {
       streamingCat.items = streamingCat.items.filter(i => i.id !== id);
     }
@@ -9047,30 +9296,42 @@ function openServicesSheet(streamingCat) {
   STREAMING_SERVICES.forEach(svc => {
     const existing = streamingCat.items.find(i => i.id === svc.id);
     const isOn = !!existing;
+    const isFixed = existing ? existing.fixed !== false : true;
     const row = document.createElement('div');
     row.className = 'service-row';
     row.innerHTML = `
       <button class="service-toggle${isOn?' on':''}" data-id="${svc.id}">${isOn?'✓':''}</button>
       <span class="service-name">${esc(svc.name)}</span>
+      <button class="service-fixed-toggle${isOn?' vis':''}${isFixed?' on':''}" type="button">${isFixed?'Fast':'Rör.'}</button>
       <input type="number" class="service-amt-inp${isOn?' vis':''}" data-id="${svc.id}"
         placeholder="0" inputmode="numeric" value="${existing?.amount||''}" >
       <span class="service-unit${isOn?' vis':''}">kr</span>`;
-    const toggle = row.querySelector('.service-toggle');
-    const inp    = row.querySelector('.service-amt-inp');
-    const unit   = row.querySelector('.service-unit');
+    const toggle      = row.querySelector('.service-toggle');
+    const inp         = row.querySelector('.service-amt-inp');
+    const unit        = row.querySelector('.service-unit');
+    const fixedToggle = row.querySelector('.service-fixed-toggle');
 
     toggle.addEventListener('click', () => {
       const on = toggle.classList.toggle('on');
       toggle.textContent = on ? '✓' : '';
       inp.classList.toggle('vis', on);
       unit.classList.toggle('vis', on);
+      fixedToggle.classList.toggle('vis', on);
       if (on) setTimeout(() => inp.focus(), 50);
-      syncService(svc.id, on, parseFloat(inp.value) || 0);
+      syncService(svc.id, on, parseFloat(inp.value) || 0, fixedToggle.classList.contains('on'));
     });
 
     inp.addEventListener('blur', () => {
       if (toggle.classList.contains('on')) {
-        syncService(svc.id, true, parseFloat(inp.value) || 0);
+        syncService(svc.id, true, parseFloat(inp.value) || 0, fixedToggle.classList.contains('on'));
+      }
+    });
+
+    fixedToggle.addEventListener('click', () => {
+      const on = fixedToggle.classList.toggle('on');
+      fixedToggle.textContent = on ? 'Fast' : 'Rör.';
+      if (toggle.classList.contains('on')) {
+        syncService(svc.id, true, parseFloat(inp.value) || 0, on);
       }
     });
 
@@ -9103,7 +9364,7 @@ function renderBudgetGoals() {
     const done = goal.saved >= goal.target && goal.target > 0;
     const remaining = Math.max(0, (goal.target||0) - (goal.saved||0));
     // Monthly suggestion based on sparande budget
-    const sparBudget = (_budget.categories.find(c=>c.id==='sparande'&&!c.hidden)?.items??[]).reduce((s,i)=>s+(i.amount||0),0);
+    const sparBudget = (_budget.categories.find(c=>c.id==='sparande'&&!c.hidden)?.items??[]).filter(i=>!i.hidden).reduce((s,i)=>s+(i.amount||0),0);
     const monthsLeft = (sparBudget > 0 && remaining > 0) ? Math.ceil(remaining / sparBudget) : null;
 
     const card = document.createElement('div');
