@@ -165,6 +165,16 @@
       transition: transform 0.14s ease;
     }
     .list-card:active { transform: scale(0.94); }
+    .list-card.dragging { transform: none !important; opacity: 0.25; transition: none; }
+    .card-opts-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(255,255,255,0.22); border: none; border-radius: 50%;
+      width: 28px; height: 28px; font-size: 15px; color: rgba(255,255,255,0.75);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      letter-spacing: 1px; font-weight: 700; line-height: 1; padding: 0 0 2px 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card-opts-btn:active { opacity: 0.5; }
 
     .card-icon {
       font-size: 44px; font-weight: 200; line-height: 1;
@@ -1875,6 +1885,13 @@
         <span class="budget-edit-unit">kr</span>
       </div>
     </div>
+    <div class="budget-edit-field">
+      <label class="budget-edit-lbl">Övrig inkomst</label>
+      <div class="budget-edit-inp-row">
+        <input type="number" id="budget-edit-extra-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
+        <span class="budget-edit-unit">kr</span>
+      </div>
+    </div>
   </div>
   <!-- Post-läge -->
   <div id="budget-edit-item-sec" style="display:none">
@@ -1941,7 +1958,10 @@
 <!-- Streaming-tjänster picker -->
 <div id="sh-budget-services" class="sheet">
   <div class="handle"></div>
-  <div class="sh-title">Streaming & Appar</div>
+  <div style="display:flex;align-items:center;margin-bottom:8px">
+    <div class="sh-title" style="margin-bottom:0;flex:1">Streaming &amp; Appar</div>
+    <button onclick="closeSheet()" style="background:none;border:none;font-size:24px;color:var(--tx3);cursor:pointer;padding:4px 8px;line-height:1">×</button>
+  </div>
   <div id="services-list"></div>
   <button class="btn btn-ghost" id="services-save-btn" style="margin-top:16px">Stäng</button>
 </div>
@@ -2184,15 +2204,22 @@
           <path d="M8 2L2 8L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <div id="map-search-inp-wrap">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--tx3)">
-          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <input id="map-search-inp" type="search" placeholder="Sök adress eller plats…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <input id="map-name-inp" type="text" placeholder="Namn på stället…" autocomplete="off" autocapitalize="words" spellcheck="false" style="width:100%;font-size:16px;font-weight:600;border:none;border-bottom:1.5px solid var(--bdr);background:transparent;outline:none;padding:4px 0 6px;color:var(--tx);font-family:inherit">
+        <div id="map-search-inp-wrap">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--tx3)">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <input id="map-search-inp" type="search" placeholder="Adress eller plats…" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
       </div>
     </div>
     <div id="map-search-results"></div>
+    <div id="map-search-add-wrap" style="display:none;padding:12px 16px 0">
+      <button id="map-search-add-btn" class="btn" style="background:var(--lc)">Lägg till plats</button>
+      <div id="map-search-add-status" style="font-size:12px;color:var(--tx3);text-align:center;margin-top:6px;min-height:16px"></div>
+    </div>
   </div>
 
   <div id="map-container"></div>
@@ -3430,6 +3457,123 @@ function goBack() {
 }
 
 // ════════════════════════════════════════
+// DRAG-TO-REORDER HOME CARDS
+// ════════════════════════════════════════
+let _drag = null;
+
+function addLongPress(el, ms, cb, { threshold = 10 } = {}) {
+  let timer, origin;
+  el.addEventListener('touchstart', e => {
+    if (e.target.closest('.card-opts-btn')) return;
+    origin = e.touches[0];
+    timer = setTimeout(() => { timer = null; cb(origin); }, ms);
+  }, { passive: true });
+  el.addEventListener('touchend',  () => { clearTimeout(timer); timer = null; }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    if (!timer) return;
+    const t = e.touches[0];
+    if (threshold == null ||
+        Math.abs(t.clientX - origin.clientX) > threshold ||
+        Math.abs(t.clientY - origin.clientY) > threshold) {
+      clearTimeout(timer); timer = null;
+    }
+  }, { passive: true });
+}
+
+function _buildCardData(grid, origCard) {
+  return Array.from(grid.querySelectorAll('.list-card[data-listid]'))
+    .filter(c => c !== origCard)
+    .map(c => { const r = c.getBoundingClientRect(); return { card: c, cx: r.left + r.width/2, cy: r.top + r.height/2, r }; });
+}
+
+function startCardDrag(listId, touch) {
+  const grid = document.getElementById('cards-grid');
+  const origCard = grid.querySelector(`[data-listid="${listId}"]`);
+  if (!origCard) return;
+
+  vibrateDrag();
+
+  const rect = origCard.getBoundingClientRect();
+  const ghost = origCard.cloneNode(true);
+  ghost.id = 'drag-ghost';
+  ghost.removeAttribute('data-listid');
+  ghost.style.cssText = `position:fixed;width:${rect.width}px;height:${rect.height}px;`
+    + `left:${rect.left}px;top:${rect.top}px;z-index:999;pointer-events:none;`
+    + `transform:scale(1.06);opacity:0.92;border-radius:var(--r);transition:none;`
+    + `box-shadow:0 16px 48px rgba(0,0,0,0.22);`;
+  document.body.appendChild(ghost);
+  origCard.classList.add('dragging');
+  document.body.style.userSelect = 'none';
+
+  _drag = { listId, ghost, origCard, grid,
+    cardData: _buildCardData(grid, origCard),
+    startX: touch.clientX, startY: touch.clientY,
+    ghostLeft: rect.left, ghostTop: rect.top,
+    w: rect.width, h: rect.height, rafPending: false };
+
+  document.addEventListener('touchmove', _onDragMove, { passive: false });
+  document.addEventListener('touchend',  _onDragEnd);
+}
+
+function _onDragMove(e) {
+  if (!_drag) return;
+  e.preventDefault();
+  if (_drag.rafPending) return;
+  _drag.rafPending = true;
+  const clientX = e.touches[0].clientX;
+  const clientY = e.touches[0].clientY;
+  requestAnimationFrame(() => {
+    if (!_drag) return;
+    _drag.rafPending = false;
+    const { ghost, startX, startY, ghostLeft, ghostTop, w, h, origCard, grid, cardData } = _drag;
+
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+    ghost.style.left = (ghostLeft + dx) + 'px';
+    ghost.style.top  = (ghostTop  + dy) + 'px';
+
+    const cx = ghostLeft + dx + w / 2;
+    const cy = ghostTop  + dy + h / 2;
+
+    let closest = null, minDist = Infinity, closestR = null;
+    cardData.forEach(({ card, cx: ccx, cy: ccy, r }) => {
+      const dist = Math.hypot(cx - ccx, cy - ccy);
+      if (dist < minDist) { minDist = dist; closest = card; closestR = r; }
+    });
+
+    if (closest && minDist < w * 0.85) {
+      if (cx < closestR.left + closestR.width / 2) grid.insertBefore(origCard, closest);
+      else grid.insertBefore(origCard, closest.nextSibling);
+      _drag.cardData = _buildCardData(grid, origCard);
+    }
+  });
+}
+
+function _onDragEnd(e) {
+  if (!_drag) return;
+  e.preventDefault();
+  const { ghost, origCard, grid } = _drag;
+
+  const newRect = origCard.getBoundingClientRect();
+  ghost.style.transition = 'left 0.18s ease, top 0.18s ease, transform 0.18s ease, opacity 0.18s ease';
+  ghost.style.left = newRect.left + 'px';
+  ghost.style.top  = newRect.top  + 'px';
+  ghost.style.transform = 'scale(1)';
+  ghost.style.opacity   = '0';
+  setTimeout(() => { ghost.remove(); origCard.classList.remove('dragging'); }, 200);
+
+  const newOrder = Array.from(grid.querySelectorAll('.list-card[data-listid]')).map(c => c.dataset.listid);
+  const orderMap = new Map(newOrder.map((id, i) => [id, i]));
+  S.lists.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+  save();
+
+  document.body.style.userSelect = '';
+  document.removeEventListener('touchmove', _onDragMove);
+  document.removeEventListener('touchend',  _onDragEnd);
+  _drag = null;
+}
+
+// ════════════════════════════════════════
 // RENDER HOME
 // ════════════════════════════════════════
 function renderHome() {
@@ -3439,22 +3583,6 @@ function renderHome() {
 
   S.lists.forEach(list => {
     const isGroup = list.type === 'group';
-
-    let total = 0, done = 0;
-    if (isGroup) {
-      list.sublists.forEach(sl => {
-        total += sl.items.length;
-        done  += sl.items.filter(i => i.done).length;
-      });
-    } else {
-      total = list.items.length;
-      done  = list.items.filter(i => i.done).length;
-    }
-    const rem = total - done;
-    const pct = total > 0 ? (done / total * 100).toFixed(1) : 0;
-
-    const countText = '';
-    const showBar = false; // ingen stapel på korten
 
     const streak = getStreak();
     const streakBadge = (list.id === 'todo-day' && streak.count >= 2)
@@ -3469,28 +3597,27 @@ function renderHome() {
 
     const card = document.createElement('div');
     card.className = 'list-card';
+    card.dataset.listid = list.id;
     card.style.cssText = `background:${list.color};`;
     card.innerHTML = `
       ${streakBadge}
       <div class="card-info">
         <div class="card-name">${esc(getListDisplayName(list))}</div>
         ${cardCount}
-      </div>`;
+      </div>
+      <button class="card-opts-btn" aria-label="Alternativ">···</button>`;
+
+    card.querySelector('.card-opts-btn').addEventListener('click', e => {
+      e.stopPropagation(); showCardOpts(list.id);
+    });
+
     card.addEventListener('click', () => {
       if (list.type === 'group') openGroup(list.id);
       else openList(list.id);
     });
 
-    // Långtryck → kortalternativ
-    let pressTimer;
-    card.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(() => {
-        navigator.vibrate?.(30);
-        showCardOpts(list.id);
-      }, 600);
-    }, { passive: true });
-    card.addEventListener('touchend',   () => clearTimeout(pressTimer), { passive: true });
-    card.addEventListener('touchmove',  () => clearTimeout(pressTimer), { passive: true });
+    // Långtryck → dra för att flytta (addLongPress guardas redan mot .card-opts-btn)
+    addLongPress(card, 550, touch => startCardDrag(list.id, touch));
 
     grid.appendChild(card);
   });
@@ -3502,18 +3629,13 @@ function renderHome() {
   bc.innerHTML = `<div class="card-info"><div class="card-name">BUDGET</div></div>`;
   bc.addEventListener('click', openBudget);
   // Långtryckning → öppna budget och direkt snabblogg
-  let _bPressTimer;
-  bc.addEventListener('touchstart', () => {
-    _bPressTimer = setTimeout(() => {
-      openBudget();
-      setTimeout(() => {
-        const qlBtn = document.getElementById('budget-quicklog-btn');
-        if (qlBtn && qlBtn.style.display !== 'none') qlBtn.click();
-      }, 450);
-    }, 520);
-  }, { passive: true });
-  bc.addEventListener('touchend',  () => clearTimeout(_bPressTimer), { passive: true });
-  bc.addEventListener('touchmove', () => clearTimeout(_bPressTimer), { passive: true });
+  addLongPress(bc, 520, () => {
+    openBudget();
+    setTimeout(() => {
+      const qlBtn = document.getElementById('budget-quicklog-btn');
+      if (qlBtn && qlBtn.style.display !== 'none') qlBtn.click();
+    }, 450);
+  }, { threshold: null });
   grid.appendChild(bc);
 
   // New list card
@@ -4915,6 +5037,7 @@ function burst(cx, cy) {
 
 function vibrate() { navigator.vibrate && navigator.vibrate([6,15,6]); }
 function vibrateLong() { navigator.vibrate && navigator.vibrate([30,40,60,40,80]); }
+function vibrateDrag() { navigator.vibrate && navigator.vibrate(40); }
 
 // ════════════════════════════════════════
 // SNACKBAR / ÅNGRA
@@ -6089,6 +6212,7 @@ document.getElementById('gopt-map').addEventListener('click', () => {
 // MAP (FAVORITER)
 // ════════════════════════════════════════
 let leafMap = null;
+let _geoPos = null; // cache:ar position så att vi bara frågar om tillstånd en gång per session
 let leafMarkers = [];
 let pendingPin = null;
 let selectedPinSl = null;
@@ -6158,9 +6282,14 @@ function showMap(filterSublistId) {
   }
 
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(p => {
-      leafMap.setView([p.coords.latitude, p.coords.longitude], 14);
-    }, () => {});
+    if (_geoPos) {
+      leafMap.setView([_geoPos.lat, _geoPos.lng], 14);
+    } else {
+      navigator.geolocation.getCurrentPosition(p => {
+        _geoPos = { lat: p.coords.latitude, lng: p.coords.longitude };
+        leafMap.setView([_geoPos.lat, _geoPos.lng], 14);
+      }, () => {});
+    }
   }
 
   renderMapPins();
@@ -6969,23 +7098,43 @@ function pointInPolygon(point, polygon) {
 // ── Map search ──
 let searchDebounce = null;
 
+let _mapSearchCoords = null; // koordinater från vald träff
+
+function _updateMapAddBtn() {
+  const hasName = document.getElementById('map-name-inp').value.trim().length > 0;
+  const hasAddr = document.getElementById('map-search-inp').value.trim().length > 0;
+  document.getElementById('map-search-add-wrap').style.display = (hasName && hasAddr) ? '' : 'none';
+}
+
 function openMapSearch() {
+  _mapSearchCoords = null;
   document.getElementById('map-search-panel').classList.add('on');
-  setTimeout(() => document.getElementById('map-search-inp').focus(), 320);
+  setTimeout(() => document.getElementById('map-name-inp').focus(), 320);
 }
 
 function closeMapSearch() {
+  document.getElementById('map-name-inp').value = '';
   document.getElementById('map-search-inp').blur();
   document.getElementById('map-search-inp').value = '';
   document.getElementById('map-search-results').innerHTML = '';
+  document.getElementById('map-search-add-wrap').style.display = 'none';
+  document.getElementById('map-search-add-status').textContent = '';
   document.getElementById('map-search-panel').classList.remove('on');
+  _mapSearchCoords = null;
 }
 
 function hideSearchResults() {
   document.getElementById('map-search-results').innerHTML = '';
 }
 
+document.getElementById('map-name-inp').addEventListener('input', () => {
+  _mapSearchCoords = null;
+  _updateMapAddBtn();
+});
+
 document.getElementById('map-search-inp').addEventListener('input', e => {
+  _mapSearchCoords = null;
+  _updateMapAddBtn();
   clearTimeout(searchDebounce);
   const q = e.target.value.trim();
   if (q.length < 2) { hideSearchResults(); return; }
@@ -6994,43 +7143,93 @@ document.getElementById('map-search-inp').addEventListener('input', e => {
   searchDebounce = setTimeout(() => doMapSearch(q), 420);
 });
 
-function _pickMapPlace(lat, lon, name) {
-  closeMapSearch();
-  leafMap.setView([lat, lon], 17);
-  pendingPin = { lat, lng: lon };
-  document.getElementById('pin-inp').value = name;
-  const slLabel = document.getElementById('pin-sl-label');
-  const slList  = document.getElementById('pin-sl-list');
-  slList.innerHTML = ''; selectedPinSl = null;
-  if (currentMapSublistId) {
-    selectedPinSl = currentMapSublistId;
-    slLabel.style.display = 'none'; slList.style.display = 'none';
-  } else {
-    slLabel.style.display = ''; slList.style.display = '';
-    const group = getList('favorites');
-    if (group?.sublists.length) {
-      const chk = `<svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>`;
-      group.sublists.forEach((sl, i) => {
-        if (i === 0) selectedPinSl = sl.id;
-        const r2 = document.createElement('div');
-        r2.className = `pin-sl-row${i === 0 ? ' sel' : ''}`;
-        r2.dataset.slid = sl.id;
-        r2.innerHTML = `<div class="pin-sl-check">${i === 0 ? chk : ''}</div><span style="font-size:15px;color:var(--tx)">${esc(sl.name)}</span>`;
-        r2.addEventListener('click', () => {
-          selectedPinSl = sl.id;
-          slList.querySelectorAll('.pin-sl-row').forEach(rx => {
-            const s = rx.dataset.slid === sl.id;
-            rx.classList.toggle('sel', s);
-            rx.querySelector('.pin-sl-check').innerHTML = s ? chk : '';
-          });
-        });
-        slList.appendChild(r2);
-      });
-    }
-  }
-  document.getElementById('pin-btn').style.background = getList('favorites')?.color ?? '#F2C490';
-  setTimeout(openPinPanel, 300);
+function _saveMapPlace(lat, lon, placeName) {
+  const group = getList('favorites'); if (!group) return;
+  const slId = currentMapSublistId ?? group.sublists[0]?.id; if (!slId) return;
+  const sl   = group.sublists.find(s => s.id === slId); if (!sl) return;
+  const newItem = { id: uid(), text: placeName, done: false, createdAt: Date.now(), doneAt: null, lat, lng: lon };
+  sl.items.unshift(newItem);
+  save(); renderMapPins();
+  leafMap.setView([lat, lon], 16);
+  openPinDetail(newItem, slId);
 }
+
+function _pickMapPlace(lat, lon, name) {
+  const preTypedName = document.getElementById('map-name-inp').value.trim();
+  // Uppdatera adressfältets text och spara koordinater för "Lägg till"-knappen
+  _mapSearchCoords = { lat, lon };
+  document.getElementById('map-search-inp').value = name;
+  hideSearchResults();
+  _updateMapAddBtn();
+
+  if (preTypedName) {
+    // Namn är redan ifyllt → spara direkt
+    closeMapSearch();
+    _saveMapPlace(lat, lon, preTypedName);
+  } else {
+    // Inget namn → fyll i namn och öppna pin-panel som förut
+    closeMapSearch();
+    leafMap.setView([lat, lon], 17);
+    pendingPin = { lat, lng: lon };
+    document.getElementById('pin-inp').value = name;
+    const slLabel = document.getElementById('pin-sl-label');
+    const slList  = document.getElementById('pin-sl-list');
+    slList.innerHTML = ''; selectedPinSl = null;
+    if (currentMapSublistId) {
+      selectedPinSl = currentMapSublistId;
+      slLabel.style.display = 'none'; slList.style.display = 'none';
+    } else {
+      slLabel.style.display = ''; slList.style.display = '';
+      const group = getList('favorites');
+      if (group?.sublists.length) {
+        const chk = `<svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+        group.sublists.forEach((sl, i) => {
+          if (i === 0) selectedPinSl = sl.id;
+          const r2 = document.createElement('div');
+          r2.className = `pin-sl-row${i === 0 ? ' sel' : ''}`;
+          r2.dataset.slid = sl.id;
+          r2.innerHTML = `<div class="pin-sl-check">${i === 0 ? chk : ''}</div><span style="font-size:15px;color:var(--tx)">${esc(sl.name)}</span>`;
+          r2.addEventListener('click', () => {
+            selectedPinSl = sl.id;
+            slList.querySelectorAll('.pin-sl-row').forEach(rx => {
+              const s = rx.dataset.slid === sl.id;
+              rx.classList.toggle('sel', s);
+              rx.querySelector('.pin-sl-check').innerHTML = s ? chk : '';
+            });
+          });
+          slList.appendChild(r2);
+        });
+      }
+    }
+    document.getElementById('pin-btn').style.background = getList('favorites')?.color ?? '#F2C490';
+    setTimeout(openPinPanel, 300);
+  }
+}
+
+// "Lägg till plats"-knappen: geocoda adressfältet om koordinater saknas, spara sedan
+document.getElementById('map-search-add-btn').addEventListener('click', async () => {
+  const placeName = document.getElementById('map-name-inp').value.trim(); if (!placeName) return;
+  const addrQ     = document.getElementById('map-search-inp').value.trim(); if (!addrQ) return;
+  const statusEl  = document.getElementById('map-search-add-status');
+  const btn       = document.getElementById('map-search-add-btn');
+
+  if (_mapSearchCoords) {
+    closeMapSearch();
+    _saveMapPlace(_mapSearchCoords.lat, _mapSearchCoords.lon, placeName);
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.textContent = 'Söker adress…';
+  const res = await geocodeName(addrQ, '', null);
+  btn.disabled = false;
+  if (res) {
+    closeMapSearch();
+    _saveMapPlace(res.lat, res.lng, placeName);
+  } else {
+    statusEl.textContent = 'Hittades inte - prova en mer exakt adress';
+  }
+});
 
 function _mapResultRow(lat, lon, name, sub) {
   const row = document.createElement('button');
@@ -8745,7 +8944,7 @@ function renderBudgetTrend() {
   // Räkna ut överskott per månad
   const rows = months.map(key => {
     const md = _budgetData.months[key];
-    const inc  = md.income || 0;
+    const inc  = (md.income || 0) + (md.extraIncome || 0);
     const visCats = md.categories.filter(c => !c.hidden);
     const anyActual = visCats.some(c => c.items.filter(i => !i.hidden).some(i => (i.actual||0) > 0));
     const totalExp  = anyActual
@@ -8796,15 +8995,18 @@ function budgetFmt(n) { return n > 0 ? n.toLocaleString('sv-SE') + ' kr' : '-'; 
 function renderBudgetList() {
   const wrap = document.getElementById('budget-list-view');
   wrap.innerHTML = '';
-  const inc = _budget.income || 0;
+  const incSalary = _budget.income || 0;
+  const incExtra  = _budget.extraIncome || 0;
+  const inc = incSalary + incExtra;
 
   // Inkomst
   const incRow = document.createElement('div');
   const hasInc = inc > 0;
   if (hasInc) {
     incRow.className = 'budget-income-row';
+    const extraHtml = incExtra > 0 ? ` <span style="font-size:12px;color:var(--tx3);font-weight:400">(lön ${incSalary.toLocaleString('sv-SE')} + övrigt ${incExtra.toLocaleString('sv-SE')} kr)</span>` : '';
     incRow.innerHTML = `<span class="budget-income-lbl">Månadsinkomst (netto)</span>
-      <span class="budget-income-val">${inc.toLocaleString('sv-SE')} kr</span>`;
+      <span class="budget-income-val">${inc.toLocaleString('sv-SE')} kr${extraHtml}</span>`;
   } else {
     incRow.className = 'budget-income-cta';
     incRow.innerHTML = `<span style="font-size:22px">💰</span>
@@ -8816,7 +9018,8 @@ function renderBudgetList() {
   incRow.addEventListener('click', () => {
     _budgetEditTarget = { type:'income' };
     document.getElementById('budget-edit-title').textContent = 'Månadsinkomst';
-    document.getElementById('budget-edit-income-inp').value = inc || '';
+    document.getElementById('budget-edit-income-inp').value = incSalary || '';
+    document.getElementById('budget-edit-extra-inp').value  = incExtra  || '';
     document.getElementById('budget-edit-income-sec').style.display = '';
     document.getElementById('budget-edit-item-sec').style.display  = 'none';
     document.getElementById('budget-edit-delete').style.display    = 'none';
@@ -8997,10 +9200,7 @@ function renderBudgetList() {
     // Lägg till poster
     const addRow = document.createElement('div');
     addRow.className = 'budget-add-row';
-    if (cat.id === 'streaming') {
-      addRow.innerHTML = `<span style="font-size:14px;opacity:0.4">✓</span> Välj tjänster`;
-      addRow.addEventListener('click', () => openServicesSheet(cat));
-    } else {
+    {
       addRow.innerHTML = `<span style="font-size:16px;opacity:0.4">+</span> Lägg till post`;
       addRow.addEventListener('click', () => {
         _budgetEditTarget = { type:'add', catId:cat.id };
@@ -9040,8 +9240,6 @@ function renderBudgetList() {
 
   const leftBudget = inc - totalBudget;
   const leftActual = inc - totalActual;
-  const posBudget  = leftBudget >= 0;
-  const posActual  = leftActual >= 0;
 
   const leftKvar = anyActual ? leftActual : leftBudget;
   const posKvar  = leftKvar >= 0;
@@ -9059,19 +9257,14 @@ function renderBudgetList() {
       <span>${sparBudget.toLocaleString('sv-SE')} kr</span>
     </div>`;
   }
-  if (anyActual) {
-    sumRows += `<div class="budget-sum-row">
-      <span>Faktiskt utfall</span>
-      <span class="${totalActual > totalBudget ? 'budget-sum-neg':'budget-sum-pos'}">${totalActual.toLocaleString('sv-SE')} kr</span>
-    </div>`;
-  }
   if (inc > 0) {
+    const resultLabel = anyActual ? 'Faktiskt utfall' : 'Kvar (plan)';
     sumRows += `<div class="budget-sum-row highlight">
-      <span>Kvar denna månad</span>
+      <span>${resultLabel}</span>
       <span class="${posKvar?'budget-sum-pos':'budget-sum-neg'}">${leftKvar.toLocaleString('sv-SE')} kr${budgetHint}</span>
     </div>`;
   } else {
-    sumRows += `<div class="budget-sum-row highlight"><span>Kvar denna månad</span><span style="color:var(--tx3);font-weight:400;font-size:13px">Ange lön ovan</span></div>`;
+    sumRows += `<div class="budget-sum-row highlight"><span>Faktiskt utfall</span><span style="color:var(--tx3);font-weight:400;font-size:13px">Ange lön ovan</span></div>`;
   }
 
   const sumEl = document.createElement('div');
@@ -9158,7 +9351,8 @@ document.getElementById('budget-edit-save').addEventListener('click', () => {
   const t = _budgetEditTarget;
   if (!t) return;
   if (t.type === 'income') {
-    _budget.income = parseFloat(document.getElementById('budget-edit-income-inp').value) || 0;
+    _budget.income      = parseFloat(document.getElementById('budget-edit-income-inp').value) || 0;
+    _budget.extraIncome = parseFloat(document.getElementById('budget-edit-extra-inp').value)  || 0;
   } else if (t.type === 'item') {
     const cat = _budget.categories.find(c => c.id === t.catId);
     const item = cat?.items.find(i => i.id === t.itemId);
@@ -9255,92 +9449,7 @@ document.getElementById('budget-add-save').addEventListener('click', () => {
   saveBudget(); closeSheet(); renderBudgetList();
 });
 
-// ── Streaming-tjänster ───────────────────
-const STREAMING_SERVICES = [
-  { id:'s_netflix',    name:'Netflix'          },
-  { id:'s_hbo',        name:'HBO Max'          },
-  { id:'s_disney',     name:'Disney+'          },
-  { id:'s_viaplay',    name:'Viaplay'          },
-  { id:'s_appletv',    name:'Apple TV+'        },
-  { id:'s_paramount',  name:'Paramount+'       },
-  { id:'s_dplay',      name:'Discovery+'       },
-  { id:'s_sfanytime',  name:'SF Anytime'       },
-  { id:'s_spotify',    name:'Spotify'          },
-  { id:'s_applemusic', name:'Apple Music'      },
-  { id:'s_ytpremium',  name:'YouTube Premium'  },
-  { id:'s_storytel',   name:'Storytel'         },
-  { id:'s_bookbeat',   name:'Bookbeat'         },
-  { id:'s_nextory',    name:'Nextory'          },
-  { id:'s_readly',     name:'Readly'           },
-];
-
-function openServicesSheet(streamingCat) {
-  const wrap = document.getElementById('services-list');
-  wrap.innerHTML = '';
-
-  function syncService(id, isOn, amt, isFixed) {
-    const svc = STREAMING_SERVICES.find(s => s.id === id);
-    const existing = streamingCat.items.find(i => i.id === id);
-    if (isOn && !existing) {
-      streamingCat.items.push({ id, name: svc.name, amount: amt, actual: 0, fixed: isFixed !== false, custom: false });
-    } else if (isOn && existing) {
-      existing.amount = amt;
-      existing.fixed = isFixed !== false;
-    } else if (!isOn && existing) {
-      streamingCat.items = streamingCat.items.filter(i => i.id !== id);
-    }
-    saveBudget();
-    renderBudgetList();
-  }
-
-  STREAMING_SERVICES.forEach(svc => {
-    const existing = streamingCat.items.find(i => i.id === svc.id);
-    const isOn = !!existing;
-    const isFixed = existing ? existing.fixed !== false : true;
-    const row = document.createElement('div');
-    row.className = 'service-row';
-    row.innerHTML = `
-      <button class="service-toggle${isOn?' on':''}" data-id="${svc.id}">${isOn?'✓':''}</button>
-      <span class="service-name">${esc(svc.name)}</span>
-      <button class="service-fixed-toggle${isOn?' vis':''}${isFixed?' on':''}" type="button">${isFixed?'Fast':'Rör.'}</button>
-      <input type="number" class="service-amt-inp${isOn?' vis':''}" data-id="${svc.id}"
-        placeholder="0" inputmode="numeric" value="${existing?.amount||''}" >
-      <span class="service-unit${isOn?' vis':''}">kr</span>`;
-    const toggle      = row.querySelector('.service-toggle');
-    const inp         = row.querySelector('.service-amt-inp');
-    const unit        = row.querySelector('.service-unit');
-    const fixedToggle = row.querySelector('.service-fixed-toggle');
-
-    toggle.addEventListener('click', () => {
-      const on = toggle.classList.toggle('on');
-      toggle.textContent = on ? '✓' : '';
-      inp.classList.toggle('vis', on);
-      unit.classList.toggle('vis', on);
-      fixedToggle.classList.toggle('vis', on);
-      if (on) setTimeout(() => inp.focus(), 50);
-      syncService(svc.id, on, parseFloat(inp.value) || 0, fixedToggle.classList.contains('on'));
-    });
-
-    inp.addEventListener('blur', () => {
-      if (toggle.classList.contains('on')) {
-        syncService(svc.id, true, parseFloat(inp.value) || 0, fixedToggle.classList.contains('on'));
-      }
-    });
-
-    fixedToggle.addEventListener('click', () => {
-      const on = fixedToggle.classList.toggle('on');
-      fixedToggle.textContent = on ? 'Fast' : 'Rör.';
-      if (toggle.classList.contains('on')) {
-        syncService(svc.id, true, parseFloat(inp.value) || 0, on);
-      }
-    });
-
-    wrap.appendChild(row);
-  });
-  openSheet('sh-budget-services');
-}
-
-// "Klar" stänger bara sheetet – sparning sker redan direkt vid varje ändring
+// "Klar" stänger bara sheetet
 document.getElementById('services-save-btn').addEventListener('click', () => closeSheet());
 
 // ── Sparmål ──────────────────────────────
