@@ -7356,7 +7356,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 // ════════════════════════════════════════
 // DRAG TO REORDER
 // ════════════════════════════════════════
-let _drag = null;
+let _itemDrag = null;
 
 // iOS WebKit scroll-container fix: preventDefault måste anropas på scroll-containern
 // själv (inte bara på drag-handtaget) annars hinner iOS klassificera gestryet som scroll.
@@ -7383,39 +7383,39 @@ function _startDrag(clientY, itemId, row) {
   line.className = 'drag-insert-line';
   row.classList.add('is-dragging-src');
 
-  _drag = { itemId, row, ghost, wrap, line, offsetY: clientY - rect.top, insertBeforeId: undefined };
+  _itemDrag = { itemId, row, ghost, wrap, line, offsetY: clientY - rect.top, insertBeforeId: undefined };
 }
 
 function _moveDrag(cy) {
-  if (!_drag) return;
-  _drag.ghost.style.top = (cy - _drag.offsetY) + 'px';
+  if (!_itemDrag) return;
+  _itemDrag.ghost.style.top = (cy - _itemDrag.offsetY) + 'px';
 
-  const rows = [..._drag.wrap.querySelectorAll('.item-row:not(.is-dragging-src):not(.done)')];
+  const rows = [..._itemDrag.wrap.querySelectorAll('.item-row:not(.is-dragging-src):not(.done)')];
   if (!rows.length) return;
 
   let placed = false;
   for (let i = 0; i < rows.length; i++) {
     const rb = rows[i].getBoundingClientRect();
     if (cy < rb.top + rb.height / 2) {
-      if (_drag.line.nextSibling !== rows[i]) rows[i].parentNode.insertBefore(_drag.line, rows[i]);
-      _drag.line.style.display = 'block';
-      _drag.insertBeforeId = rows[i].dataset.id;
+      if (_itemDrag.line.nextSibling !== rows[i]) rows[i].parentNode.insertBefore(_itemDrag.line, rows[i]);
+      _itemDrag.line.style.display = 'block';
+      _itemDrag.insertBeforeId = rows[i].dataset.id;
       placed = true;
       break;
     }
   }
   if (!placed) {
     const last = rows[rows.length - 1];
-    if (_drag.line.previousSibling !== last) last.after(_drag.line);
-    _drag.line.style.display = 'block';
-    _drag.insertBeforeId = null;
+    if (_itemDrag.line.previousSibling !== last) last.after(_itemDrag.line);
+    _itemDrag.line.style.display = 'block';
+    _itemDrag.insertBeforeId = null;
   }
 }
 
 function _endDrag() {
-  if (!_drag) return;
-  const { itemId, insertBeforeId, ghost, row, line } = _drag;
-  _drag = null;
+  if (!_itemDrag) return;
+  const { itemId, insertBeforeId, ghost, row, line } = _itemDrag;
+  _itemDrag = null;
 
   ghost.remove();
   if (line.parentNode) line.remove();
@@ -7451,9 +7451,9 @@ function beginMouseDrag(e, itemId, row) {
   _startDrag(e.clientY, itemId, row);
 }
 
-document.addEventListener('touchmove', e => { if (_drag) { e.preventDefault(); _moveDrag(e.touches[0].clientY); } }, { passive: false });
+document.addEventListener('touchmove', e => { if (_itemDrag) { e.preventDefault(); _moveDrag(e.touches[0].clientY); } }, { passive: false });
 document.addEventListener('touchend',  () => _endDrag());
-document.addEventListener('mousemove', e => { if (_drag) _moveDrag(e.clientY); });
+document.addEventListener('mousemove', e => { if (_itemDrag) _moveDrag(e.clientY); });
 document.addEventListener('mouseup',   () => _endDrag());
 
 // ════════════════════════════════════════
