@@ -166,15 +166,6 @@
     }
     .list-card:active { transform: scale(0.94); }
     .list-card.dragging { transform: none !important; opacity: 0.25; transition: none; }
-    .card-opts-btn {
-      position: absolute; top: 8px; right: 8px;
-      background: rgba(255,255,255,0.22); border: none; border-radius: 50%;
-      width: 28px; height: 28px; font-size: 15px; color: rgba(255,255,255,0.75);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      letter-spacing: 1px; font-weight: 700; line-height: 1; padding: 0 0 2px 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .card-opts-btn:active { opacity: 0.5; }
 
     .card-icon {
       font-size: 44px; font-weight: 200; line-height: 1;
@@ -441,6 +432,13 @@
       transition: transform 0.18s ease;
     }
     .fab:active { transform: scale(0.88); }
+    .qa-tab-btn {
+      flex: 1; padding: 9px 4px; border: 1.5px solid var(--bdr); border-radius: 20px;
+      font-size: 12px; font-weight: 600; background: none; color: var(--tx2); cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .qa-tab-btn.sel { color: #fff; border-color: transparent; }
+    .qa-tab-btn:active { opacity: 0.7; }
     .add-paste-link {
       display: none; width: 100%; margin-top: 10px;
       background: none; border: none; cursor: pointer;
@@ -1831,6 +1829,11 @@
     <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
   </svg>
 </button>
+<button id="home-fab" class="fab" style="display:none;background:#3A3A3C;box-shadow:0 2px 20px rgba(0,0,0,0.32)">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M10 3v14M3 10h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
 
 <!-- ══ PIN OVERLAY ══ -->
 <!-- ── ONBOARDING ── -->
@@ -1879,7 +1882,7 @@
   <!-- Inkomst-läge -->
   <div id="budget-edit-income-sec">
     <div class="budget-edit-field">
-      <label class="budget-edit-lbl">Nettolön per månad</label>
+      <label class="budget-edit-lbl">Inkomst</label>
       <div class="budget-edit-inp-row">
         <input type="number" id="budget-edit-income-inp" placeholder="0" inputmode="numeric" class="budget-edit-num-inp">
         <span class="budget-edit-unit">kr</span>
@@ -1936,7 +1939,7 @@
 <div id="sh-budget-add" class="sheet">
   <div class="handle"></div>
   <div class="sh-title" id="budget-add-title">Lägg till post</div>
-  <input type="text" id="budget-add-name-inp" placeholder="Namn (t.ex. Gym)"
+  <input type="text" id="budget-add-name-inp" placeholder="Namn (t.ex. Netflix)"
     style="width:100%;font-size:16px;border:none;border-bottom:1.5px solid var(--gold);
     background:transparent;outline:none;padding:10px 0 8px;color:var(--tx);font-family:inherit;margin-bottom:16px;">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
@@ -2396,6 +2399,19 @@
     </svg>
     <span id="paste-link-lbl">Klistra in lista</span>
   </button>
+</div>
+
+<!-- ── QUICK ADD (from home FAB) ── -->
+<div id="sh-quickadd" class="sheet">
+  <div class="handle"></div>
+  <div class="sh-title">Lägg till uppgift</div>
+  <div style="display:flex;gap:8px;margin-bottom:18px">
+    <button id="qa-btn-todo-day" class="qa-tab-btn">Idag</button>
+    <button id="qa-btn-todo-week" class="qa-tab-btn">Denna vecka</button>
+    <button id="qa-btn-todo-month" class="qa-tab-btn">Denna månad</button>
+  </div>
+  <input class="inp" id="quickadd-inp" placeholder="Vad ska göras?" autocomplete="off" autocorrect="on" autocapitalize="sentences">
+  <button class="btn" id="quickadd-btn">Lägg till</button>
 </div>
 
 <!-- ── ADD SUBLIST ── -->
@@ -3391,6 +3407,40 @@ function fab(show, color) {
   el.style.display = show ? 'flex' : 'none';
   if (show && color) { el.style.background = color; el.style.boxShadow = `0 2px 20px ${color}90`; }
 }
+function homeFab(show) {
+  document.getElementById('home-fab').style.display = show ? 'flex' : 'none';
+}
+
+let _quickAddListId = 'todo-day';
+function showQuickAdd() {
+  _quickAddListId = 'todo-day';
+  updateQuickAddTabs();
+  document.getElementById('quickadd-inp').value = '';
+  openSheet('sh-quickadd');
+  setTimeout(() => document.getElementById('quickadd-inp').focus(), 320);
+}
+function updateQuickAddTabs() {
+  ['todo-day','todo-week','todo-month'].forEach(id => {
+    const btn = document.getElementById('qa-btn-' + id);
+    const color = getList(id)?.color || '#ccc';
+    btn.classList.toggle('sel', id === _quickAddListId);
+    btn.style.background = id === _quickAddListId ? color : '';
+    btn.style.color = id === _quickAddListId ? '#fff' : '';
+    btn.style.borderColor = id === _quickAddListId ? color : '';
+  });
+  const addBtn = document.getElementById('quickadd-btn');
+  if (addBtn) addBtn.style.background = getList(_quickAddListId)?.color || '#3A3A3C';
+}
+function submitQuickAdd() {
+  const text = document.getElementById('quickadd-inp').value.trim();
+  if (!text) return;
+  const list = getList(_quickAddListId);
+  if (!list) return;
+  list.items.unshift({ id: uid(), text, done: false, createdAt: Date.now(), doneAt: null });
+  save();
+  closeSheet();
+  renderHome();
+}
 
 function goHome() {
   closeSheet();
@@ -3402,7 +3452,7 @@ function goHome() {
     else pos('v-list', 'right');
   }
   S.view = 'home'; S.groupId = null; S.listId = null;
-  fab(false);
+  fab(false); homeFab(true);
   renderHome();
 }
 
@@ -3410,7 +3460,7 @@ function openGroup(id) {
   closeSheet();
   S.groupId = id; S.listId = null; S.view = 'group';
   pos('v-home', 'left'); pos('v-group', 'center'); pos('v-list', 'right');
-  fab(true, getList(id)?.color);
+  fab(true, getList(id)?.color); homeFab(false);
   renderGroup();
   // Contextual tip for Places first visit
   if (id === 'favorites') {
@@ -3422,7 +3472,7 @@ function openList(id) {
   closeSheet();
   S.groupId = null; S.listId = id; S.view = 'list';
   pos('v-home', 'left'); pos('v-list', 'center'); pos('v-group', 'right');
-  fab(true, getList(id)?.color);
+  fab(true, getList(id)?.color); homeFab(false);
   renderList();
 }
 
@@ -3431,12 +3481,13 @@ function openSublist(groupId, sublistId) {
   const sl = getList(groupId)?.sublists.find(s => s.id === sublistId);
   if (sl?.useMap) {
     S.groupId = groupId; S.listId = sublistId;
+    homeFab(false);
     showMap(sublistId);
     return;
   }
   S.groupId = groupId; S.listId = sublistId; S.view = 'list';
   pos('v-group', 'left'); pos('v-list', 'center');
-  fab(true, getList(groupId)?.color);
+  fab(true, getList(groupId)?.color); homeFab(false);
   renderList();
 }
 
@@ -3445,13 +3496,13 @@ function goBack() {
   if (S.view === 'list' && S.groupId) {
     pos('v-list', 'right'); pos('v-group', 'center');
     S.listId = null; S.view = 'group';
-    fab(true, getList(S.groupId)?.color);
+    fab(true, getList(S.groupId)?.color); homeFab(false);
     renderGroup();
   } else if (S.view === 'list' || S.view === 'group') {
     const from = S.view === 'group' ? 'v-group' : 'v-list';
     pos(from, 'right'); pos('v-home', 'center');
     S.view = 'home'; S.groupId = null; S.listId = null;
-    fab(false);
+    fab(false); homeFab(true);
     renderHome();
   }
 }
@@ -3464,7 +3515,6 @@ let _drag = null;
 function addLongPress(el, ms, cb, { threshold = 10 } = {}) {
   let timer, origin;
   el.addEventListener('touchstart', e => {
-    if (e.target.closest('.card-opts-btn')) return;
     origin = e.touches[0];
     timer = setTimeout(() => { timer = null; cb(origin); }, ms);
   }, { passive: true });
@@ -3604,12 +3654,7 @@ function renderHome() {
       <div class="card-info">
         <div class="card-name">${esc(getListDisplayName(list))}</div>
         ${cardCount}
-      </div>
-      <button class="card-opts-btn" aria-label="Alternativ">···</button>`;
-
-    card.querySelector('.card-opts-btn').addEventListener('click', e => {
-      e.stopPropagation(); showCardOpts(list.id);
-    });
+      </div>`;
 
     card.addEventListener('click', () => {
       if (list.type === 'group') openGroup(list.id);
@@ -7302,6 +7347,15 @@ document.getElementById('fab').addEventListener('click', () => {
   if (S.view === 'group') showAddSublist();
   else showAdd();
 });
+document.getElementById('home-fab').addEventListener('click', showQuickAdd);
+document.getElementById('quickadd-btn').addEventListener('click', submitQuickAdd);
+document.getElementById('quickadd-inp').addEventListener('keydown', e => { if (e.key === 'Enter') submitQuickAdd(); });
+['todo-day','todo-week','todo-month'].forEach(id => {
+  document.getElementById('qa-btn-' + id).addEventListener('click', () => {
+    _quickAddListId = id;
+    updateQuickAddTabs();
+  });
+});
 document.getElementById('add-paste-link').addEventListener('click', () => { closeSheet(); setTimeout(showBulkAdd, 260); });
 document.getElementById('l-paste-btn').addEventListener('click', showBulkAdd);
 
@@ -8616,19 +8670,21 @@ const BUDGET_COLOR = '#98C99C';
 
 const BUDGET_PRESET = [
   { id:'boende',        catType:'fixed',    name:'Boende & Hushåll',  color:'#92BCE0', items:[
-    { id:'hyra',         name:'Månadsavgift bostad (hyra/avgift/bolån)', amount:0, actual:0, fixed:true  },
-    { id:'el',           name:'El',                  amount:0, actual:0, fixed:false },
-    { id:'hemforsakring',name:'Hemförsäkring',        amount:0, actual:0, fixed:true  },
+    { id:'hyra',         name:'Hyra/avgift', amount:0, actual:0, fixed:true  },
+    { id:'bolan_ranta',  name:'Bolån - ränta',        amount:0, actual:0, fixed:true  },
+    { id:'bolan_amor',   name:'Bolån - amortering',   amount:0, actual:0, fixed:true  },
+    { id:'el',           name:'El',                   amount:0, actual:0, fixed:false },
+    { id:'hemforsakring',name:'Hemförsäkring',         amount:0, actual:0, fixed:true  },
   ]},
-  { id:'kommunikation', catType:'fixed',    name:'Kommunikation',     color:'#98C99C', items:[
-    { id:'telefon',      name:'Telefon',              amount:0, actual:0, fixed:true  },
+  { id:'kommunikation', catType:'fixed',    name:'Telefon & Internet', color:'#98C99C', items:[
+    { id:'telefon',      name:'Mobilabonnemang',       amount:0, actual:0, fixed:true  },
     { id:'bredband',     name:'Bredband',             amount:0, actual:0, fixed:true  },
   ]},
   { id:'forsakringar',  catType:'fixed',    name:'Försäkringar',      color:'#B8C4D4', items:[] },
   { id:'streaming',     catType:'fixed',    name:'Streaming & Appar', color:'#E8D47C', items:[] },
   { id:'lan',           catType:'fixed',    name:'Lån',               color:'#EDAAA4', items:[
     { id:'studielan',    name:'Studielån',            amount:0, actual:0, fixed:true  },
-    { id:'privatlån',    name:'Privatlån / Billån',   amount:0, actual:0, fixed:true  },
+    { id:'privatlån',    name:'Privatlån',            amount:0, actual:0, fixed:true  },
   ]},
   { id:'sparande',      catType:'savings',  name:'Sparande',          color:'#CBA8D4', items:[
     { id:'buffert',      name:'Buffert',              amount:0, actual:0, fixed:true  },
@@ -8744,7 +8800,7 @@ function loadBudget() {
     // Migration: uppdatera omdöpta poster
     if (!_budgetData._migrNames1) {
       const nameMap = {
-        'hyra':   'Månadsavgift bostad (hyra/avgift/bolån)',
+        'hyra':   'Hyra/avgift',
         'fonder': 'Aktier/fonder',
       };
       Object.values(_budgetData.months).forEach(md => {
@@ -8755,6 +8811,32 @@ function loadBudget() {
         });
       });
       _budgetData._migrNames1 = true;
+    }
+    // Migration: byt namn Kommunikation→Telefon & Internet, Telefon→Mobilabonnemang
+    if (!_budgetData._migrNames2) {
+      Object.values(_budgetData.months).forEach(md => {
+        md.categories?.forEach(cat => {
+          if (cat.id === 'kommunikation') cat.name = 'Telefon & Internet';
+          cat.items?.forEach(item => {
+            if (item.id === 'telefon'  && item.name === 'Telefon')           item.name = 'Mobilabonnemang';
+            if (item.id === 'privatlån' && item.name === 'Privatlån / Billån') item.name = 'Privatlån';
+          });
+        });
+      });
+      _budgetData._migrNames2 = true;
+    }
+    // Migration: lägg till bolån-poster i boende om de saknas
+    if (!_budgetData._migrBolan) {
+      Object.values(_budgetData.months).forEach(md => {
+        const boende = md.categories?.find(c => c.id === 'boende');
+        if (boende) {
+          if (!boende.items.find(i => i.id === 'bolan_ranta'))
+            boende.items.splice(1, 0, { id:'bolan_ranta', name:'Bolån - ränta', amount:0, actual:0, fixed:true });
+          if (!boende.items.find(i => i.id === 'bolan_amor'))
+            boende.items.splice(2, 0, { id:'bolan_amor', name:'Bolån - amortering', amount:0, actual:0, fixed:true });
+        }
+      });
+      _budgetData._migrBolan = true;
     }
     // Migration: flytta gymkort från ovrigt (rörlig) till ovrigt_fast (fast)
     if (!_budgetData._migrGymkort) {
@@ -9011,7 +9093,7 @@ function renderBudgetList() {
     incRow.className = 'budget-income-cta';
     incRow.innerHTML = `<span style="font-size:22px">💰</span>
       <div class="budget-income-cta-body">
-        <div class="budget-income-cta-title">Ange din månadslön</div>
+        <div class="budget-income-cta-title">Ange inkomst</div>
       </div>
       <span style="font-size:18px;color:var(--gold)">›</span>`;
   }
@@ -9211,6 +9293,14 @@ function renderBudgetList() {
         const addToggle = document.getElementById('budget-add-fixed-toggle');
         addToggle.classList.toggle('on', addDefFixed);
         addToggle.textContent = addDefFixed ? 'Fast' : 'Rörlig';
+        const catPlaceholders = {
+          boende:'t.ex. Garage', kommunikation:'t.ex. TV-paket',
+          forsakringar:'t.ex. Bilförsäkring', streaming:'t.ex. Netflix',
+          lan:'t.ex. Billån', sparande:'t.ex. Semesterkassa',
+          transport:'t.ex. Parkering', ovrigt_fast:'t.ex. Prenumeration',
+          ovrigt:'t.ex. Frisör',
+        };
+        document.getElementById('budget-add-name-inp').placeholder = catPlaceholders[cat.id] || 'Namn';
         openSheet('sh-budget-add');
         setTimeout(() => document.getElementById('budget-add-name-inp').focus(), 320);
       });
@@ -9692,6 +9782,7 @@ checkRoutines();
 checkWeekReview();
 initBudget();
 renderHome();
+homeFab(true);
 initPin();
 initWeekSummSettings();
 checkWeekSummarySchedule();
